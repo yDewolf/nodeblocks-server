@@ -17,5 +17,6 @@ class BaseNode:
 
         return new_node
 
-    def forward(input):
-        pass
+    
+    def forward(self, input):
+        return input

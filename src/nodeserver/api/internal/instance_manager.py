@@ -1,5 +1,5 @@
 from logging import Logger
-from threading import Thread
+from threading import Thread, Lock
 from nodeserver.api.server_instance import ServerInstance
 
 MANAGER_LOGGER = Logger("InstanceLogger")
@@ -12,6 +12,7 @@ class InstanceRunner:
 
     active: bool = False
     _thread: Thread
+    _lock: Lock
 
     def __init__(self, max_instances: int = 4, id: str = "runner"):
         self.instances = {}
@@ -20,6 +21,7 @@ class InstanceRunner:
         self.id = id
         self.max_instances = max_instances
         self._thread = Thread(target=self._thread_runtime, daemon=True)
+        self._lock = Lock()
 
     def start_thread(self):
         self.active = True
@@ -49,12 +51,17 @@ class InstanceRunner:
         while True:
             if not self.active:
                 break
-
-            for id in self.instances:
-                instance: ServerInstance = self.instances[id]
-                
-                if instance.running:
-                    instance.running_loop()
+            
+            with self._lock:
+                current_instances = list(self.instances.values())
+            
+            for instance in current_instances:
+                # try:
+                    if instance.running:
+                        instance.runtime_tick()
+                # except Exception as e:
+                #     MANAGER_LOGGER.error("Some Instance fumbled", e)
+        
 
         MANAGER_LOGGER.info("Instance Runner thread stopped")
 
