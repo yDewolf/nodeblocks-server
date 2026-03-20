@@ -7,5 +7,5 @@ where=["src"]
 
 
 [project]
-name = "mypackage"
+name = "nodeserver"
 version = "0.0.1"

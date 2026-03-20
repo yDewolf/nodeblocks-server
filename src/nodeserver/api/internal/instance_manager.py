@@ -8,12 +8,15 @@ class InstanceRunner:
     id: str
 
     max_instances: int = 4
-    instances: dict[str, ServerInstance] = {}
+    instances: dict[str, ServerInstance]
 
     active: bool = False
     _thread: Thread
 
     def __init__(self, max_instances: int = 4, id: str = "runner"):
+        self.instances = {}
+        self.active = False
+        
         self.id = id
         self.max_instances = max_instances
         self._thread = Thread(target=self._thread_runtime, daemon=True)
@@ -27,16 +30,18 @@ class InstanceRunner:
         self._thread.join()
 
 
-    def get_instance(self, instance_id: str) -> ServerInstance: return self.instances.get(instance_id)
+    def get_instance(self, instance_id: str) -> ServerInstance | None: return self.instances.get(instance_id)
 
     def add_instance(self, instance: ServerInstance) -> bool:
         if not self.is_available():
-            return False
+             return False
 
+        MANAGER_LOGGER.info("Added instance")
         self.instances[instance._attributed_id] = instance
+        return True
 
     def is_available(self) -> bool:
-        return len(self.instances) >= self.max_instances
+        return len(self.instances) < self.max_instances and self.active
 
 
     # TODO: maybe use asyncio idk
@@ -51,7 +56,7 @@ class InstanceRunner:
                 if instance.running:
                     instance.running_loop()
 
-        MANAGER_LOGGER.debug("Instance Runner thread stopped")
+        MANAGER_LOGGER.info("Instance Runner thread stopped")
 
 class InstanceManager:
     runners: int = 2
@@ -61,10 +66,17 @@ class InstanceManager:
     instance_mappings: dict[str, str] = {}
 
     def __init__(self):
+        self.instance_runners = {}
+        self.instance_mappings = {}
+        
         self._setup_runners()
+        self.activate_runners()
 
 
     def set_instance(self, instance_id: str, instance: ServerInstance) -> bool:
+        if self.instance_mappings.__contains__(instance_id):
+            return False
+        
         runner = self._get_available_runner()
         if runner == None:
             return False
@@ -74,7 +86,7 @@ class InstanceManager:
         runner.add_instance(instance)
         return True
 
-    def get_instance(self, instance_id: str) -> ServerInstance: 
+    def get_instance(self, instance_id: str) -> ServerInstance | None: 
         runner_id = self.instance_mappings.get(instance_id, None)
         if runner_id == None:
             return None
@@ -94,12 +106,19 @@ class InstanceManager:
     def _setup_runners(self):
         for idx in range(self.runners):
             new_runner = InstanceRunner(self.max_runner_instances, f"Runner{idx}")
+            new_runner.active = True
             self.instance_runners[new_runner.id] = new_runner
 
-    def _get_available_runner(self) -> InstanceRunner:
+    def activate_runners(self):
+        for id in self.instance_runners:
+            runner = self.instance_runners[id]
+            runner.start_thread()
+        
+
+    def _get_available_runner(self) -> InstanceRunner | None:
         for runner_id in self.instance_runners:
             runner: InstanceRunner = self.instance_runners[runner_id]
-            if runner.is_available():
+            if not runner.is_available():
                 continue
         
             return runner

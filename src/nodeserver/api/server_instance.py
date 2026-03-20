@@ -39,8 +39,9 @@ class ServerInstance:
             return
 
         self._runtime.forward_nodes(self.nodes)
-        INSTANCE_LOGGER.debug("DEBUG: Running server instance")
-        
+        INSTANCE_LOGGER.info("DEBUG: Running server instance")
+        print("hi")
+
 
     def start_running(self):
         self.running = True
