@@ -1,10 +1,10 @@
 
-from nodeserver.networking.nodes.data.node_data_types import NodeDataType
+from nodeserver.networking.nodes.data.node_data_types import BaseDataType
 from nodeserver.networking.nodes.node_parser import NodeParameterData
 
 
 class NodeParameter:
-    type: NodeDataType
+    type: BaseDataType
     _field_name: str
     
     _raw_field_data: NodeParameterData
