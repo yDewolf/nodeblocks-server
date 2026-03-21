@@ -59,7 +59,7 @@ OUTPUT_TYPE = BaseSlotType("output_slot", UNKNOWN_TYPE, SuperSlotTypes.OUTPUT, [
 
 class DataTypeUtils:
     @staticmethod
-    def _parse_super_type(type_str: str) -> DataTypes:
+    def _match_super_type(type_str: str) -> DataTypes:
         match type_str.lower():
             case "float": return DataTypes.FLOAT
             case "int": return DataTypes.INT
@@ -68,6 +68,14 @@ class DataTypeUtils:
             case "custom": return DataTypes.CUSTOM
             case _:
                 return DataTypes.UNKNOWN
+
+    @staticmethod
+    def _match_slot_super_type(type_str: str) -> SuperSlotTypes:
+        match type_str.lower():
+            case "input_slot": return SuperSlotTypes.INPUT
+            case "output_slot": return SuperSlotTypes.OUTPUT
+            case _:
+                return SuperSlotTypes.UNKNOWN
 
     @staticmethod
     def _match_data_type_str(type_str: str) -> BaseNodeType:
@@ -107,20 +115,25 @@ class DataTypeUtils:
 
 #         super().__init__(type_name, super_type, parsed_type_whitelist, name_whitelist)
 
-#     @staticmethod
-#     def _parse_type_whitelist(str_list: list[str]) -> tuple[list[DataTypes], list[str]]:
-#         type_whitelist: list[DataTypes] = []
-#         name_whitelist: list[str] = []
+    @staticmethod
+    def _parse_type_whitelist(str_list: list[str], _type: type[DataTypes] | type[SuperSlotTypes]) -> tuple[list, list[str]]:
+        type_whitelist: list = []
+        name_whitelist: list[str] = []
 
-#         for element in str_list:
-#             if element == "":
-#                 continue
+        for element in str_list:
+            if element == "":
+                continue
 
-#             if element.startswith("#"):
-#                 type_whitelist.append(DataTypeUtils._parse_super_type(element[:1]))
-#                 continue
+            if element.startswith("#"):
+                if _type is DataTypes:
+                    type_whitelist.append(DataTypeUtils._match_super_type(element[1:]))
+                    continue
+                
+                if _type is SuperSlotTypes:
+                    type_whitelist.append(DataTypeUtils._match_slot_type_str(element[1:]))
+                    continue
 
-#             name_whitelist.append(element)
+            name_whitelist.append(element)
 
-#         return type_whitelist, name_whitelist
+        return type_whitelist, name_whitelist
     

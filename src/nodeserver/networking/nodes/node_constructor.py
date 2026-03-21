@@ -1,7 +1,7 @@
 
 from nodeserver.networking.nodes.data.node_data import NodeData
-from nodeserver.networking.nodes.data.node_data_types import  BaseNodeType, BaseSlotType, DataTypeUtils
-from nodeserver.networking.nodes.data.slot_data import SlotData
+from nodeserver.networking.nodes.data.node_data_types import  UNKNOWN_TYPE, BaseSlotType, DataTypeUtils
+from nodeserver.networking.nodes.helpers.type_dataclasses import SlotData
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 
 
@@ -27,7 +27,7 @@ class BaseNodeConstructor:
             if not new_slot:
                 return None
 
-            mirror.slots[new_slot.type._super_type] = new_slot
+            mirror.add_slot(new_slot)
         
         return mirror
 
@@ -47,7 +47,7 @@ class BaseNodeConstructor:
             parent_node,
             slot_name,
             slot_type,
-            slot_data_type
+            slot_data_type if slot_data_type != UNKNOWN_TYPE else None
         )
 
 class CustomNodeConstructor(BaseNodeConstructor):

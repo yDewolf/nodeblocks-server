@@ -9,16 +9,25 @@ class NodeMirror:
     node_name: str
     type_name: str    
 
+    data: NodeData
     raw_data: dict
 
-    slots: dict[SuperSlotTypes, SlotMirror]
+    slots: dict[SuperSlotTypes, list[SlotMirror]]
 
     def __init__(self, node_name: str, node_data: NodeData, id: int = -1, type_name: str = "BaseNode"):
         self.id = id
-        self.slots = {}
         self.node_name = node_name
-
         self.type_name = type_name
+
+        self.data = node_data
+        self.slots = {}
+
+    def add_slot(self, slot_mirror: SlotMirror):
+        if self.slots.get(slot_mirror.type._super_type) == None:
+            self.slots[slot_mirror.type._super_type] = []
+        
+        self.slots[slot_mirror.type._super_type].append(slot_mirror)
+        
 
 class SlotMirror:
     slot_name: str
