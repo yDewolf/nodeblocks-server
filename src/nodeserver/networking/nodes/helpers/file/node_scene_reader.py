@@ -1,5 +1,6 @@
 from __future__ import annotations
-from nodeserver.networking.nodes.helpers.node_scene_dataclasses import SceneData
+import json
+from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
 
 
 class SceneFile:
@@ -18,7 +19,6 @@ class SceneFile:
         pass
 
     
-    # TODO:
     def is_virtual_data_compatible(self) -> bool: 
         if self.scene_data == None:
             return True
@@ -50,7 +50,13 @@ class SceneFile:
 
         self._virtual_file = SceneFile(True)
 
-    
+
+    def load_from_file(self, file_path: str):
+        with open(file_path, "r") as file:
+            json_data = json.load(file)
+            self._load_json_data(json_data)
+
+
     def _load_json_data(self, json_data: dict):
         if not self._virtual_file:
             return

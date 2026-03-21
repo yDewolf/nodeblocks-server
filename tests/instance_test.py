@@ -5,12 +5,11 @@ from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.node_scene import NodeScene
 from nodeserver.api.server_instance import ServerInstance
 from nodeserver.networking.nodes.data.node_data import NodeData
-from nodeserver.networking.nodes.helpers.type_dataclasses import SlotData
+from nodeserver.networking.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror
-from nodeserver.networking.nodes.node_constructor import CustomNodeConstructor
+from nodeserver.networking.nodes.helpers.node_constructor import CustomNodeConstructor
 
 LOGGER = Logger("logger")
-
 
 class MyCustomNode(BaseNode):
     some_parameter: float = 1.0

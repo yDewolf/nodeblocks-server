@@ -1,6 +1,6 @@
 
 from nodeserver.networking.nodes.data.node_data_types import BaseDataType
-from nodeserver.networking.nodes.helpers.type_dataclasses import NodeParameterData
+from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeParameterData
 
 
 class NodeParameter:

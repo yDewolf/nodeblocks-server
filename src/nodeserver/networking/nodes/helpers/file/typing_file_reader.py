@@ -1,9 +1,11 @@
+import json
+
 from nodeserver.networking.nodes.data.custom_data_types import CustomSlotType
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import BaseSlotType
-from nodeserver.networking.nodes.helpers.node_scene_dataclasses import SceneData
-from nodeserver.networking.nodes.helpers.type_dataclasses import TypeFile
-from nodeserver.networking.nodes.node_constructor import BaseNodeConstructor, CustomNodeConstructor
+from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.networking.nodes.helpers.file.type_dataclasses import TypeFile
+from nodeserver.networking.nodes.helpers.node_constructor import BaseNodeConstructor, CustomNodeConstructor
 
 class TypingFile:
     _node_types_version: int = -1
@@ -50,6 +52,12 @@ class TypingFile:
         return self.node_constructors.get(type_name, None)
 
 
+    def load_from_file(self, file_path: str):
+        with open(file_path, "r") as file:
+            json_data = json.load(file)
+            self._load_json_data(json_data)
+
+
     def _load_json_data(self, json_data: dict):
         type_data, slot_types, constructors = TypingFile._parse_json_data(json_data)
         
@@ -65,8 +73,7 @@ class TypingFile:
     @staticmethod
     def _parse_json_data(json_data: dict) -> tuple[TypeFile, dict[str, BaseSlotType], dict[str, BaseNodeConstructor]]:
         type_data: TypeFile = TypeFile.from_dict(json_data)
-               
-
+        
         constructors: dict[str, BaseNodeConstructor] = {}
         slot_types: dict[str, BaseSlotType] = {}
 

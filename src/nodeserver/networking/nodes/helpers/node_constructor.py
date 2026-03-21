@@ -1,9 +1,8 @@
 
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import  UNKNOWN_TYPE, BaseSlotType, DataTypeUtils
-from nodeserver.networking.nodes.helpers.type_dataclasses import SlotData
+from nodeserver.networking.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
-
 
 class BaseNodeConstructor:
     type_name: str
