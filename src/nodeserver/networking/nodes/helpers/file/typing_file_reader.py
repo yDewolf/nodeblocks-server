@@ -7,7 +7,7 @@ from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import Scen
 from nodeserver.networking.nodes.helpers.file.type_dataclasses import TypeFile
 from nodeserver.networking.nodes.helpers.node_constructor import BaseNodeConstructor, CustomNodeConstructor
 
-class TypingFile:
+class TypeFileReader:
     _node_types_version: int = -1
     _node_types_id: str | None = None
     
@@ -59,7 +59,7 @@ class TypingFile:
 
 
     def _load_json_data(self, json_data: dict):
-        type_data, slot_types, constructors = TypingFile._parse_json_data(json_data)
+        type_data, slot_types, constructors = TypeFileReader._parse_json_data(json_data)
         
         self._raw_data = json_data
 

@@ -4,14 +4,21 @@ from typing import Any
 
 @dataclass
 class NodeSceneData:
+    id: int
     type: str
     # position: Vector2
     # size: Vector2
     data: dict[str, Any]
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'NodeSceneData':
+    def from_dict(cls, data: dict, key: str) -> 'NodeSceneData':
+        node_id = -1
+        split = key.split("_")
+        if len(split) >= 2:
+            node_id = int(split[1])
+
         return cls(
+            id=node_id,
             type=data.get("type", ""),
             # position=Vector2.from_list(data.get("position", [0, 0])),
             # size=Vector2.from_list(data.get("size", [0, 0])),
@@ -62,7 +69,7 @@ class SceneData:
             node_types_id=data.get("node_types_id", "unknown"),
             node_types_version=data.get("node_types_version", 0),
             nodes={
-                key: NodeSceneData.from_dict(value) 
+                key: NodeSceneData.from_dict(value, key) 
                 for key, value in data.get("nodes", {}).items()
             },
             connections={

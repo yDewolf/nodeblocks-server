@@ -130,7 +130,7 @@ class DataTypeUtils:
                     continue
                 
                 if _type is SuperSlotTypes:
-                    type_whitelist.append(DataTypeUtils._match_slot_type_str(element[1:]))
+                    type_whitelist.append(DataTypeUtils._match_slot_super_type(element[1:]))
                     continue
 
             name_whitelist.append(element)

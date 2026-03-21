@@ -2,12 +2,12 @@ import logging
 
 from nodeserver.api.base_nodes import BaseNode
 from nodeserver.networking.nodes.data.node_data_types import BaseNodeType
-from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypingFile
+from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
 from test_data import TYPE_FILE_JSON
 
 LOGGER = logging.Logger("Logger")
 
-types_file = TypingFile()
+types_file = TypeFileReader()
 types_file._load_json_data(
     TYPE_FILE_JSON
 )

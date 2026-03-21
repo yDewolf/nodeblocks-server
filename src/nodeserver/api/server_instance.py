@@ -3,6 +3,7 @@ import logging
 from typing import Callable
 from nodeserver.api.base_nodes import BaseNode
 from nodeserver.api.node_scene import NodeScene
+from nodeserver.networking.nodes.helpers.scene_manager import SceneManager
 
 # TODO: make a node_scene class with every node and connections + other things related to the scene
 INSTANCE_LOGGER = logging.Logger("InstanceLogger")
@@ -65,7 +66,8 @@ class BaseServerRuntime:
             self._current_idx = None
 
 
-# TODO:
+# TODO: Use scene stuff from SceneManager to make actual Nodes from the Mirrors
+
 class ServerInstance:
     _attributed_id: str = ""
     _runtime: BaseServerRuntime
@@ -74,27 +76,29 @@ class ServerInstance:
     running: bool = False
     auto_loop: bool = True
     
-    loaded_scene: NodeScene | None = None
+    scene_manager: SceneManager
 
     def __init__(self):
         self.setup()
 
     def setup(self):
         self._runtime = BaseServerRuntime()
+        self.scene_manager = SceneManager()
 
 
     def runtime_tick(self):
         if not self.running:
             return
 
-        if not self.loaded_scene:
+        if not self.scene_manager.has_loaded_scene():
             return
 
+        loaded_scene = NodeScene([]) # FIXME
         # TODO: Check if it should actually continue
         if self._runtime.waiting_for_continue and self.auto_loop:
-            self._runtime.continue_process(self.loaded_scene)
+            self._runtime.continue_process(loaded_scene)
 
-        results = self._runtime.process_next(self.loaded_scene)
+        results = self._runtime.process_next(loaded_scene)
         if results != None and self._on_output != None:
             result, node = results
             self._on_output({
@@ -117,9 +121,9 @@ class ServerInstance:
         self.running = False
 
 
-    def _scene_changed(self, scene: NodeScene):
-        self.loaded_scene = scene
-        self._runtime.on_scene_changed(scene)
+    def _scene_changed(self):
+        self._runtime.on_scene_changed(NodeScene([])) # FIXME
+
 
     def save_state(self):
         pass

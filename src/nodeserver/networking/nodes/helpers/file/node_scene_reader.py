@@ -3,15 +3,15 @@ import json
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
 
 
-class SceneFile:
-    _virtual_file: SceneFile | None = None
+class SceneFileReader:
+    _virtual_file: SceneFileReader | None = None
 
     raw_data: dict | None = None
     scene_data: SceneData | None = None
 
     def __init__(self, is_virtual: bool = False) -> None:
         if not is_virtual:
-            self._virtual_file = SceneFile(True)
+            self._virtual_file = SceneFileReader(True)
     
 
     # TODO:
@@ -48,7 +48,7 @@ class SceneFile:
         self.scene_data = self._virtual_file.scene_data
         self.raw_data = self._virtual_file.raw_data
 
-        self._virtual_file = SceneFile(True)
+        self._virtual_file = SceneFileReader(True)
 
 
     def load_from_file(self, file_path: str):
