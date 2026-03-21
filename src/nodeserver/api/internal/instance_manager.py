@@ -1,5 +1,5 @@
 from logging import Logger
-from threading import Thread, Lock
+from threading import Thread, Lock, Event
 from nodeserver.api.server_instance import ServerInstance
 
 MANAGER_LOGGER = Logger("InstanceLogger")
@@ -55,6 +55,9 @@ class InstanceRunner:
             with self._lock:
                 current_instances = list(self.instances.values())
             
+            if len(current_instances) == 0:
+                Event().wait(1.0)
+
             for instance in current_instances:
                 # try:
                     if instance.running:

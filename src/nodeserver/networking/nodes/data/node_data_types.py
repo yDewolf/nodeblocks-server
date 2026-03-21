@@ -23,10 +23,10 @@ class BaseDataType[group: DataGroup, superType: (DataTypes, SuperSlotTypes)]:
 
     _data_group: TypeVar
     _super_type: superType
-    _type_whitelist: list[DataTypes] = []
+    _type_whitelist: list[superType] = []
     _name_whitelist: list[str] = []
 
-    def __init__(self, type_name: str, super_type: superType, type_whitelist: list[DataTypes], name_whitelist: list[str] = []):
+    def __init__(self, type_name: str, super_type: superType, type_whitelist: list[superType], name_whitelist: list[str] = []):
         self.type_name = type_name
 
         self._data_group = group
@@ -42,7 +42,7 @@ class BaseNodeType(BaseDataType[DataGroup.SLOT, DataTypes]):
 class BaseSlotType(BaseDataType[DataGroup.SLOT, SuperSlotTypes]):
     data_type: BaseNodeType
 
-    def __init__(self, type_name: str, data_type: BaseNodeType, super_type: SuperSlotTypes, type_whitelist: list[DataTypes], name_whitelist: list[str] = []):
+    def __init__(self, type_name: str, data_type: BaseNodeType, super_type: SuperSlotTypes, type_whitelist: list[SuperSlotTypes], name_whitelist: list[str] = []):
         self.data_type = data_type
         super().__init__(type_name, super_type, type_whitelist, name_whitelist)
 
@@ -54,6 +54,8 @@ UINT_TYPE = BaseNodeType("uint" , DataTypes.UINT, [DataTypes.UINT])
 ARRAY_TYPE = BaseNodeType("array" , DataTypes.ARRAY, [DataTypes.ARRAY])
 UNKNOWN_TYPE = BaseNodeType("unknown" , DataTypes.UNKNOWN, [DataTypes.UNKNOWN])
 
+INPUT_TYPE = BaseSlotType("input_slot", UNKNOWN_TYPE, SuperSlotTypes.INPUT, [SuperSlotTypes.OUTPUT])
+OUTPUT_TYPE = BaseSlotType("output_slot", UNKNOWN_TYPE, SuperSlotTypes.OUTPUT, [SuperSlotTypes.INPUT])
 
 class DataTypeUtils:
     @staticmethod
@@ -68,7 +70,7 @@ class DataTypeUtils:
                 return DataTypes.UNKNOWN
 
     @staticmethod
-    def _match_data_type_str(type_str: str):
+    def _match_data_type_str(type_str: str) -> BaseNodeType:
         match type_str.lower():
             case "float": return FLOAT_TYPE
             case "int": return INT_TYPE
@@ -78,7 +80,16 @@ class DataTypeUtils:
                 return UNKNOWN_TYPE
 
     @staticmethod
+    def _match_slot_type_str(type_str: str) -> BaseSlotType | None:
+        match type_str.lower():
+            case "input_slot": return INPUT_TYPE
+            case "output_slot": return OUTPUT_TYPE
+            case _:
+                return None
+
+    @staticmethod
     def is_type_compatible_with(type_a: BaseDataType[Any, Any], type_b: BaseDataType[Any, Any]) -> bool:
+        # FIXME: Slot Compatibility might be broken
         if type_a._data_group != type_b._data_group:
             return False
 

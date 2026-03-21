@@ -2,8 +2,7 @@
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import  BaseNodeType, BaseSlotType, DataTypeUtils
 from nodeserver.networking.nodes.data.slot_data import SlotData
-from nodeserver.networking.nodes.node.base_nodes import NodeMirror
-from nodeserver.networking.nodes.node.node_slot import SlotMirror
+from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 
 
 class BaseNodeConstructor:
@@ -34,20 +33,22 @@ class BaseNodeConstructor:
 
 
     def make_slot_mirror(self, parent_node: NodeMirror, slot_name: str, slot_data: SlotData):
-        slot_type = self._slot_types.get(slot_data.data_type if slot_data.data_type != None else "")
+        slot_type_str = slot_data.type if slot_data.type != None else ""
+        slot_type = self._slot_types.get(slot_type_str)
         if not slot_type:
-            return None
+            # Search for default slot types
+            slot_type = DataTypeUtils._match_slot_type_str(slot_type_str)
+            
+            if slot_type == None:
+                return None
 
         slot_data_type = DataTypeUtils._match_data_type_str(slot_data.data_type if slot_data.data_type != None else "")
-        if type(slot_data_type) is BaseNodeType:
-            return SlotMirror(
-                parent_node,
-                slot_name,
-                slot_type,
-                slot_data_type
-            )
-    
-        return None
+        return SlotMirror(
+            parent_node,
+            slot_name,
+            slot_type,
+            slot_data_type
+        )
 
 class CustomNodeConstructor(BaseNodeConstructor):
     def __init__(self, type_name: str, data: NodeData, slots: dict[str, SlotData], slot_types: dict[str, BaseSlotType]) -> None:

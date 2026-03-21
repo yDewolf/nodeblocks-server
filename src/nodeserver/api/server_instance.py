@@ -10,6 +10,7 @@ INSTANCE_LOGGER = logging.Logger("InstanceLogger")
 class BaseServerRuntime:
     _current_idx: int | None = None
     _process_order: list[int] | None = None
+    _previous_output: dict | None = None
     waiting_for_continue: bool
     
     def __init__(self):
@@ -31,9 +32,17 @@ class BaseServerRuntime:
         self._current_idx += 1
         
         # TODO: Node Input
-        node_input = None
-        result = current_node.forward(node_input)
-        return (result, current_node)
+        # Node input should come from connections, not previous output btw
+        node_input = 0
+        if self._previous_output != None:
+            node_input = self._previous_output.get("value")
+
+        node_result = current_node.forward(node_input)
+        result_dict = {
+            "value": node_result
+        }
+        self._previous_output = result_dict
+        return (result_dict, current_node)
 
     def continue_process(self, scene: NodeScene):
         self.waiting_for_continue = False
@@ -51,6 +60,7 @@ class BaseServerRuntime:
         ]
         
         self._current_idx = 0
+        self._previous_output = None
         if len(self._process_order) == 0:
             self._current_idx = None
 
