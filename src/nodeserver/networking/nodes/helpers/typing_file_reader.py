@@ -1,8 +1,7 @@
-from dataclasses import dataclass
-
 from nodeserver.networking.nodes.data.custom_data_types import CustomSlotType
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import BaseSlotType
+from nodeserver.networking.nodes.helpers.node_scene_dataclasses import SceneData
 from nodeserver.networking.nodes.helpers.type_dataclasses import TypeFile
 from nodeserver.networking.nodes.node_constructor import BaseNodeConstructor, CustomNodeConstructor
 
@@ -20,17 +19,35 @@ class TypingFile:
         self.slot_types = {}
         self.node_constructors = {}
 
-
     # TODO:
-    def is_scene_compatible(self, scene_data):
+    def save_to_file(self):
         pass
+
+
+    def is_scene_compatible(self, scene_data: SceneData):
+        if scene_data.node_types_id != self._node_types_id:
+            return False
+        
+        if scene_data.node_types_version != self._node_types_version:
+            return False
+        
+        has_missing_constructor = False
+        for node_data in scene_data.nodes.values():
+            if not self.node_constructors.__contains__(node_data.type):
+                has_missing_constructor = True
+                break
+        
+        if has_missing_constructor:
+            return False
+        
+        return True
+
 
     def set_constructor(self, type_name: str, constructor: BaseNodeConstructor):
         self.node_constructors[type_name] = constructor
     
     def get_constructor(self, type_name: str) -> BaseNodeConstructor | None:
         return self.node_constructors.get(type_name, None)
-
 
 
     def _load_json_data(self, json_data: dict):
