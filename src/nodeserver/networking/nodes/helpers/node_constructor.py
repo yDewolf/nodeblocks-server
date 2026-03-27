@@ -4,7 +4,14 @@ from nodeserver.networking.nodes.data.node_data_types import  UNKNOWN_TYPE, Base
 from nodeserver.networking.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 
-class BaseNodeConstructor:
+# TODO: Pensar em uma forma de conectar melhor o NodeBuilder com isso aqui
+# Por enquanto a única relação que eles têm é o type name do Mirror
+# O ideal seria o construtor existir com base no Builder, ou o contrário
+# O ponto é que o TypeFile é feito para comunicar os tipos existentes
+# a forma como esses tipos são interpretados no código não depende diretamente
+# do TypeFile, o que deixa o desenvolvimento um pouco estranho.
+
+class BaseMirrorConstructor:
     type_name: str
 
     _data: NodeData
@@ -49,7 +56,7 @@ class BaseNodeConstructor:
             slot_data_type if slot_data_type != UNKNOWN_TYPE else None
         )
 
-class CustomNodeConstructor(BaseNodeConstructor):
+class CustomMirrorConstructor(BaseMirrorConstructor):
     def __init__(self, type_name: str, data: NodeData, slots: dict[str, SlotData], slot_types: dict[str, BaseSlotType]) -> None:
         super().__init__(type_name)
 

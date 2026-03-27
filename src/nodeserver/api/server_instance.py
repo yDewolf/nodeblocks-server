@@ -2,8 +2,9 @@
 import logging
 from typing import Callable
 from nodeserver.api.base_nodes import BaseNode
+from nodeserver.api.node_builder import NodeBuilder
 from nodeserver.api.node_scene import NodeScene
-from nodeserver.networking.nodes.helpers.scene_manager import SceneManager
+from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
 
 # TODO: make a node_scene class with every node and connections + other things related to the scene
 INSTANCE_LOGGER = logging.Logger("InstanceLogger")
@@ -34,6 +35,8 @@ class BaseServerRuntime:
         
         # TODO: Node Input
         # Node input should come from connections, not previous output btw
+        # Basicamente, a gente "pede" pro Node falar de onde vem os inputs
+        # Com base no "de onde vem", a gente olha os resultados dos slots que o node aponta
         node_input = 0
         if self._previous_output != None:
             node_input = self._previous_output.get("value")
@@ -76,29 +79,31 @@ class ServerInstance:
     running: bool = False
     auto_loop: bool = True
     
-    scene_manager: SceneManager
+    mirror_manager: MirrorSceneManager
+    _scene: NodeScene # TODO: talvez ser o SceneManager 
 
     def __init__(self):
         self.setup()
 
     def setup(self):
         self._runtime = BaseServerRuntime()
-        self.scene_manager = SceneManager()
+        self.mirror_manager = MirrorSceneManager()
+        self._scene = NodeScene([], self.mirror_manager, NodeBuilder)
 
 
     def runtime_tick(self):
         if not self.running:
             return
 
-        if not self.scene_manager.has_loaded_scene():
+        # FIXME
+        if not self.mirror_manager.has_loaded_scene():
             return
 
-        loaded_scene = NodeScene([]) # FIXME
         # TODO: Check if it should actually continue
         if self._runtime.waiting_for_continue and self.auto_loop:
-            self._runtime.continue_process(loaded_scene)
+            self._runtime.continue_process(self._scene)
 
-        results = self._runtime.process_next(loaded_scene)
+        results = self._runtime.process_next(self._scene)
         if results != None and self._on_output != None:
             result, node = results
             self._on_output({
@@ -122,7 +127,15 @@ class ServerInstance:
 
 
     def _scene_changed(self):
-        self._runtime.on_scene_changed(NodeScene([])) # FIXME
+        self._runtime.on_scene_changed(self._scene) # FIXME
+
+    def load_types(self, json_data: dict):
+        self.mirror_manager.load_types(json_data)
+        self._scene.update_nodes()
+
+    def load_new_scene(self, json_data: dict):
+        self.mirror_manager.load_new_scene(json_data)
+        self._scene.update_nodes()
 
 
     def save_state(self):

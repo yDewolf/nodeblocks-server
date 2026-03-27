@@ -2,7 +2,7 @@
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror
 
 
-class NodeManager:
+class NodeMirrorManager:
     _nodes: dict[int, NodeMirror]
     
     def __init__(self) -> None:

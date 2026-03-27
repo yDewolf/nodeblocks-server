@@ -5,7 +5,7 @@ from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import BaseSlotType
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
 from nodeserver.networking.nodes.helpers.file.type_dataclasses import TypeFile
-from nodeserver.networking.nodes.helpers.node_constructor import BaseNodeConstructor, CustomNodeConstructor
+from nodeserver.networking.nodes.helpers.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
 
 class TypeFileReader:
     _node_types_version: int = -1
@@ -15,7 +15,7 @@ class TypeFileReader:
     _raw_data: dict | None = None
 
     slot_types: dict[str, BaseSlotType]
-    node_constructors: dict[str, BaseNodeConstructor]
+    node_constructors: dict[str, BaseMirrorConstructor]
 
     def __init__(self) -> None:
         self.slot_types = {}
@@ -45,10 +45,10 @@ class TypeFileReader:
         return True
 
 
-    def set_constructor(self, type_name: str, constructor: BaseNodeConstructor):
+    def set_constructor(self, type_name: str, constructor: BaseMirrorConstructor):
         self.node_constructors[type_name] = constructor
     
-    def get_constructor(self, type_name: str) -> BaseNodeConstructor | None:
+    def get_constructor(self, type_name: str) -> BaseMirrorConstructor | None:
         return self.node_constructors.get(type_name, None)
 
 
@@ -71,10 +71,10 @@ class TypeFileReader:
     
 
     @staticmethod
-    def _parse_json_data(json_data: dict) -> tuple[TypeFile, dict[str, BaseSlotType], dict[str, BaseNodeConstructor]]:
+    def _parse_json_data(json_data: dict) -> tuple[TypeFile, dict[str, BaseSlotType], dict[str, BaseMirrorConstructor]]:
         type_data: TypeFile = TypeFile.from_dict(json_data)
         
-        constructors: dict[str, BaseNodeConstructor] = {}
+        constructors: dict[str, BaseMirrorConstructor] = {}
         slot_types: dict[str, BaseSlotType] = {}
 
         for type_name in type_data.slot_types:
@@ -89,7 +89,7 @@ class TypeFileReader:
         
         for type_name in type_data.node_types:
             node_type_data = type_data.node_types[type_name]
-            constructor = CustomNodeConstructor(
+            constructor = CustomMirrorConstructor(
                 type_name,
                 NodeData(node_type_data.parameters),
                 node_type_data.slots,

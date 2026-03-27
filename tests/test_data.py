@@ -33,7 +33,7 @@ TYPE_FILE_JSON = json.loads(
                 "out_0": {"type": "output", "tooltip": "Takes the value from ${in_0}, and outputs it"}
             }
         },
-        "OtherNodeType": {
+        "SumNode": {
             "description": "Takes a float input and outputs it without any modifications",
             "parameters": {"out_features": {"type": "uint"}, "some_parameter": {"type": "float", "range": [1, 10]}},
             "slots": {
@@ -53,7 +53,7 @@ SCENE_DATA_JSON = json.loads(
     "node_types_version": 0,
     "nodes": {
         "node_0": {
-            "type": "NodeType",
+            "type": "SumNode",
             "position": [500, 0],
             "size": [100, 50],
             "data": {}

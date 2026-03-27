@@ -2,20 +2,20 @@
 from nodeserver.networking.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.networking.nodes.helpers.file.node_scene_reader import SceneFileReader
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
-from nodeserver.networking.nodes.helpers.node_manager import NodeManager
+from nodeserver.networking.nodes.helpers.node_manager import NodeMirrorManager
 
 
-class SceneManager:
+class MirrorSceneManager:
     type_reader: TypeFileReader
     scene_reader: SceneFileReader
 
-    node_manager: NodeManager
+    node_manager: NodeMirrorManager
     connection_manager: ConnectionManager
 
     def __init__(self) -> None:
         self.type_reader = TypeFileReader()
         self.scene_reader = SceneFileReader()
-        self.node_manager = NodeManager()
+        self.node_manager = NodeMirrorManager()
         self.connection_manager = ConnectionManager()
 
     def clear_scene(self):
@@ -93,3 +93,4 @@ class SceneManager:
     
     def has_loaded_scene(self) -> bool:
         return self.scene_reader.scene_data != None
+

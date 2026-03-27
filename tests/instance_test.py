@@ -34,8 +34,8 @@ result = manager.set_instance(
 )
 print(f"Created instance? {result}")
 my_instance.start_running()
-my_instance.scene_manager.load_types(TYPE_FILE_JSON)
-my_instance.scene_manager.load_new_scene(SCENE_DATA_JSON)
+my_instance.load_types(TYPE_FILE_JSON)
+my_instance.load_new_scene(SCENE_DATA_JSON)
 
 my_instance._scene_changed()
 

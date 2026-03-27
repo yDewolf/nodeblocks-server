@@ -25,7 +25,7 @@ for idx, type_name in enumerate(types_file.node_constructors):
         LOGGER.error(f"ERROR: Couldn't make mirror using constructor {idx}: {constructor}")
         continue
 
-    node = BaseNode.from_mirror(mirror)
+    node = BaseNode(mirror)
     nodes.append(node)
 
 pass
