@@ -1,4 +1,6 @@
 
+from typing import Any
+
 from nodeserver.networking.nodes.data.node_data_types import BaseDataType
 from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeParameterData
 
@@ -7,22 +9,44 @@ class NodeParameter:
     type: BaseDataType
     _field_name: str
     
-    _raw_field_data: NodeParameterData
+    _data_model: NodeParameterData
+    value: Any
 
-    def __init__(self, field_data: NodeParameterData, field_name: str):
+    def __init__(self, field_data_model: NodeParameterData, field_name: str, value: Any):
         self._field_name = field_name
-        self._raw_field_data = field_data
-        
+        self._data_model = field_data_model
+
+        self.value = value
+    
 
 class NodeData:
-    raw_parameters: dict[str, NodeParameterData]
+    param_model: dict[str, NodeParameterData]
     parameters: dict[str, NodeParameter]
 
     def __init__(self, raw_parameters: dict[str, NodeParameterData]):
-        self.raw_parameters = raw_parameters
-        # self.parameters = NodeData.parse_parameters(raw_parameters)
-
+        self.param_model = raw_parameters
 
     @staticmethod
-    def parse_parameters(raw_parameters: dict[str, NodeParameterData]):
+    def from_model(model: NodeData) -> NodeData:
+        data = NodeData(model.param_model)
+        return data
+
+    def get_parameter_value(self):
         pass
+
+    def parse_parameters(self, raw_parameters: dict[str, Any]):
+        self.parameters = NodeData._parse_parameters(self.param_model, raw_parameters)
+
+    @staticmethod
+    def _parse_parameters(param_model: dict[str, NodeParameterData], raw_parameters: dict[str, Any]) -> dict[str, NodeParameter]:
+        parsed_params: dict[str, NodeParameter] = {}
+        for key, value in raw_parameters.items():
+            data_model = param_model.get(key)
+            if not data_model:
+                continue
+
+            parsed_params[key] = NodeParameter(
+                data_model, key, value
+            )
+
+        return parsed_params

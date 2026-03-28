@@ -18,6 +18,7 @@ class ConnectionManager:
             return False
 
         self._connections.append(connection)
+        connection.connect()
         return True
     
 

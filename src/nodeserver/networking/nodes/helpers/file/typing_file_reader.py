@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 
 from nodeserver.networking.nodes.data.custom_data_types import CustomSlotType
@@ -20,6 +21,16 @@ class TypeFileReader:
     def __init__(self) -> None:
         self.slot_types = {}
         self.node_constructors = {}
+
+    @staticmethod
+    def new(version: int, id: str, constructors: list[BaseMirrorConstructor]) -> TypeFileReader:
+        types = TypeFileReader()
+        types._node_types_version = version
+        types._node_types_id = id
+        for constructor in constructors:
+            types.set_constructor(constructor.type_name, constructor)
+
+        return types
 
     # TODO:
     def save_to_file(self):
@@ -92,8 +103,8 @@ class TypeFileReader:
             constructor = CustomMirrorConstructor(
                 type_name,
                 NodeData(node_type_data.parameters),
+                slot_types,
                 node_type_data.slots,
-                slot_types
             )
             constructors[type_name] = constructor
     

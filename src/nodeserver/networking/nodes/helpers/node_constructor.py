@@ -1,8 +1,10 @@
 
+from typing import Any, Callable
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import  UNKNOWN_TYPE, BaseSlotType, DataTypeUtils
 from nodeserver.networking.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.api.base_nodes import BaseNode
 
 # TODO: Pensar em uma forma de conectar melhor o NodeBuilder com isso aqui
 # Por enquanto a única relação que eles têm é o type name do Mirror
@@ -11,22 +13,30 @@ from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 # a forma como esses tipos são interpretados no código não depende diretamente
 # do TypeFile, o que deixa o desenvolvimento um pouco estranho.
 
+def _default_build_func(mirror: NodeMirror) -> BaseNode:
+    return BaseNode(mirror)
+
 class BaseMirrorConstructor:
     type_name: str
 
-    _data: NodeData
+    _data_model: NodeData
     _slots: dict[str, SlotData]
     _slot_types: dict[str, BaseSlotType]
 
-    def __init__(self, type_name: str) -> None:
-        self.type_name = type_name
+    _builder_func: Callable[[NodeMirror], BaseNode]
 
-        self._data = NodeData({})
+    def __init__(self, type_name: str, builder_func: Callable[[NodeMirror], BaseNode] = _default_build_func) -> None:
+        self.type_name = type_name
+        self._builder_func = builder_func
+
+        self._data_model = NodeData({})
         self.slots = {}
         self._slot_types = {}
     
-    def make_node_mirror(self, node_name: str, id: int) -> NodeMirror | None:
-        mirror = NodeMirror(node_name, self._data, id, self.type_name)
+    def make_node_mirror(self, node_name: str, id: int, node_data: dict[str, Any]) -> NodeMirror | None:
+        mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), id, self.type_name)
+        mirror.data.parse_parameters(node_data)
+
         for slot_name in self._slots:
             slot_data = self._slots[slot_name]
             new_slot = self.make_slot_mirror(mirror, slot_name, slot_data)
@@ -56,10 +66,13 @@ class BaseMirrorConstructor:
             slot_data_type if slot_data_type != UNKNOWN_TYPE else None
         )
 
-class CustomMirrorConstructor(BaseMirrorConstructor):
-    def __init__(self, type_name: str, data: NodeData, slots: dict[str, SlotData], slot_types: dict[str, BaseSlotType]) -> None:
-        super().__init__(type_name)
+    def build_node(self, mirror: NodeMirror) -> BaseNode:
+        return self._builder_func(mirror)
 
-        self._data = data
+class CustomMirrorConstructor(BaseMirrorConstructor):
+    def __init__(self, type_name: str, data: NodeData, slot_types: dict[str, BaseSlotType], slots: dict[str, SlotData], builder_func: Callable[[NodeMirror], BaseNode] = _default_build_func) -> None:
+        super().__init__(type_name, builder_func)
+
+        self._data_model = data
         self._slots = slots
         self._slot_types = slot_types

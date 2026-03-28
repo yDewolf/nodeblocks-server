@@ -12,8 +12,8 @@ class MirrorSceneManager:
     node_manager: NodeMirrorManager
     connection_manager: ConnectionManager
 
-    def __init__(self) -> None:
-        self.type_reader = TypeFileReader()
+    def __init__(self, types: TypeFileReader | None = None) -> None:
+        self.type_reader = types if types != None else TypeFileReader()
         self.scene_reader = SceneFileReader()
         self.node_manager = NodeMirrorManager()
         self.connection_manager = ConnectionManager()
@@ -65,7 +65,8 @@ class MirrorSceneManager:
             if constructor:
                 new_node = constructor.make_node_mirror(
                     node_name,
-                    node_data.id
+                    node_data.id,
+                    node_data.data
                 )
                 if not new_node:
                     return False

@@ -1,5 +1,4 @@
 from nodeserver.api.base_nodes import BaseNode
-from nodeserver.api.node_builder import BaseNodeBuilder
 from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
 
 
@@ -10,16 +9,11 @@ from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
 class NodeScene:
     nodes: list[BaseNode] # Instâncias dos Mirrors
     mirror_manager: MirrorSceneManager
-    _builder_class: type[BaseNodeBuilder]
-    _builder: BaseNodeBuilder
     # connections: list[NodeConnection]
     
-    def __init__(self, nodes: list[BaseNode], mirror_manager: MirrorSceneManager, builder_class: type[BaseNodeBuilder]) -> None:
-        self._builder_class = builder_class
-
+    def __init__(self, nodes: list[BaseNode], mirror_manager: MirrorSceneManager) -> None:
         self.nodes = nodes
         self.mirror_manager = mirror_manager
-        self._builder = self._builder_class()
 
     
     # TODO: Scene Updates
@@ -39,8 +33,15 @@ class NodeScene:
         self.nodes.append(node)
 
 
-    def update_nodes(self):
+    def update_nodes(self) -> bool:
         self.nodes.clear() # FIXME
         for id, mirror in self.mirror_manager.node_manager._nodes.items():
-            new_node = self._builder.build_node(mirror)
+            constructor = self.mirror_manager.type_reader.node_constructors.get(mirror.type_name)
+            if not constructor:
+                return False
+        
+            new_node = constructor.build_node(mirror)
+            print(f"Parsed mirror to {new_node}")
             self.nodes.append(new_node)
+        
+        return True
