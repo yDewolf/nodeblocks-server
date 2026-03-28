@@ -1,4 +1,4 @@
-
+from __future__ import annotations
 from typing import Any
 
 from nodeserver.networking.nodes.data.node_data_types import BaseDataType

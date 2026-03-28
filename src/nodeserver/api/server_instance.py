@@ -6,14 +6,15 @@ from nodeserver.api.node_scene import NodeScene
 from nodeserver.networking.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
-from nodeserver.networking.nodes.node.base_nodes import SlotMirror
+from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.networking.nodes.node.node_utils import NodeUtils
 
 # TODO: make a node_scene class with every node and connections + other things related to the scene
 INSTANCE_LOGGER = logging.Logger("InstanceLogger")
 
 class BaseServerRuntime:
     _current_idx: int | None = None
-    _process_order: list[int] | None = None
+    _process_order: list[NodeMirror] | None = None
     _output_cache: dict[SlotMirror, dict]
 
     _previous_output: dict | None = None
@@ -31,7 +32,7 @@ class BaseServerRuntime:
             self.waiting_for_continue = True
             return None
         
-        current_node = node_scene.get_node(self._process_order[self._current_idx])
+        current_node = node_scene.get_node(self._process_order[self._current_idx].id)
         if current_node == None:
             return None
         
@@ -74,9 +75,7 @@ class BaseServerRuntime:
 
     def on_scene_changed(self, new_scene: NodeScene):
         # TODO: Actually check if the order is fine based on connections
-        self._process_order = [
-            node._mirror.id for node in new_scene.nodes
-        ]
+        self._process_order = NodeUtils.get_node_execution_order(new_scene.nodes)
         
         self._output_cache = {}
         self._current_idx = 0
@@ -84,7 +83,7 @@ class BaseServerRuntime:
         if len(self._process_order) == 0:
             self._current_idx = None
 
-
+    
 # TODO: Use scene stuff from SceneManager to make actual Nodes from the Mirrors
 
 class ServerInstance:

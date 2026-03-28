@@ -73,6 +73,14 @@ test_scene = json.loads(
     "node_types_id": "MyCoolTypes",
     "node_types_version": 0,
     "nodes": {
+        "node_2": {
+            "type": "SumNode",
+            "data": {}
+        },
+        "node_3": {
+            "type": "MulNode",
+            "data": {}
+        },
         "node_0": {
             "type": "InputNode",
             "data": {"value": 39}
@@ -81,17 +89,9 @@ test_scene = json.loads(
             "type": "InputNode",
             "data": {"value": 28}
         },
-        "node_2": {
-            "type": "SumNode",
-            "data": {}
-        },
         "node_4": {
             "type": "InputNode",
             "data": {"value": 0.1}
-        },
-        "node_3": {
-            "type": "MulNode",
-            "data": {}
         }
     },
     "connections": {
@@ -99,16 +99,16 @@ test_scene = json.loads(
             "from": "nodes:node_0:slots:out_0",
             "to": "nodes:node_2:slots:in_0"
         },
+        "c4": {
+            "from": "nodes:node_4:slots:out_0",
+            "to": "nodes:node_3:slots:in_0"
+        },
         "c2": {
             "from": "nodes:node_1:slots:out_0",
             "to": "nodes:node_2:slots:in_1"
         },
         "c3": {
             "from": "nodes:node_2:slots:out_0",
-            "to": "nodes:node_3:slots:in_0"
-        },
-        "c4": {
-            "from": "nodes:node_4:slots:out_0",
             "to": "nodes:node_3:slots:in_0"
         }
     }
