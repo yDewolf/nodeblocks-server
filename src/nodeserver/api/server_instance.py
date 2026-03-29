@@ -11,7 +11,6 @@ from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.networking.nodes.node.node_utils import NodeUtils
 
-# TODO: make a node_scene class with every node and connections + other things related to the scene
 INSTANCE_LOGGER = logging.Logger("InstanceLogger")
 
 class BaseServerRuntime:
@@ -26,7 +25,7 @@ class BaseServerRuntime:
         self.waiting_to_continue = False
 
         
-    def process_next(self, node_scene: NodeScene) -> tuple[dict | None, BaseNode] | None:
+    def process_next(self, node_scene: NodeScene) -> tuple[dict[SlotMirror, dict] | None, BaseNode] | None:
         if self._current_idx == None or not self._process_order:
             return None
         
@@ -113,7 +112,7 @@ class ServerInstance:
             except queue.Empty:
                 break
 
-        if self.state_controller.instance_state == InstanceStates.WAITING:
+        if not self.is_running():
             return
 
         # FIXME
@@ -137,19 +136,27 @@ class ServerInstance:
 
         results = self._runtime.process_next(self._scene)
         if results != None and self._on_output != None:
-            result, node = results
+            slot_results, node = results
+            result_data = {}
+            if slot_results != None:
+                for slot, result in slot_results.items():
+                    result_data[slot.slot_name] = result
+
             self._on_output({
                 "type": "node_output",
                 "node_id": node._mirror.uid,
-                "value": result
+                "value": result_data
             })
             
         INSTANCE_LOGGER.info("DEBUG: Running server instance")
 
     def _handle_command(self, command: InstanceCommands):
         match command:
-            case InstanceCommands.FORCE_STOP:
-                self.state_controller.instance_state = InstanceStates.WAITING
+            case InstanceCommands.RUN:
+                self.start_running()
+
+            case InstanceCommands.STOP:
+                self.stop_running()
             
             case InstanceCommands.RESUME_LOOP:
                 if self.state_controller.loop_state != LoopStates.WAIT_TO_RESUME:
@@ -173,10 +180,13 @@ class ServerInstance:
 
 
     def start_running(self):
-        self.running = True
+        self.state_controller.queue_state(InstanceStates.RUNNING)
 
     def stop_running(self):
-        self.running = False
+        self.state_controller.queue_state(InstanceStates.WAITING)
+
+    def is_running(self):
+        return self.state_controller.instance_state == InstanceStates.RUNNING
 
 
     def _scene_changed(self):
@@ -189,6 +199,7 @@ class ServerInstance:
     def load_new_scene(self, json_data: dict):
         self.mirror_manager.load_new_scene(json_data)
         self._scene.update_nodes()
+        self._scene_changed()
 
 
     def save_state(self):

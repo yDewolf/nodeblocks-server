@@ -13,7 +13,8 @@ class LoopStates(Enum):
 class InstanceCommands(Enum):
     STEP_NEXT = 0
     RESUME_LOOP = 1
-    FORCE_STOP = 2
+    STOP = 2
+    RUN = 3
 
 class StateController:
     state_queue: queue.Queue[tuple[str, InstanceStates | LoopStates]]

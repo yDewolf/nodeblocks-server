@@ -179,7 +179,6 @@ print(f"Created instance? {result}")
 my_instance.start_running()
 # my_instance.load_types(TYPE_FILE_JSON)
 my_instance.load_new_scene(test_scene)
-my_instance._scene_changed()
 
 # my_instance.mirror_manager.connection_manager.remove_connection(
 #     "c4"
@@ -215,5 +214,5 @@ while True:
 
         case "STOP":
             my_instance.state_controller.queue_command(
-                InstanceCommands.FORCE_STOP
+                InstanceCommands.STOP
             )
