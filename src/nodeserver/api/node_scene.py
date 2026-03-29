@@ -19,9 +19,9 @@ class NodeScene:
     # TODO: Scene Updates
     
     
-    def get_node(self, node_id: int) -> BaseNode | None:
+    def get_node(self, node_uid: str) -> BaseNode | None:
         for node in self.nodes:
-            if node._mirror.id == node_id:
+            if node._mirror.uid == node_uid:
                 return node
             
         return None

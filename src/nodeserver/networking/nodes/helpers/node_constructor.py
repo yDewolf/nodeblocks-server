@@ -33,7 +33,7 @@ class BaseMirrorConstructor:
         self.slots = {}
         self._slot_types = {}
     
-    def make_node_mirror(self, node_name: str, id: int, node_data: dict[str, Any]) -> NodeMirror | None:
+    def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any]) -> NodeMirror | None:
         mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), id, self.type_name)
         mirror.data.parse_parameters(node_data)
 

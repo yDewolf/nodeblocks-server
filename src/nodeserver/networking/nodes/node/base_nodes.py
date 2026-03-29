@@ -3,9 +3,10 @@ from __future__ import annotations
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
 from nodeserver.networking.nodes.node.node_types import SuperSlotTypes
+from nodeserver.networking.utils.uuid_utils import IDGenerator
 
 class NodeMirror:
-    id: int
+    uid: str
     node_name: str
     type_name: str    
 
@@ -14,8 +15,8 @@ class NodeMirror:
 
     slots: dict[SuperSlotTypes, list[SlotMirror]]
 
-    def __init__(self, node_name: str, node_data: NodeData, id: int = -1, type_name: str = "BaseNode"):
-        self.id = id
+    def __init__(self, node_name: str, node_data: NodeData, uid: str | None = None, type_name: str = "BaseNode"):
+        self.uid = uid if uid != None else IDGenerator.generate_node_id()
         self.node_name = node_name
         self.type_name = type_name
 
@@ -76,10 +77,12 @@ class SlotMirror:
 
 
 class ConnectionMirror:
+    uid: str
     slot_a: SlotMirror
     slot_b: SlotMirror
 
-    def __init__(self, slot_a: SlotMirror, slot_b: SlotMirror) -> None:
+    def __init__(self, slot_a: SlotMirror, slot_b: SlotMirror, uid: str | None = None) -> None:
+        self.uid = uid if uid != None else IDGenerator.generate_conn_id()
         self.slot_a = slot_a
         self.slot_b = slot_b
 

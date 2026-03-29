@@ -34,7 +34,7 @@ class BaseServerRuntime:
             self.waiting_to_continue = True
             return None
         
-        current_node = node_scene.get_node(self._process_order[self._current_idx].id)
+        current_node = node_scene.get_node(self._process_order[self._current_idx].uid)
         if current_node == None:
             return None
         
@@ -140,7 +140,7 @@ class ServerInstance:
             result, node = results
             self._on_output({
                 "type": "node_output",
-                "node_id": node._mirror.id,
+                "node_id": node._mirror.uid,
                 "value": result
             })
             

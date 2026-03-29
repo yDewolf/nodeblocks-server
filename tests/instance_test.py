@@ -11,8 +11,6 @@ from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeParame
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.networking.nodes.helpers.node_constructor import CustomMirrorConstructor
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
-from nodeserver.networking.nodes.node.node_types import SlotType
-from test_data import SCENE_DATA_JSON, TYPE_FILE_JSON
 
 LOGGER = Logger("logger")
 manager = InstanceManager()
@@ -181,8 +179,14 @@ print(f"Created instance? {result}")
 my_instance.start_running()
 # my_instance.load_types(TYPE_FILE_JSON)
 my_instance.load_new_scene(test_scene)
-
 my_instance._scene_changed()
+
+# my_instance.mirror_manager.connection_manager.remove_connection(
+#     "c4"
+# )
+# my_instance.mirror_manager.connection_manager.remove_connection(
+#     "c3"
+# )
 
 while True:
     command = input("\nWaiting for command: \n>> ")

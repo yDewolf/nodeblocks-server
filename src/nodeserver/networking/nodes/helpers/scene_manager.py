@@ -4,7 +4,6 @@ from nodeserver.networking.nodes.helpers.file.node_scene_reader import SceneFile
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.networking.nodes.helpers.node_manager import NodeMirrorManager
 
-
 class MirrorSceneManager:
     type_reader: TypeFileReader
     scene_reader: SceneFileReader
@@ -87,7 +86,7 @@ class MirrorSceneManager:
             if not slot_a or not slot_b:
                 return False
 
-            self.connection_manager.connect_nodes(slot_a, slot_b)
+            self.connection_manager.connect_nodes(slot_a, slot_b, conn_data.uid)
 
         return True
 
