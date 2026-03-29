@@ -77,14 +77,21 @@ async def test_node_server():
         try:
             while True:
                 command = await async_input("\nWaiting for command: \n>> ")
+                if command.upper() == "NODE" or command.upper() == "CONNECTION":
+                    payload = await async_input("Payload: \n>>")
+                    await websocket.send(json.dumps({"type": command, "payload": json.loads(payload)}))
+                    continue
+                
                 match command.upper():
                     case "SET_STATE":
                         new_state = int(await async_input("New State: \n>> "))
                         await websocket.send(json.dumps({"type": command, "payload": {"state": new_state}}))
+                        continue
 
                     case "SET_LOOP_STATE":
                         new_state = int(await async_input("New State: \n>> "))
                         await websocket.send(json.dumps({"type": command, "payload": {"state": new_state}}))
+                        continue
 
                     case _:
                         if command == "":

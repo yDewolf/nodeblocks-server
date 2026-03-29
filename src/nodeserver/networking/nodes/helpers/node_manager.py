@@ -20,6 +20,9 @@ class NodeMirrorManager:
         # TODO: Check for duplicate ids and other
         self._nodes[node_mirror.uid] = node_mirror
 
-    def remove_node(self, node_mirror: NodeMirror):
-        # TODO: Use id to remove node
-        self._nodes.pop(node_mirror.uid)
+    def remove_node(self, uid: str) -> bool:
+        if not self._nodes.__contains__(uid):
+            return False
+        
+        self._nodes.pop(uid)
+        return True

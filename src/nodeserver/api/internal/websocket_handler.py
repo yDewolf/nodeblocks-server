@@ -9,6 +9,8 @@ from nodeserver.api.server_instance import ServerInstance
 import websockets
 import json
 
+from nodeserver.api.web.command_router import BaseCommandRouter
+
 class WebsocketHandler:
     instance_manager: InstanceManager
 
@@ -16,10 +18,12 @@ class WebsocketHandler:
     connections: dict[ServerConnection, ServerInstance] # type: ignore
     
     server_instance_type: type[ServerInstance] = ServerInstance
-    
-    def __init__(self, instance_manager: InstanceManager, server_instance_type: type[ServerInstance]) -> None:
+    _router: BaseCommandRouter
+
+    def __init__(self, instance_manager: InstanceManager, server_instance_type: type[ServerInstance], router_type: type[BaseCommandRouter]) -> None:
         self.server_instance_type = server_instance_type
         self.instance_manager = instance_manager
+        self._router = router_type()
 
         self._path_cache = {}
         self.connections = {}
@@ -65,39 +69,11 @@ class WebsocketHandler:
     async def route_message(self, instance: ServerInstance, data: dict):
         msg_type = str(data.get("type", ""))
         print(f"[WS] Command Received: {data.get('type')} for Instance {instance._attributed_id}")
-        
         payload = data.get("payload", {})
         if not type(payload) is dict:
             return
         
-        match msg_type.upper():
-            case "SET_STATE":
-                try:
-                    new_state = InstanceStates(payload.get("state", -1))
-                    instance.state_controller.queue_state(new_state)
-                except ValueError:
-                    pass
-
-            case "SET_LOOP_STATE":
-                try:
-                    new_state = LoopStates(payload.get("state", -1))
-                    instance.state_controller.queue_loop_state(new_state)
-                except ValueError:
-                    pass
-
-            case "RUN":
-                instance.start_running()
-            case "RESUME":
-                instance.state_controller.command_queue.put(InstanceCommands.RESUME_LOOP)
-            case "STOP":
-                instance.state_controller.command_queue.put(InstanceCommands.STOP)
-            case "STEP":
-                instance.state_controller.command_queue.put(InstanceCommands.STEP_NEXT)
-            case "LOAD_SCENE":
-                instance.load_new_scene(payload)
-            
-            case _:
-                print(f"Unknown command: {msg_type}")
+        self._router.route_message(msg_type, payload, instance)
 
 
     def on_disconnect(self, websocket):

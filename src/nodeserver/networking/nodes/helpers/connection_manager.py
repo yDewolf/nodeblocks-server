@@ -23,14 +23,14 @@ class ConnectionManager:
         self.disconnect_nodes(conn)
         return True
 
-    def connect_nodes(self, slot_a: SlotMirror, slot_b: SlotMirror, conn_uid: str | None = None) -> bool:
+    def connect_nodes(self, slot_a: SlotMirror, slot_b: SlotMirror, conn_uid: str | None = None) -> ConnectionMirror | None:
         connection = ConnectionMirror(slot_a, slot_b, conn_uid)
         if not connection.is_valid():
-            return False
+            return None
 
         self._connections[connection.uid] = connection
         connection.connect()
-        return True
+        return connection
     
 
     def disconnect_nodes(self, connection: ConnectionMirror):

@@ -1,5 +1,6 @@
 from nodeserver.api.base_nodes import BaseNode
 from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
+from nodeserver.networking.nodes.node.base_nodes import NodeMirror
 
 
 # TODO: Fazer um parser dos mirrors, cada alteração nos mirrors precisa refletir na NodeScene
@@ -17,8 +18,6 @@ class NodeScene:
 
     
     # TODO: Scene Updates
-    
-    
     def get_node(self, node_uid: str) -> BaseNode | None:
         for node in self.nodes:
             if node._mirror.uid == node_uid:
@@ -33,14 +32,21 @@ class NodeScene:
         self.nodes.append(node)
 
 
+    def build_node(self, mirror: NodeMirror) -> BaseNode | None:
+        constructor = self.mirror_manager.type_reader.node_constructors.get(mirror.type_name)
+        if not constructor:
+            return None
+    
+        new_node = constructor.build_node(mirror)
+        return new_node
+
     def update_nodes(self) -> bool:
-        self.nodes.clear() # FIXME
+        self.nodes.clear() # FIXME Update only nodes that changed
         for id, mirror in self.mirror_manager.node_manager._nodes.items():
-            constructor = self.mirror_manager.type_reader.node_constructors.get(mirror.type_name)
-            if not constructor:
+            new_node = self.build_node(mirror)
+            if not new_node:
                 return False
-        
-            new_node = constructor.build_node(mirror)
+
             print(f"Parsed mirror to {new_node}")
             self.nodes.append(new_node)
         

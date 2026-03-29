@@ -1,8 +1,10 @@
 
 from nodeserver.networking.nodes.helpers.connection_manager import ConnectionManager
+from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
 from nodeserver.networking.nodes.helpers.file.node_scene_reader import SceneFileReader
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.networking.nodes.helpers.node_manager import NodeMirrorManager
+from nodeserver.networking.nodes.node.base_nodes import ConnectionMirror, NodeMirror
 
 class MirrorSceneManager:
     type_reader: TypeFileReader
@@ -57,36 +59,10 @@ class MirrorSceneManager:
             return False
         
         for node_name, node_data in self.scene_reader.scene_data.nodes.items():
-            constructor = self.type_reader.get_constructor(node_data.type)
-            if node_data.id == -1:
-                return False
-            
-            if constructor:
-                new_node = constructor.make_node_mirror(
-                    node_name,
-                    node_data.id,
-                    node_data.data
-                )
-                if not new_node:
-                    return False
-                
-                self.node_manager.add_node(new_node)
+            self.add_node_mirror(node_data, node_name)
 
         for conn_data in self.scene_reader.scene_data.connections.values():
-            if not conn_data.from_node.slot_name or not conn_data.to_node.slot_name:
-                return False
-            
-            node_a = self.node_manager.get_node(conn_data.from_node.node_id)
-            node_b = self.node_manager.get_node(conn_data.to_node.node_id)
-            if not node_a or not node_b:
-                return False
-
-            slot_a = node_a.get_slot(conn_data.from_node.slot_name)
-            slot_b = node_b.get_slot(conn_data.to_node.slot_name)
-            if not slot_a or not slot_b:
-                return False
-
-            self.connection_manager.connect_nodes(slot_a, slot_b, conn_data.uid)
+            self.add_conn_mirror(conn_data)
 
         return True
 
@@ -94,3 +70,43 @@ class MirrorSceneManager:
     def has_loaded_scene(self) -> bool:
         return self.scene_reader.scene_data != None
 
+
+    def add_node_mirror(self, node_data: NodeSceneData, node_name: str) -> NodeMirror | None:
+        constructor = self.type_reader.get_constructor(node_data.type)
+        if node_data.id == -1 or not constructor:
+            return None
+        
+        new_mirror = constructor.make_node_mirror(
+            node_name,
+            node_data.id,
+            node_data.data
+        )
+        if not new_mirror:
+            return None
+        
+        self.node_manager.add_node(new_mirror)
+        return new_mirror
+
+    def add_conn_mirror(self, conn_data: ConnectionSceneData) -> ConnectionMirror | None:
+        if not conn_data.from_node.slot_name or not conn_data.to_node.slot_name:
+            return None
+        
+        node_a = self.node_manager.get_node(conn_data.from_node.node_id)
+        node_b = self.node_manager.get_node(conn_data.to_node.node_id)
+        if not node_a or not node_b:
+            return None
+
+        slot_a = node_a.get_slot(conn_data.from_node.slot_name)
+        slot_b = node_b.get_slot(conn_data.to_node.slot_name)
+        if not slot_a or not slot_b:
+            return None
+
+        conn = self.connection_manager.connect_nodes(slot_a, slot_b, conn_data.uid)
+        return conn
+
+
+    def remove_node_mirror(self, uid: str):
+        return self.node_manager.remove_node(uid)
+
+    def remove_conn_mirror(self, uid: str):
+        return self.connection_manager.remove_connection(uid)
