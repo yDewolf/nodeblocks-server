@@ -2,6 +2,7 @@ import json
 from logging import Logger
 
 from nodeserver.api.base_nodes import BaseNode
+from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.server_instance import ServerInstance
 from nodeserver.networking.nodes.data.node_data import NodeData
@@ -184,4 +185,31 @@ my_instance.load_new_scene(test_scene)
 my_instance._scene_changed()
 
 while True:
-    pass
+    command = input("\nWaiting for command: \n>> ")
+    match command.upper():
+        case "SET_STATE":
+            new_state = int(input("New State: \n>> "))
+            my_instance.state_controller.queue_state(
+                InstanceStates(new_state)
+            )
+
+        case "SET_LOOP_STATE":
+            new_state = int(input("New State: \n>> "))
+            my_instance.state_controller.queue_loop_state(
+                LoopStates(new_state)
+            )
+
+        case "STEP":
+            my_instance.state_controller.queue_command(
+                InstanceCommands.STEP_NEXT
+            )
+
+        case "RESUME":
+            my_instance.state_controller.queue_command(
+                InstanceCommands.RESUME_LOOP
+            )
+
+        case "STOP":
+            my_instance.state_controller.queue_command(
+                InstanceCommands.FORCE_STOP
+            )

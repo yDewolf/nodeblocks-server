@@ -60,6 +60,7 @@ class InstanceRunner:
 
             for instance in current_instances:
                 # try:
+                    instance.state_controller.update()
                     if instance.running:
                         instance.runtime_tick()
                 # except Exception as e:

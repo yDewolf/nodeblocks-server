@@ -1,7 +1,9 @@
 
 import logging
+import queue
 from typing import Callable
 from nodeserver.api.base_nodes import BaseNode
+from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.node_scene import NodeScene
 from nodeserver.networking.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
@@ -18,10 +20,10 @@ class BaseServerRuntime:
     _output_cache: dict[SlotMirror, dict]
 
     _previous_output: dict | None = None
-    waiting_for_continue: bool
+    waiting_to_continue: bool
     
     def __init__(self):
-        self.waiting_for_continue = False
+        self.waiting_to_continue = False
 
         
     def process_next(self, node_scene: NodeScene) -> tuple[dict | None, BaseNode] | None:
@@ -29,7 +31,7 @@ class BaseServerRuntime:
             return None
         
         if self._current_idx >= len(self._process_order):
-            self.waiting_for_continue = True
+            self.waiting_to_continue = True
             return None
         
         current_node = node_scene.get_node(self._process_order[self._current_idx].id)
@@ -65,7 +67,7 @@ class BaseServerRuntime:
         return (output_data, current_node)
 
     def continue_process(self, scene: NodeScene):
-        self.waiting_for_continue = False
+        self.waiting_to_continue = False
         self.on_scene_changed(scene)
 
     
@@ -74,7 +76,6 @@ class BaseServerRuntime:
 
 
     def on_scene_changed(self, new_scene: NodeScene):
-        # TODO: Actually check if the order is fine based on connections
         self._process_order = NodeUtils.get_node_execution_order(new_scene.nodes)
         
         self._output_cache = {}
@@ -84,39 +85,55 @@ class BaseServerRuntime:
             self._current_idx = None
 
     
-# TODO: Use scene stuff from SceneManager to make actual Nodes from the Mirrors
-
 class ServerInstance:
     _attributed_id: str = ""
     _runtime: BaseServerRuntime
     _on_output: Callable[[dict], None] | None = None
 
-    running: bool = False
-    auto_loop: bool = True
-    
+    state_controller: StateController
+
     mirror_manager: MirrorSceneManager
-    _scene: NodeScene # TODO: talvez ser o SceneManager 
+    _scene: NodeScene
 
     def __init__(self, types: TypeFileReader | None = None):
         self.setup(types)
 
     def setup(self, types: TypeFileReader | None = None):
+        self.state_controller = StateController()
         self._runtime = BaseServerRuntime()
         self.mirror_manager = MirrorSceneManager(types)
         self._scene = NodeScene([], self.mirror_manager)
 
 
     def runtime_tick(self):
-        if not self.running:
+        while not self.state_controller.command_queue.empty():
+            try:
+                command = self.state_controller.command_queue.get_nowait()
+                self._handle_command(command)
+            except queue.Empty:
+                break
+
+        if self.state_controller.instance_state == InstanceStates.WAITING:
             return
 
         # FIXME
         if not self.mirror_manager.has_loaded_scene():
             return
 
-        # TODO: Check if it should actually continue
-        if self._runtime.waiting_for_continue and self.auto_loop:
-            self._runtime.continue_process(self._scene)
+        if self._runtime.waiting_to_continue:
+            match self.state_controller.loop_state:
+                case LoopStates.AUTO_LOOP:
+                    self._runtime.continue_process(self._scene)
+                
+                case _:
+                    # Any other will wait for resume commands
+                    return
+
+        if self.state_controller.loop_state == LoopStates.WAIT_TO_STEP:
+            if not self.state_controller.has_step_permission:
+                return
+
+            self.state_controller.has_step_permission = False
 
         results = self._runtime.process_next(self._scene)
         if results != None and self._on_output != None:
@@ -128,6 +145,27 @@ class ServerInstance:
             })
             
         INSTANCE_LOGGER.info("DEBUG: Running server instance")
+
+    def _handle_command(self, command: InstanceCommands):
+        match command:
+            case InstanceCommands.FORCE_STOP:
+                self.state_controller.instance_state = InstanceStates.WAITING
+            
+            case InstanceCommands.RESUME_LOOP:
+                if self.state_controller.loop_state != LoopStates.WAIT_TO_RESUME:
+                    return
+                
+                if self._runtime.waiting_to_continue:
+                    self._runtime.continue_process(self._scene)
+
+            case InstanceCommands.STEP_NEXT:
+                if self.state_controller.loop_state != LoopStates.WAIT_TO_STEP:
+                    return
+                
+                if self._runtime.waiting_to_continue:
+                    self._runtime.continue_process(self._scene)
+                
+                self.state_controller.has_step_permission = True
 
     # TODO:
     def set_output_callback(self, callback: Callable[[dict], None]):
