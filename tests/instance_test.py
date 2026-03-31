@@ -173,7 +173,6 @@ my_cool_types = TypeFileReader.new(0, "MyCoolTypes",
     )
 ])
 
-print(json.dumps(my_cool_types.serialize_to_dict(), indent=1))
 my_instance = ServerInstance(my_cool_types)
 result = manager.set_instance(
     "someRandomString", my_instance

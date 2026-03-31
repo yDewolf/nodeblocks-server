@@ -27,7 +27,7 @@ class TypeFileReader:
         types = TypeFileReader()
         types._node_types_version = version
         types._node_types_id = id
-        
+
         types.slot_types = slot_types
         for constructor in constructors:
             types.set_constructor(constructor.type_name, constructor)
@@ -84,25 +84,16 @@ class TypeFileReader:
                 extends=slot_type._super_type.value,
                 conn_whitelist=whitelist,
                 default_data_type=slot_type.data_type.type_name
-            ).__dict__
+            ).serialize()
 
             json_data["slot_types"][type_name] = type_data
 
         
         for type_name, constructor in self.node_constructors.items():
-            parameters = {}
-
-            for param_name, param in constructor._data_model.param_model.items():
-                parameters[param_name] = {
-                    "type": param.type
-                }
-                if param.range:
-                    parameters[param_name]["range"] = param.range
-
             type_data = NodeTypeData(
-                parameters=parameters,
+                parameters=constructor._data_model.param_model,
                 slots=constructor.slots
-            ).__dict__
+            ).serialize()
             json_data["node_types"][type_name] = type_data
         
         return json_data

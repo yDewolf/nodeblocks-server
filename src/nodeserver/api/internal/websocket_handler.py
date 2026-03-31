@@ -1,15 +1,16 @@
 import asyncio
 
-from websockets.server import ServerConnection
-
-from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
+from websockets.asyncio.server import ServerConnection
+from nodeserver.api.web.command_router import BaseCommandRouter
 from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.internal.websocket_protocol import WebsocketStatus
 from nodeserver.api.server_instance import ServerInstance
 import websockets
 import json
+import logging
 
-from nodeserver.api.web.command_router import BaseCommandRouter
+
+WEBSOCKET_LOGGER = logging.Logger("WebsocketLogger")
 
 class WebsocketHandler:
     instance_manager: InstanceManager
@@ -42,11 +43,13 @@ class WebsocketHandler:
         try:
             if len(parts) >= 2 and parts[0] == "instance":
                 user_id = parts[1]
-                await self.on_handshake(websocket, user_id)
-                await self.listen_loop(websocket)
-            else:
-                websocket.send_close(1003, "Invalid Route")
+                if len(parts) == 2:
+                    await self.on_handshake(websocket, user_id)
+                    await self.listen_loop(websocket)
+                    return
 
+            await websocket.close(1003, "Invalid Route")
+            
         except websockets.ConnectionClosed:
             pass
     
@@ -61,19 +64,21 @@ class WebsocketHandler:
                 if instance == None:
                     continue
 
-                await self.route_message(instance, data)
-            
+                out_data = await self.route_message(instance, data)
+                if out_data:
+                    await websocket.send(json.dumps(out_data))
+
             except json.JSONDecodeError:
                 continue
     
-    async def route_message(self, instance: ServerInstance, data: dict):
+    async def route_message(self, instance: ServerInstance, data: dict) -> dict | None:
         msg_type = str(data.get("type", ""))
-        print(f"[WS] Command Received: {data.get('type')} for Instance {instance._attributed_id}")
+        WEBSOCKET_LOGGER.info(f"[WS] Command Received: {data.get('type')} for Instance {instance._attributed_id}")
         payload = data.get("payload", {})
         if not type(payload) is dict:
             return
         
-        self._router.route_message(msg_type, payload, instance)
+        return self._router.route_message(msg_type, payload, instance)
 
 
     def on_disconnect(self, websocket):
@@ -85,7 +90,7 @@ class WebsocketHandler:
             self.instance_manager.remove_instance(instance._attributed_id)
             instance.stop_running()            
             instance.save_state()
-            print("user disconnected")
+            WEBSOCKET_LOGGER.info("user disconnected")
     
 
     async def on_handshake(self, websocket, user_id: str):
@@ -95,7 +100,7 @@ class WebsocketHandler:
         def _thread_safe_send(data: dict) -> None:
             message = json.dumps(data)
 
-            print(f"sending: {message}")
+            WEBSOCKET_LOGGER.debug(f"sending: {message}")
             if self.loop:
                 self.loop.call_soon_threadsafe(
                     lambda: asyncio.create_task(websocket.send(message))
@@ -105,7 +110,8 @@ class WebsocketHandler:
         success = self.instance_manager.set_instance(user_id, new_instance)
         if success:
             self.connections[websocket] = new_instance
-            await websocket.send(json.dumps({"status": WebsocketStatus.CONNECTED.value, "session": user_id}))
+            type_data = new_instance.mirror_manager.type_reader.serialize_to_dict()
+            await websocket.send(json.dumps({"status": WebsocketStatus.CONNECTED.value, "session": user_id, "type_data": type_data}))
             return
         
         await websocket.send(json.dumps({"status": WebsocketStatus.ERROR.value, "message": "Server might be full"}))

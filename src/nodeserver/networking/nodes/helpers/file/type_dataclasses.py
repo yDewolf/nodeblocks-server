@@ -13,6 +13,13 @@ class SlotTypeData:
     def from_dict(cls, data: dict) -> 'SlotTypeData':
         return cls(**data)
 
+    def serialize(self) -> dict:
+        return {
+            "extends": self.extends,
+            "conn_whitelist": self.conn_whitelist,
+            "default_data_type": self.default_data_type
+        }
+
 @dataclass
 class SlotData:
     type: str
@@ -25,6 +32,12 @@ class SlotData:
             data_type=data.get("data_type")
         )
 
+    def serialize(self) -> dict:
+        return {
+            "type": self.type,
+            "data_type": self.data_type
+        }
+
 @dataclass
 class NodeParameterData:
     type: str
@@ -36,6 +49,13 @@ class NodeParameterData:
             type=data.get("type", ""),
             range=data.get("range")
         )
+
+    def serialize(self) -> dict:
+        return {
+            "type": self.type,
+            "range": self.range
+        }
+
 
 @dataclass
 class NodeTypeData:
@@ -53,6 +73,13 @@ class NodeTypeData:
             for key, value in data.get("slots", {}).items()
         }
         return cls(parameters=params, slots=slots)
+
+    def serialize(self) -> dict:
+        return {
+            "parameters": {key: param.serialize() for key, param in self.parameters.items()},
+            "slots": {key: slot.serialize() for key, slot in self.slots.items()}
+        }
+
 
 @dataclass
 class TypeFile:
@@ -79,3 +106,11 @@ class TypeFile:
             slot_types=slots,
             node_types=nodes
         )
+
+    def serialize(self) -> dict:
+        return {
+            "version": self.version,
+            "id": self.id,
+            "slot_types": {key: slot_type.serialize() for key, slot_type in self.slot_types.items()},
+            "node_types": {key: node_type.serialize() for key, node_type in self.node_types.items()}
+        }

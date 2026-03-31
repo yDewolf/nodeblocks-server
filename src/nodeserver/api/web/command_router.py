@@ -1,4 +1,5 @@
 from enum import Enum
+import json
 
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.api.server_instance import ServerInstance
@@ -10,11 +11,26 @@ class SceneActions(Enum):
     UPDATE = "UPDATE"
 
 class BaseCommandRouter:
-    def route_message(self, msg_type: str, payload: dict, instance: ServerInstance):
-        self._route_state_setters(msg_type, payload, instance)
-        self._route_state_commands(msg_type, payload, instance)
-        self._route_scene_commands(msg_type, payload, instance)
-        # print(f"Unknown command: {msg_type}")
+    def route_message(self, msg_type: str, payload: dict, instance: ServerInstance) -> dict | None:
+        # TODO: Simplify this if return mess
+        out = self._route_utility_commands(msg_type, payload, instance)
+        if out != None: return out
+        
+        out = self._route_state_setters(msg_type, payload, instance)
+        if out != None: return out
+        
+        out = self._route_state_commands(msg_type, payload, instance)
+        if out != None: return out
+
+        out = self._route_scene_commands(msg_type, payload, instance)
+        if out != None: return out
+
+
+    @staticmethod
+    def _route_utility_commands(msg_type: str, payload: dict, instance: ServerInstance) -> dict |  None:
+        match msg_type.upper():
+            case "GET_TYPES":
+                return {"type": msg_type, "payload": json.dumps(instance.mirror_manager.type_reader.serialize_to_dict())}
 
     @staticmethod
     def _route_state_commands(msg_type: str, payload: dict, instance: ServerInstance):
@@ -50,6 +66,7 @@ class BaseCommandRouter:
     def _route_scene_commands(self, msg_type: str, payload: dict, instance: ServerInstance):
         match msg_type.upper():
             case "LOAD_SCENE":
+                # FIXME is the payload supposed to be the full scene?
                 instance.load_new_scene(payload)
                 return
         
