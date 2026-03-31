@@ -1,6 +1,7 @@
 import asyncio
 
 from websockets.asyncio.server import ServerConnection
+from nodeserver.api.utils.url_routing import Endpoint, URLRouter
 from nodeserver.api.web.command_router import BaseCommandRouter
 from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.internal.websocket_protocol import WebsocketStatus
@@ -20,6 +21,7 @@ class WebsocketHandler:
     
     server_instance_type: type[ServerInstance] = ServerInstance
     _router: BaseCommandRouter
+    _url_router: URLRouter
 
     def __init__(self, instance_manager: InstanceManager, server_instance_type: type[ServerInstance], router_type: type[BaseCommandRouter]) -> None:
         self.server_instance_type = server_instance_type
@@ -28,25 +30,27 @@ class WebsocketHandler:
 
         self._path_cache = {}
         self.connections = {}
+        self._setup_routes()
 
-    def set_loop(self, loop: asyncio.AbstractEventLoop):
+    def _setup_routes(self):
+        self._url_router = URLRouter({
+            Endpoint("/instance/{user_id}"): self.instance_listen_route,
+        })
+
+    def _set_loop(self, loop: asyncio.AbstractEventLoop):
         self.loop = loop
 
-    def process_request(self, connection, request: websockets.Request):
+    def _process_request(self, connection, request: websockets.Request):
         self._path_cache[connection] = request.path
         return None
 
-    async def main_router(self, websocket):
+    async def main_router(self, websocket: ServerConnection):
         path = self._path_cache.get(websocket, "")
-        parts = path.strip("/").split("/")
-
         try:
-            if len(parts) >= 2 and parts[0] == "instance":
-                user_id = parts[1]
-                if len(parts) == 2:
-                    await self.on_handshake(websocket, user_id)
-                    await self.listen_loop(websocket)
-                    return
+            route_stuff = self._url_router.route_url(path)
+            if route_stuff:
+                parameters, route_callable = route_stuff
+                await route_callable(parameters, websocket)
 
             await websocket.close(1003, "Invalid Route")
             
@@ -56,30 +60,7 @@ class WebsocketHandler:
         finally:
             self.on_disconnect(websocket)
 
-    async def listen_loop(self, websocket):
-        instance = self.connections.get(websocket, None)
-        async for message in websocket:
-            try:
-                data = json.loads(message)
-                if instance == None:
-                    continue
-
-                out_data = await self.route_message(instance, data)
-                if out_data:
-                    await websocket.send(json.dumps(out_data))
-
-            except json.JSONDecodeError:
-                continue
-    
-    async def route_message(self, instance: ServerInstance, data: dict) -> dict | None:
-        msg_type = str(data.get("type", ""))
-        WEBSOCKET_LOGGER.info(f"[WS] Command Received: {data.get('type')} for Instance {instance._attributed_id}")
-        payload = data.get("payload", {})
-        if not type(payload) is dict:
-            return
-        
-        return self._router.route_message(msg_type, payload, instance)
-
+    # Server Stuff
 
     def on_disconnect(self, websocket):
         instance = self.connections.pop(websocket, None)
@@ -92,8 +73,7 @@ class WebsocketHandler:
             instance.save_state()
             WEBSOCKET_LOGGER.info("user disconnected")
     
-
-    async def on_handshake(self, websocket, user_id: str):
+    async def on_handshake(self, websocket: ServerConnection, user_id: str):
         new_instance: ServerInstance = self.server_instance_type(self.instance_manager._default_types)
         new_instance._attributed_id = user_id
 
@@ -115,3 +95,37 @@ class WebsocketHandler:
             return
         
         await websocket.send(json.dumps({"status": WebsocketStatus.ERROR.value, "message": "Server might be full"}))
+
+    # Routes
+    async def instance_listen_route(self, data: dict, websocket: ServerConnection) -> dict | None:
+        user_id = data.get("user_id")
+        if user_id == None:
+            # FIXME: Raise some exception
+            return
+        
+        await self.on_handshake(websocket, user_id)
+        await self._listen_loop(websocket)
+
+    async def _listen_loop(self, websocket: ServerConnection) -> dict | None:
+        instance = self.connections.get(websocket, None)
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                if instance == None:
+                    continue
+
+                out_data = await self._route_message(instance, data)
+                if out_data:
+                    await websocket.send(json.dumps(out_data))
+
+            except json.JSONDecodeError:
+                continue
+    
+    async def _route_message(self, instance: ServerInstance, data: dict) -> dict | None:
+        msg_type = str(data.get("type", ""))
+        WEBSOCKET_LOGGER.info(f"[WS] Command Received: {data.get('type')} for Instance {instance._attributed_id}")
+        payload = data.get("payload", {})
+        if not type(payload) is dict:
+            return
+        
+        return self._router.route_message(msg_type, payload, instance)

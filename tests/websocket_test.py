@@ -2,6 +2,7 @@
 import asyncio
 
 from nodeserver.api.base_nodes import BaseNode
+from nodeserver.api.utils.url_routing import Endpoint, URLRouter
 from nodeserver.api.web.websocket_manager import WebsocketInstanceManager
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes

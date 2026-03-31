@@ -25,10 +25,10 @@ class WebsocketInstanceManager(InstanceManager):
 
     async def run_server(self):
         self.loop = asyncio.get_event_loop()
-        self.handler.set_loop(self.loop)
+        self.handler._set_loop(self.loop)
 
         self.stop = asyncio.get_running_loop().create_future()
         
-        async with websockets.serve(self.handler.main_router, self.host, self.port, process_request=self.handler.process_request):
+        async with websockets.serve(self.handler.main_router, self.host, self.port, process_request=self.handler._process_request):
             print(f"Node Server Headless rodando em ws://{self.host}:{self.port}")
             await self.stop
