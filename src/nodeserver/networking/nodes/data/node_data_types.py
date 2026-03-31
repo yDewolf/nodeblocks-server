@@ -2,17 +2,17 @@ from enum import Enum
 from typing import Any, TypeVar, Literal
 
 class DataTypes(Enum):
-    FLOAT = 0
-    UINT = 1
-    INT = 2
-    ARRAY = 3
-    CUSTOM = 4
-    UNKNOWN = 5
+    FLOAT = "float"
+    UINT = "uint"
+    INT = "int"
+    ARRAY = "array"
+    CUSTOM = "custom"
+    UNKNOWN = "unknown"
 
 class SuperSlotTypes(Enum):
-    INPUT = 0
-    OUTPUT = 1
-    UNKNOWN = 2
+    INPUT = "input_slot"
+    OUTPUT = "output_slot"
+    UNKNOWN = "unknown"
 
 class DataGroup(Enum):
     NODE = DataTypes

@@ -85,7 +85,7 @@ def my_parser(mirror: NodeMirror) -> BaseNode:
 
     return node
 
-my_cool_types = TypeFileReader.new(0, "MyCoolTypes", [
+my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [
     CustomMirrorConstructor(
         "InputNode", NodeData({"value": NodeParameterData("float", None)}),
         slot_types,

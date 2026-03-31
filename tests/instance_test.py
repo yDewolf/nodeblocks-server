@@ -138,8 +138,10 @@ def my_parser(mirror: NodeMirror) -> BaseNode:
 
     return node
 
-my_cool_types = TypeFileReader.new(0, "MyCoolTypes", [
-    CustomMirrorConstructor(
+# TODO: Do something to use slot_types as a default for all constructors
+my_cool_types = TypeFileReader.new(0, "MyCoolTypes", 
+    slot_types,
+    [CustomMirrorConstructor(
         "InputNode", NodeData({"value": NodeParameterData("float", None)}),
         slot_types,
         {"out_0": SlotData("output", None)},
@@ -171,6 +173,7 @@ my_cool_types = TypeFileReader.new(0, "MyCoolTypes", [
     )
 ])
 
+print(json.dumps(my_cool_types.serialize_to_dict(), indent=1))
 my_instance = ServerInstance(my_cool_types)
 result = manager.set_instance(
     "someRandomString", my_instance

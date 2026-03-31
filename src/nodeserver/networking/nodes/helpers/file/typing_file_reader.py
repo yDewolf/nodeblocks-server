@@ -5,7 +5,7 @@ from nodeserver.networking.nodes.data.custom_data_types import CustomSlotType
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import BaseSlotType
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
-from nodeserver.networking.nodes.helpers.file.type_dataclasses import TypeFile
+from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeTypeData, SlotTypeData, TypeFile
 from nodeserver.networking.nodes.helpers.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
 
 class TypeFileReader:
@@ -23,10 +23,12 @@ class TypeFileReader:
         self.node_constructors = {}
 
     @staticmethod
-    def new(version: int, id: str, constructors: list[BaseMirrorConstructor]) -> TypeFileReader:
+    def new(version: int, id: str, slot_types: dict[str, BaseSlotType], constructors: list[BaseMirrorConstructor]) -> TypeFileReader:
         types = TypeFileReader()
         types._node_types_version = version
         types._node_types_id = id
+        
+        types.slot_types = slot_types
         for constructor in constructors:
             types.set_constructor(constructor.type_name, constructor)
 
@@ -68,6 +70,43 @@ class TypeFileReader:
             json_data = json.load(file)
             self._load_json_data(json_data)
 
+
+    def serialize_to_dict(self) -> dict:
+        json_data: dict = {
+            "id": self._node_types_id,
+            "version": self._node_types_version,
+            "slot_types": {},
+            "node_types": {}
+        }
+        for type_name, slot_type in self.slot_types.items():
+            whitelist: list[str] = []
+            type_data = SlotTypeData(
+                extends=slot_type._super_type.value,
+                conn_whitelist=whitelist,
+                default_data_type=slot_type.data_type.type_name
+            ).__dict__
+
+            json_data["slot_types"][type_name] = type_data
+
+        
+        for type_name, constructor in self.node_constructors.items():
+            parameters = {}
+
+            for param_name, param in constructor._data_model.param_model.items():
+                parameters[param_name] = {
+                    "type": param.type
+                }
+                if param.range:
+                    parameters[param_name]["range"] = param.range
+
+            type_data = NodeTypeData(
+                parameters=parameters,
+                slots=constructor.slots
+            ).__dict__
+            json_data["node_types"][type_name] = type_data
+        
+        return json_data
+        
 
     def _load_json_data(self, json_data: dict):
         type_data, slot_types, constructors = TypeFileReader._parse_json_data(json_data)
