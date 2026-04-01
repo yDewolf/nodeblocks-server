@@ -7,7 +7,7 @@ from nodeserver.api.web.websocket_manager import WebsocketInstanceManager
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
 from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeParameterData, SlotData
-from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.networking.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader, TypeReaderUtils
 from nodeserver.networking.nodes.helpers.node_constructor import CustomMirrorConstructor
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 
@@ -86,38 +86,17 @@ def my_parser(mirror: NodeMirror) -> BaseNode:
 
     return node
 
-my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [
-    CustomMirrorConstructor(
-        "InputNode", NodeData({"value": NodeParameterData("float", None)}),
-        slot_types,
-        {"out_0": SlotData("output", None)},
-        my_parser
-    ),
-    CustomMirrorConstructor(
-        "SumNode", NodeData({}),
-        slot_types,
-        default_slots,       
-        my_parser
-    ),
-    CustomMirrorConstructor(
-        "SubNode", NodeData({}),
-        slot_types,
-        default_slots,
-        my_parser
-    ),
-    CustomMirrorConstructor(
-        "MulNode", NodeData({}),
-        slot_types,
-        default_slots,       
-        my_parser,
-    ),
-    CustomMirrorConstructor(
-        "DivNode", NodeData({}),
-        slot_types,
-        default_slots,
-        my_parser
-    )
-])
+
+my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
+my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
+    my_cool_types, default_slots, my_parser, [
+        ConstructorModel.new("InputNode", NodeData({"value": NodeParameterData("float")})),
+        ConstructorModel.new("SumNode"),
+        ConstructorModel.new("SubNode"),
+        ConstructorModel.new("MulNode"),
+        ConstructorModel.new("DivNode"),
+    ]
+))
 
 manager = WebsocketInstanceManager(my_cool_types)
 asyncio.run(manager.run_server())

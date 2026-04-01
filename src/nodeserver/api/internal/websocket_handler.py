@@ -10,7 +10,6 @@ import websockets
 import json
 import logging
 
-
 WEBSOCKET_LOGGER = logging.Logger("WebsocketLogger")
 
 class WebsocketHandler:

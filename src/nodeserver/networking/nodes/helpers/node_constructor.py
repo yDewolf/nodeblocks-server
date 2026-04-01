@@ -6,12 +6,6 @@ from nodeserver.networking.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.api.base_nodes import BaseNode
 
-# TODO: Pensar em uma forma de conectar melhor o NodeBuilder com isso aqui
-# Por enquanto a única relação que eles têm é o type name do Mirror
-# O ideal seria o construtor existir com base no Builder, ou o contrário
-# O ponto é que o TypeFile é feito para comunicar os tipos existentes
-# a forma como esses tipos são interpretados no código não depende diretamente
-# do TypeFile, o que deixa o desenvolvimento um pouco estranho.
 
 def _default_build_func(mirror: NodeMirror) -> BaseNode:
     return BaseNode(mirror)

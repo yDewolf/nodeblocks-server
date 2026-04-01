@@ -174,7 +174,6 @@ class ServerInstance:
                 
                 self.state_controller.has_step_permission = True
 
-    # TODO:
     def set_output_callback(self, callback: Callable[[dict], None]):
         self._on_output = callback
 

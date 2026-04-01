@@ -41,7 +41,7 @@ class SlotData:
 @dataclass
 class NodeParameterData:
     type: str
-    range: Optional[list[float | int]]
+    range: Optional[list[float | int]] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> 'NodeParameterData':

@@ -63,7 +63,6 @@ class InstanceRunner:
         return len(self.instances) < self.max_instances and self.active
 
 
-    # TODO: maybe use asyncio idk
     def _thread_runtime(self):
         while self.active:
             current_instances = self._instances_cache

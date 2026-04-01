@@ -1,12 +1,16 @@
 from __future__ import annotations
+from dataclasses import dataclass
 import json
+from typing import Callable
 
+from nodeserver.api.base_nodes import BaseNode
 from nodeserver.networking.nodes.data.custom_data_types import CustomSlotType
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import BaseSlotType
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
-from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeTypeData, SlotTypeData, TypeFile
+from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeTypeData, SlotData, SlotTypeData, TypeFile
 from nodeserver.networking.nodes.helpers.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
+from nodeserver.networking.nodes.node.base_nodes import NodeMirror
 
 class TypeFileReader:
     _node_types_version: int = -1
@@ -61,6 +65,12 @@ class TypeFileReader:
     def set_constructor(self, type_name: str, constructor: BaseMirrorConstructor):
         self.node_constructors[type_name] = constructor
     
+    def set_new_constructors(self, constructors: list[BaseMirrorConstructor]):
+        self.node_constructors.clear()
+        for constructor in constructors:
+            self.set_constructor(constructor.type_name, constructor)
+
+
     def get_constructor(self, type_name: str) -> BaseMirrorConstructor | None:
         return self.node_constructors.get(type_name, None)
 
@@ -139,3 +149,36 @@ class TypeFileReader:
             constructors[type_name] = constructor
     
         return type_data, slot_types, constructors
+
+@dataclass
+class ConstructorModel:
+    type_name: str
+    node_data: NodeData | None
+
+    slots: dict[str, SlotData] | None
+    parser: Callable[[NodeMirror], BaseNode] | None
+
+    @staticmethod
+    def new(type_name: str, node_data: NodeData | None = None, slots: dict[str, SlotData] | None = None, parser: Callable[[NodeMirror], BaseNode] | None = None) -> 'ConstructorModel':
+        return ConstructorModel(
+            type_name=type_name,
+            node_data=node_data,
+            slots=slots,
+            parser=parser
+        )
+
+class TypeReaderUtils:
+    @staticmethod
+    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], BaseNode], models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
+        constructors: list[BaseMirrorConstructor] = []
+        for model in models:
+            constructor = CustomMirrorConstructor(
+                type_name=model.type_name,
+                data=model.node_data if model.node_data else NodeData({}),
+                slot_types=base_types.slot_types,
+                slots=model.slots if model.slots else default_slots,
+                builder_func=model.parser if model.parser else default_builder
+            )
+            constructors.append(constructor)
+
+        return constructors
