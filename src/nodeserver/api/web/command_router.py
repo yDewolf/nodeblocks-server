@@ -1,9 +1,12 @@
 from enum import Enum
 import json
+import logging
 
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.api.server_instance import ServerInstance
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
+
+COMMAND_LOGGER = logging.Logger("CommandLogger", logging.INFO)
 
 class SceneActions(Enum):
     ADD = "ADD"
@@ -13,6 +16,7 @@ class SceneActions(Enum):
 class BaseCommandRouter:
     def route_message(self, msg_type: str, payload: dict, instance: ServerInstance) -> dict | None:
         # TODO: Simplify this if return mess
+        COMMAND_LOGGER.info(f"INFO: Routing command for instance {instance._attributed_id} type: {msg_type} | Payload: {payload}")
         out = self._route_utility_commands(msg_type, payload, instance)
         if out != None: return out
         

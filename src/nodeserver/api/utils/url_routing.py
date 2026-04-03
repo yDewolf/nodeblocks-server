@@ -61,6 +61,7 @@ class URLRouter:
     @staticmethod
     def endpoint_matches_url(endpoint: Endpoint, url: str) -> bool:
         exploded_endpoint = endpoint.raw_url.split("/")
+        url = url.removesuffix("/")
         exploded_url = url.split("/")
         
         param_indexes = list(endpoint.param_names.values())

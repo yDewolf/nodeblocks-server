@@ -73,6 +73,7 @@ class InstanceRunner:
             for instance in current_instances:
                 # try:
                     instance.state_controller.update()
+                    instance._handle_command_queue()
                     if instance.is_running():
                         instance.runtime_tick()
                 # except Exception as e:
@@ -123,7 +124,7 @@ class InstanceManager:
         return runner.get_instance(instance_id)
 
     def remove_instance(self, instance_id: str):
-        runner_id = self.instance_mappings.pop(instance_id)
+        runner_id = self.instance_mappings.pop(instance_id, None)
         if runner_id == None:
             return
         

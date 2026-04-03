@@ -90,6 +90,8 @@ class TypeFileReader:
         }
         for type_name, slot_type in self.slot_types.items():
             whitelist: list[str] = []
+            for name in slot_type._name_whitelist: whitelist.append(name)
+            for super_type in slot_type._type_whitelist: whitelist.append(f"#{super_type.value}")
             type_data = SlotTypeData(
                 extends=slot_type._super_type.value,
                 conn_whitelist=whitelist,
@@ -102,7 +104,7 @@ class TypeFileReader:
         for type_name, constructor in self.node_constructors.items():
             type_data = NodeTypeData(
                 parameters=constructor._data_model.param_model,
-                slots=constructor.slots
+                slots=constructor._slots
             ).serialize()
             json_data["node_types"][type_name] = type_data
         

@@ -31,7 +31,7 @@ class StateController:
         self.command_queue = queue.Queue()
 
         self.instance_state = InstanceStates.WAITING
-        self.loop_state = LoopStates.AUTO_LOOP    
+        self.loop_state = LoopStates.WAIT_TO_STEP
 
     def queue_command(self, command: InstanceCommands):
         self.command_queue.put(command)

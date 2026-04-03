@@ -1,5 +1,6 @@
 import asyncio
 import websockets
+from websockets.asyncio.server import serve
 
 from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.internal.websocket_handler import WebsocketHandler
@@ -29,6 +30,13 @@ class WebsocketInstanceManager(InstanceManager):
 
         self.stop = asyncio.get_running_loop().create_future()
         
-        async with websockets.serve(self.handler.main_router, self.host, self.port, process_request=self.handler._process_request):
+        async with serve(
+            self.handler.main_router, 
+            self.host, self.port, 
+            process_request=self.handler._process_request,
+            ping_interval=5,
+            ping_timeout=5,
+            close_timeout=1
+        ):
             print(f"Node Server Headless rodando em ws://{self.host}:{self.port}")
             await self.stop

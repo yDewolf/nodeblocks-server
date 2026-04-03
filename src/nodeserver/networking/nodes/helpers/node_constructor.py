@@ -24,7 +24,7 @@ class BaseMirrorConstructor:
         self._builder_func = builder_func
 
         self._data_model = NodeData({})
-        self.slots = {}
+        self._slots = {}
         self._slot_types = {}
     
     def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any]) -> NodeMirror | None:

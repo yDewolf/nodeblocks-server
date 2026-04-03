@@ -5,5 +5,5 @@ class WebsocketStatus(Enum):
     CONNECTED = 1
     DISCONNECTED = 0
 
-class WebsocketCommands(Enum):
-    pass
+class ServerMessages(Enum):
+    HANDSHAKE_SYNC = "handshake_sync"

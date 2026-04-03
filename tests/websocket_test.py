@@ -11,6 +11,8 @@ from nodeserver.networking.nodes.helpers.file.typing_file_reader import Construc
 from nodeserver.networking.nodes.helpers.node_constructor import CustomMirrorConstructor
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 
+import logging
+logging.basicConfig(level=logging.INFO)
 
 class MyInputNode(BaseNode):
     def forward(self, input: dict[SlotMirror, dict[SlotMirror, dict]]):
@@ -68,9 +70,9 @@ slot_types: dict[str, BaseSlotType] = {
     "output": OUTPUT_TYPE
 }
 default_slots: dict[str, SlotData] = {
-    "in_0": SlotData("input", None),
-    "in_1": SlotData("input", None),
-    "out_0": SlotData("output", None),
+    "in_0": SlotData("input", "float"),
+    "in_1": SlotData("input", "float"),
+    "out_0": SlotData("output", "float"),
 }
 
 def my_parser(mirror: NodeMirror) -> BaseNode:
@@ -90,7 +92,7 @@ def my_parser(mirror: NodeMirror) -> BaseNode:
 my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
 my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
     my_cool_types, default_slots, my_parser, [
-        ConstructorModel.new("InputNode", NodeData({"value": NodeParameterData("float")})),
+        ConstructorModel.new("InputNode", NodeData({"value": NodeParameterData("float")}), {"out_0": SlotData("output", "float")}),
         ConstructorModel.new("SumNode"),
         ConstructorModel.new("SubNode"),
         ConstructorModel.new("MulNode"),

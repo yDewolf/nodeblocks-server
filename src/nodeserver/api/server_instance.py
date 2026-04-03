@@ -105,13 +105,6 @@ class ServerInstance:
 
 
     def runtime_tick(self):
-        while not self.state_controller.command_queue.empty():
-            try:
-                command = self.state_controller.command_queue.get_nowait()
-                self._handle_command(command)
-            except queue.Empty:
-                break
-
         if not self.is_running():
             return
 
@@ -149,6 +142,14 @@ class ServerInstance:
             })
             
         INSTANCE_LOGGER.info("DEBUG: Running server instance")
+
+    def _handle_command_queue(self):
+        while not self.state_controller.command_queue.empty():
+            try:
+                command = self.state_controller.command_queue.get_nowait()
+                self._handle_command(command)
+            except queue.Empty:
+                break
 
     def _handle_command(self, command: InstanceCommands):
         match command:
