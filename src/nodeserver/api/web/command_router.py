@@ -3,6 +3,7 @@ import json
 import logging
 
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
+from nodeserver.api.internal.websocket_protocol import ServerMessages
 from nodeserver.api.server_instance import ServerInstance
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
 
@@ -73,6 +74,9 @@ class BaseCommandRouter:
                 # FIXME is the payload supposed to be the full scene?
                 instance.load_new_scene(payload)
                 return
+            
+            case "SYNC_CLIENT_SCENE":
+                return {"type": ServerMessages.SYNC_CLIENT_SCENE.value, "payload": instance._scene.mirror_manager.scene_reader.raw_data}
         
         uid = payload.get("uid", None)
         action = payload.get("action", None)

@@ -7,3 +7,4 @@ class WebsocketStatus(Enum):
 
 class ServerMessages(Enum):
     HANDSHAKE_SYNC = "handshake_sync"
+    SYNC_CLIENT_SCENE = "sync_client_scene"

@@ -36,7 +36,7 @@ class SceneFileReader:
         if virtual_data.node_types_version != self.scene_data.node_types_version:
             return False
 
-        return False
+        return True
     
     def swap_virtual_data(self):
         if self._virtual_file == None:
