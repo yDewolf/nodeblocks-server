@@ -12,7 +12,11 @@ from nodeserver.networking.nodes.helpers.node_constructor import CustomMirrorCon
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 
 import logging
-logging.basicConfig(level=logging.INFO)
+import logging.config
+
+logging.config.fileConfig("logging.conf")
+
+logger = logging.getLogger("root")
 
 class MyInputNode(BaseNode):
     def forward(self, input: dict[SlotMirror, dict[SlotMirror, dict]]):
@@ -59,7 +63,7 @@ class MyMathNode(BaseNode):
             case 2: result = input_values[0] * input_values[1]
             case 3: result = input_values[0] / input_values[1]
         
-        print(f"Operation {self.operation} resulted in {result} with inputs {input_values}")
+        logger.info(f"Operation {self.operation} resulted in {result} with inputs {input_values}")
         return self.map_to_slots({
             "out_0": result
         })

@@ -1,5 +1,5 @@
 import json
-from logging import Logger
+import logging
 
 from nodeserver.api.base_nodes import BaseNode
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
@@ -12,7 +12,7 @@ from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFile
 from nodeserver.networking.nodes.helpers.node_constructor import CustomMirrorConstructor
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 
-LOGGER = Logger("logger")
+logger = logging.getLogger("root")
 manager = InstanceManager()
 
 class MyInputNode(BaseNode):
@@ -60,7 +60,7 @@ class MyMathNode(BaseNode):
             case 2: result = input_values[0] * input_values[1]
             case 3: result = input_values[0] / input_values[1]
         
-        print(f"Operation {self.operation} resulted in {result} with inputs {input_values}")
+        logger.info(f"Operation {self.operation} resulted in {result} with inputs {input_values}")
         return self.map_to_slots({
             "out_0": result
         })
@@ -177,7 +177,6 @@ my_instance = ServerInstance(my_cool_types)
 result = manager.set_instance(
     "someRandomString", my_instance
 )
-print(f"Created instance? {result}")
 my_instance.start_running()
 # my_instance.load_types(TYPE_FILE_JSON)
 my_instance.load_new_scene(test_scene)

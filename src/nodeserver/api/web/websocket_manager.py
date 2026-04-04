@@ -1,5 +1,4 @@
 import asyncio
-import websockets
 from websockets.asyncio.server import serve
 
 from nodeserver.api.internal.instance_manager import InstanceManager
@@ -7,6 +6,9 @@ from nodeserver.api.internal.websocket_handler import WebsocketHandler
 from nodeserver.api.server_instance import ServerInstance
 from nodeserver.api.web.command_router import BaseCommandRouter
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
+
+import logging
+logger = logging.getLogger("nds.websocket")
 
 class WebsocketInstanceManager(InstanceManager):
     loop: asyncio.AbstractEventLoop
@@ -38,5 +40,5 @@ class WebsocketInstanceManager(InstanceManager):
             ping_timeout=5,
             close_timeout=1
         ):
-            print(f"Node Server Headless rodando em ws://{self.host}:{self.port}")
+            logger.info(f"Node Server Headless rodando em ws://{self.host}:{self.port}")
             await self.stop

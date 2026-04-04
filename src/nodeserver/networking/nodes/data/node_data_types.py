@@ -109,12 +109,6 @@ class DataTypeUtils:
 
         return False
 
-# class CustomNodeDataType(BaseDataType[DataGroup.NODE]):
-#     def __init__(self, type_name: str, super_type: DataTypes, type_whitelist: list[str]) -> None:
-#         parsed_type_whitelist, name_whitelist = CustomNodeDataType._parse_type_whitelist(type_whitelist)
-
-#         super().__init__(type_name, super_type, parsed_type_whitelist, name_whitelist)
-
     @staticmethod
     def _parse_type_whitelist(str_list: list[str], _type: type[DataTypes] | type[SuperSlotTypes]) -> tuple[list, list[str]]:
         type_whitelist: list = []

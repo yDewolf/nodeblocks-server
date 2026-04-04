@@ -2,7 +2,8 @@ from nodeserver.api.base_nodes import BaseNode
 from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror
 
-
+import logging
+logger = logging.getLogger("nds.mirrors")
 # TODO: Fazer um parser dos mirrors, cada alteração nos mirrors precisa refletir na NodeScene
 
 # Controla que nodes devem ser adicionados, atualizados, etc.
@@ -47,7 +48,7 @@ class NodeScene:
             if not new_node:
                 return False
 
-            print(f"Parsed mirror to {new_node}")
+            logger.debug(f"Parsed mirror to {new_node}")
             self.nodes.append(new_node)
         
         return True

@@ -7,7 +7,7 @@ from nodeserver.api.internal.websocket_protocol import ServerMessages
 from nodeserver.api.server_instance import ServerInstance
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
 
-COMMAND_LOGGER = logging.Logger("CommandLogger", logging.INFO)
+COMMAND_LOGGER = logging.getLogger("nds.commands")
 
 class SceneActions(Enum):
     ADD = "ADD"
@@ -17,7 +17,7 @@ class SceneActions(Enum):
 class BaseCommandRouter:
     def route_message(self, msg_type: str, payload: dict, instance: ServerInstance) -> dict | None:
         # TODO: Simplify this if return mess
-        COMMAND_LOGGER.info(f"INFO: Routing command for instance {instance._attributed_id} type: {msg_type} | Payload: {payload}")
+        COMMAND_LOGGER.info(f"Routing command for instance {instance._attributed_id} type: {msg_type} | Payload: {payload}")
         out = self._route_utility_commands(msg_type, payload, instance)
         if out != None: return out
         

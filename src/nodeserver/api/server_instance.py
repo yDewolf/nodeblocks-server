@@ -11,7 +11,7 @@ from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.networking.nodes.node.node_utils import NodeUtils
 
-INSTANCE_LOGGER = logging.Logger("InstanceLogger")
+logger = logging.getLogger("nds.instances")
 
 class BaseServerRuntime:
     _current_idx: int | None = None
@@ -55,7 +55,7 @@ class BaseServerRuntime:
         output_data: dict[SlotMirror, dict] = {}
         for slot in node_result:
             if slot.type._super_type != SuperSlotTypes.OUTPUT:
-                INSTANCE_LOGGER.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {current_node}")
+                logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {current_node}")
             
             slot_output = {
                 "value": node_result[slot]
@@ -141,7 +141,7 @@ class ServerInstance:
                 "value": result_data
             })
             
-        INSTANCE_LOGGER.info("DEBUG: Running server instance")
+        logger.info("DEBUG: Running server instance")
 
     def _handle_command_queue(self):
         while not self.state_controller.command_queue.empty():

@@ -1,5 +1,8 @@
 from enum import Enum
 import queue
+import logging
+
+logger = logging.getLogger("nds.instances")
 
 class InstanceStates(Enum):
     WAITING = 0
@@ -48,9 +51,9 @@ class StateController:
             command, state = self.state_queue.get_nowait()
             match command:
                 case "SET_INSTANCE_STATE": 
-                    print(f"Instance State: {state}")
+                    logger.debug(f"Instance State: {state}")
                     self.instance_state = state # type: ignore
                 
                 case "SET_LOOP_STATE": 
-                    print(f"Loop State: {state}")
+                    logger.debug(f"Loop State: {state}")
                     self.loop_state = state # type: ignore
