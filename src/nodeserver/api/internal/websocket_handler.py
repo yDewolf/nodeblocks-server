@@ -1,6 +1,7 @@
 import asyncio
 
 from websockets.asyncio.server import ServerConnection
+from nodeserver.api.internal.websocket_messages import MessageUtils
 from nodeserver.api.utils.url_routing import Endpoint, URLRouter
 from nodeserver.api.web.command_router import BaseCommandRouter
 from nodeserver.api.internal.instance_manager import InstanceManager
@@ -131,16 +132,12 @@ class WebsocketHandler:
                 continue
     
     async def _route_message(self, instance: ServerInstance, data: dict) -> dict | None:
-        msg_type = str(data.get("type", ""))
-        logger.info(f"Command Received: {data.get('type')} for Instance '{instance._attributed_id}'")
-        payload = data.get("payload", "{}")
-        if type(payload) is str:
-            payload = json.loads(payload)
-        
-        if not type(payload) is dict:
+        message = MessageUtils.client_from_dict(data)
+        logger.info(f"Command Received: {message} for Instance '{instance._attributed_id}'")
+        if not message:
             return
         
-        output = self._router.route_message(msg_type, payload, instance)
+        output = self._router.route_message(message, instance)
         if output:
             logger.info(f"Sending route output to {instance} | output: {output}")
 
