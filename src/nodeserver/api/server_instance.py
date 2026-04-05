@@ -4,6 +4,7 @@ import queue
 from typing import Callable
 from nodeserver.api.base_nodes import BaseNode
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
+from nodeserver.api.internal.websocket_protocol import ServerMessages
 from nodeserver.api.node_scene import NodeScene
 from nodeserver.networking.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
@@ -83,11 +84,11 @@ class BaseServerRuntime:
         if len(self._process_order) == 0:
             self._current_idx = None
 
-    
+
 class ServerInstance:
     _attributed_id: str = ""
     _runtime: BaseServerRuntime
-    _on_output: Callable[[dict], None] | None = None
+    _send_callback: Callable[[dict], None] | None = None
 
     state_controller: StateController
 
@@ -98,7 +99,8 @@ class ServerInstance:
         self.setup(types)
 
     def setup(self, types: TypeFileReader | None = None):
-        self.state_controller = StateController()
+        self.state_controller = StateController(self._state_changed)
+
         self._runtime = BaseServerRuntime()
         self.mirror_manager = MirrorSceneManager(types)
         self._scene = NodeScene([], self.mirror_manager)
@@ -121,22 +123,22 @@ class ServerInstance:
                     # Any other will wait for resume commands
                     return
 
-        if self.state_controller.loop_state == LoopStates.WAIT_TO_STEP:
+        if self.state_controller.loop_state == LoopStates.WAIT_STEP:
             if not self.state_controller.has_step_permission:
                 return
 
             self.state_controller.has_step_permission = False
 
         results = self._runtime.process_next(self._scene)
-        if results != None and self._on_output != None:
+        if results != None and self._send_callback != None:
             slot_results, node = results
             result_data = {}
             if slot_results != None:
                 for slot, result in slot_results.items():
                     result_data[slot.slot_name] = result
 
-            self._on_output({
-                "type": "node_output",
+            self._send_callback({
+                "type": ServerMessages.NODE_OUTPUT.value,
                 "node_id": node._mirror.uid,
                 "value": result_data
             })
@@ -159,15 +161,15 @@ class ServerInstance:
             case InstanceCommands.STOP:
                 self.stop_running()
             
-            case InstanceCommands.RESUME_LOOP:
-                if self.state_controller.loop_state != LoopStates.WAIT_TO_RESUME:
+            case InstanceCommands.RESUME:
+                if self.state_controller.loop_state != LoopStates.WAIT_RESUME:
                     return
                 
                 if self._runtime.waiting_to_continue:
                     self._runtime.continue_process(self._scene)
 
-            case InstanceCommands.STEP_NEXT:
-                if self.state_controller.loop_state != LoopStates.WAIT_TO_STEP:
+            case InstanceCommands.STEP:
+                if self.state_controller.loop_state != LoopStates.WAIT_STEP:
                     return
                 
                 if self._runtime.waiting_to_continue:
@@ -175,8 +177,8 @@ class ServerInstance:
                 
                 self.state_controller.has_step_permission = True
 
-    def set_output_callback(self, callback: Callable[[dict], None]):
-        self._on_output = callback
+    def set_send_callback(self, callback: Callable[[dict], None]):
+        self._send_callback = callback
 
 
     def start_running(self):
@@ -202,8 +204,21 @@ class ServerInstance:
         self._scene_changed()
 
 
-    def save_state(self):
+    def _state_changed(self):
+        if not self._send_callback:
+            return
+        
+        self._send_callback({
+            "type": ServerMessages.SYNC_INSTANCE_STATE.value,
+            "payload": {
+                "loop_state": self.state_controller.loop_state.value,
+                "instance_state": self.state_controller.instance_state.value
+            }
+        })
+
+
+    def save_internal_state(self):
         pass
 
-    def load_state(self, something):
+    def load_internal_state(self, something):
         pass

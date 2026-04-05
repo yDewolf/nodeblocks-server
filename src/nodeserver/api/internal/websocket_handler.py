@@ -69,7 +69,7 @@ class WebsocketHandler:
 
             self.instance_manager.remove_instance(instance._attributed_id)
             instance.stop_running()            
-            instance.save_state()
+            instance.save_internal_state()
             logger.info("user disconnected")
     
     async def on_handshake(self, websocket: ServerConnection, user_id: str):
@@ -94,7 +94,7 @@ class WebsocketHandler:
                     lambda: asyncio.create_task(websocket.send(message))
                 )
 
-        new_instance.set_output_callback(_thread_safe_send)
+        new_instance.set_send_callback(_thread_safe_send)
         if success:
             self.connections[websocket] = new_instance
             type_data = new_instance.mirror_manager.type_reader.serialize_to_dict()
@@ -134,7 +134,9 @@ class WebsocketHandler:
         msg_type = str(data.get("type", ""))
         logger.info(f"Command Received: {data.get('type')} for Instance '{instance._attributed_id}'")
         payload = data.get("payload", "{}")
-        payload = json.loads(payload)
+        if type(payload) is str:
+            payload = json.loads(payload)
+        
         if not type(payload) is dict:
             return
         

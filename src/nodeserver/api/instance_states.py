@@ -1,6 +1,8 @@
 from enum import Enum
 import queue
 import logging
+from typing import Callable
+
 
 logger = logging.getLogger("nds.instances")
 
@@ -9,15 +11,15 @@ class InstanceStates(Enum):
     RUNNING = 1
 
 class LoopStates(Enum):
-    AUTO_LOOP = 0 # Keeps the loop running
-    WAIT_TO_RESUME = 1 # Runs the full loop and waits
-    WAIT_TO_STEP = 2 # Process a node and waits
+    AUTO_LOOP = "auto_loop" # Keeps the loop running
+    WAIT_RESUME = "wait_resume" # Runs the full loop and waits
+    WAIT_STEP = "wait_step" # Process a node and waits
 
 class InstanceCommands(Enum):
-    STEP_NEXT = 0
-    RESUME_LOOP = 1
-    STOP = 2
-    RUN = 3
+    STEP = "STEP"
+    RESUME = "RESUME"
+    STOP = "STOP"
+    RUN = "RUN"
 
 class StateController:
     state_queue: queue.Queue[tuple[str, InstanceStates | LoopStates]]
@@ -27,14 +29,17 @@ class StateController:
     loop_state: LoopStates
 
     has_step_permission: bool
+    _on_state_changed: Callable[[], None] | None
 
-    def __init__(self) -> None:
+    def __init__(self, on_state_changed: Callable[[], None] | None = None) -> None:
+        self._on_state_changed = on_state_changed
+
         self.has_step_permission = False
         self.state_queue = queue.Queue()
         self.command_queue = queue.Queue()
 
         self.instance_state = InstanceStates.WAITING
-        self.loop_state = LoopStates.WAIT_TO_STEP
+        self.loop_state = LoopStates.WAIT_STEP
 
     def queue_command(self, command: InstanceCommands):
         self.command_queue.put(command)
@@ -46,14 +51,29 @@ class StateController:
         self.state_queue.put(("SET_LOOP_STATE", new_state))
     
 
+    def _set_instance_state(self, new_state: InstanceStates):
+        if new_state != self.instance_state:
+            self.instance_state = new_state
+        
+        if self._on_state_changed:
+            self._on_state_changed()
+
+    def _set_loop_state(self, new_state: LoopStates):
+        if new_state != self.loop_state:
+            self.loop_state = new_state
+
+        if self._on_state_changed:
+            self._on_state_changed()
+
     def update(self):
         while not self.state_queue.empty():
             command, state = self.state_queue.get_nowait()
             match command:
                 case "SET_INSTANCE_STATE": 
                     logger.debug(f"Instance State: {state}")
-                    self.instance_state = state # type: ignore
+                    self._set_instance_state(state) # type: ignore
                 
                 case "SET_LOOP_STATE": 
                     logger.debug(f"Loop State: {state}")
-                    self.loop_state = state # type: ignore
+                    self._set_loop_state(state) # type: ignore
+

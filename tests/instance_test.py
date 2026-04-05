@@ -205,12 +205,12 @@ while True:
 
         case "STEP":
             my_instance.state_controller.queue_command(
-                InstanceCommands.STEP_NEXT
+                InstanceCommands.STEP
             )
 
         case "RESUME":
             my_instance.state_controller.queue_command(
-                InstanceCommands.RESUME_LOOP
+                InstanceCommands.RESUME
             )
 
         case "STOP":
