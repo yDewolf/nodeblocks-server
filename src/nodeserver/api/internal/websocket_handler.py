@@ -104,7 +104,7 @@ class WebsocketHandler:
             return
         
         logger.info("Couldn't connect websocket to instance")
-        await websocket.send(json.dumps({"status": WebsocketStatus.ERROR.value, "message": "Server might be full"}))
+        await websocket.send(json.dumps({"type": ServerMessages.HANDSHAKE_SYNC.value, "status": WebsocketStatus.ERROR.value, "message": "Server might be full"}))
 
     # Routes
     async def instance_listen_route(self, data: dict, websocket: ServerConnection) -> dict | None:
