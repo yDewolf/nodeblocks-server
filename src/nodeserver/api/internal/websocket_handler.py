@@ -65,9 +65,6 @@ class WebsocketHandler:
     def on_disconnect(self, websocket):
         instance = self.connections.pop(websocket, None)
         if instance:
-            if not instance:
-                return
-
             self.instance_manager.remove_instance(instance._attributed_id)
             instance.stop_running()            
             instance.save_internal_state()

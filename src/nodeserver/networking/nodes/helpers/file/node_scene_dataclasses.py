@@ -4,32 +4,52 @@ from dataclasses import dataclass, field
 from typing import Any
 
 @dataclass
+class Vector2:
+    x: float
+    y: float    
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Vector2':
+        return cls(
+            x=data.get("x", 0),
+            y=data.get("y", 0)
+        )
+
+    def serialize(self) -> list[float]:
+        return [self.x, self.y]
+
+@dataclass
 class NodeSceneData:
-    id: str
+    uid: str
     type: str
+    position: Vector2
     data: dict[str, Any]
 
     @classmethod
-    def from_dict(cls, data: dict, key: str) -> 'NodeSceneData':
-        node_id = key
-        if "_" in key:
-            split = key.split("_")
-            node_id = split[1] if len(split) >= 2 else key
-        
+    def from_dict(cls, data: dict, node_id: str) -> 'NodeSceneData':
         return cls(
-            id=node_id,
+            uid=node_id,
             type=data.get("type", ""),
-            data=data.get("data", {})
+            data=data.get("data", {}),
+            position=Vector2.from_dict(data.get("position", {}))
         )
+
+    def serialize(self) -> dict:
+        return {
+            "uid": self.uid,
+            "type": self.type,
+            "data": self.data,
+            "position": self.position.serialize(),
+        }
 
 @dataclass
 class NodePathData:
     node_id: str
-    slot_name: str | None = None
+    slot_name: str
 
     @classmethod
     def from_str(cls, path: str) -> 'NodePathData':
-        pattern = r"nodes:node_([^:\s]+):slots:([^:\s]+)"
+        pattern = r"nodes:([a-z0-9-]+):slots:([^:\s]+)"
         match = re.search(pattern, path, re.IGNORECASE)
         
         if match:
@@ -38,7 +58,14 @@ class NodePathData:
                 slot_name=match.group(2)
             )
 
-        return cls(node_id="")
+        return cls(node_id="", slot_name="")
+
+    @staticmethod
+    def make_path(node_id: str, slot_id: str) -> str:
+        return f"nodes:{node_id}:slots:{slot_id}"
+
+    def serialize(self) -> str:
+        return self.make_path(self.node_id, self.slot_name)
 
 @dataclass
 class ConnectionSceneData:
@@ -54,6 +81,13 @@ class ConnectionSceneData:
             from_node=NodePathData.from_str(data.get("from", "")),
             to_node=NodePathData.from_str(data.get("to", ""))
         )
+
+    def serialize(self):
+        return {
+            "uid": self.uid,
+            "from": self.from_node.serialize(),
+            "to": self.to_node.serialize()
+        }
 
 @dataclass
 class SceneData:
@@ -80,3 +114,12 @@ class SceneData:
                 for key, value in data.get("connections", {}).items()
             }
         )
+    
+    def serialize(self):
+        return {
+            "uid": self.uid,
+            "node_types_id": self.node_types_id,
+            "node_types_version": self.node_types_version,
+            "nodes": {key: node.serialize() for key, node in self.nodes.items()},
+            "connections": {key: conn.serialize() for key, conn in self.connections.items()}
+        }

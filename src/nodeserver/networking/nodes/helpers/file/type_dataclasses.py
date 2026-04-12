@@ -41,18 +41,21 @@ class SlotData:
 @dataclass
 class NodeParameterData:
     type: str
+    step: Optional[float] = None
     range: Optional[list[float | int]] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> 'NodeParameterData':
         return cls(
             type=data.get("type", ""),
+            step=data.get("step", ""),
             range=data.get("range")
         )
 
     def serialize(self) -> dict:
         return {
             "type": self.type,
+            "step": self.step,
             "range": self.range
         }
 

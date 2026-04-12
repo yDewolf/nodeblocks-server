@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from nodeserver.networking.nodes.data.node_data import NodeData
 from nodeserver.networking.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
+from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodePathData
 from nodeserver.networking.nodes.node.node_types import SuperSlotTypes
 from nodeserver.networking.utils.uuid_utils import IDGenerator
 
@@ -12,13 +13,15 @@ class NodeMirror:
 
     data: NodeData
     raw_data: dict
+    _position: list[float]
 
     slots: dict[SuperSlotTypes, list[SlotMirror]]
 
-    def __init__(self, node_name: str, node_data: NodeData, uid: str | None = None, type_name: str = "BaseNode"):
+    def __init__(self, node_name: str, node_data: NodeData, uid: str | None = None, type_name: str = "BaseNode", _position: list[float] = [0, 0]):
         self.uid = uid if uid != None else IDGenerator.generate_node_id()
         self.node_name = node_name
         self.type_name = type_name
+        self._position = _position
 
         self.data = node_data
         self.slots = {}
@@ -124,3 +127,11 @@ class ConnectionMirror:
             return False
         
         return True
+    
+    def to_scene_data(self) -> ConnectionSceneData:
+        return ConnectionSceneData(
+            self.uid,
+            NodePathData(self.get_input().parent_node.uid, self.get_input().slot_name),
+            NodePathData(self.get_output().parent_node.uid, self.get_output().slot_name),
+        )
+        

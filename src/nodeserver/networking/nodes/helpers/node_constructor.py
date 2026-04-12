@@ -27,8 +27,8 @@ class BaseMirrorConstructor:
         self._slots = {}
         self._slot_types = {}
     
-    def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any]) -> NodeMirror | None:
-        mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), id, self.type_name)
+    def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any], _position: list[float] = [0, 0]) -> NodeMirror | None:
+        mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), id, self.type_name, _position)
         mirror.data.parse_parameters(node_data)
 
         for slot_name in self._slots:

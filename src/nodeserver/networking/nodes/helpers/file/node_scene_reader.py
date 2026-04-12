@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.networking.utils.uuid_utils import IDGenerator
 
 
 class SceneFileReader:
@@ -12,7 +13,15 @@ class SceneFileReader:
     def __init__(self, is_virtual: bool = False) -> None:
         if not is_virtual:
             self._virtual_file = SceneFileReader(True)
-    
+
+
+    def new_scene(self, node_types_id: str, node_types_version: int):
+        self.scene_data = SceneData(
+            IDGenerator.generate_id(),
+            node_types_id,
+            node_types_version,
+            {}, {}
+        )
 
     # TODO:
     def save_to_file(self, data: SceneData):
