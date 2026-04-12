@@ -141,6 +141,22 @@ class BaseCommandRouter:
                 instance.mirror_manager.remove_node_mirror(node_uid)
                 instance._scene.update_nodes()
 
+            # FIXME: Make some Update Node Parameter function
+            case SceneActions.UPDATE:
+                mirror = instance.mirror_manager.node_manager.get_node(node_uid)
+                if not mirror:
+                    return
+
+                for param_name in action_data.get("data", {}):
+                    parameter = mirror.data.parameters.get(param_name)
+                    if not parameter:
+                        continue
+                    
+                    parameter.value = action_data["data"][param_name]
+                
+                if instance.mirror_manager.scene_reader.scene_data:
+                    instance.mirror_manager.scene_reader.scene_data.nodes[node_uid].data = mirror.data.map_parameters()
+
 
     @staticmethod
     def _parse_conn_commands(conn_uid: str, action: SceneActions, action_data: dict, instance: ServerInstance):

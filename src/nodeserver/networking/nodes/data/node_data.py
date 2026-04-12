@@ -31,6 +31,9 @@ class NodeData:
         data = NodeData(model.param_model)
         return data
 
+    def map_parameters(self) -> dict[str, Any]:
+        return {key: parameter.value for key, parameter in self.parameters.items()}
+
     def get_parameter_value(self):
         pass
 
