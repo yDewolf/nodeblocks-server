@@ -43,13 +43,13 @@ class NodeData:
     @staticmethod
     def _parse_parameters(param_model: dict[str, NodeParameterData], raw_parameters: dict[str, Any]) -> dict[str, NodeParameter]:
         parsed_params: dict[str, NodeParameter] = {}
-        for key, value in raw_parameters.items():
+        for key in param_model:
             data_model = param_model.get(key)
             if not data_model:
                 continue
 
             parsed_params[key] = NodeParameter(
-                data_model, key, value
+                data_model, key, raw_parameters.get(key, None)
             )
 
         return parsed_params

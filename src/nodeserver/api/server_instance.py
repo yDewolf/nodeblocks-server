@@ -2,8 +2,11 @@ import logging
 import queue
 from typing import Callable
 from nodeserver.api.actions.action_controller import Action, ActionController
+from nodeserver.api.actions.conn_actions import ConnActionUtils
+from nodeserver.api.actions.node_actions import NodeActionUtils
 from nodeserver.api.base_nodes import BaseNode
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
+from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.internal.websocket_protocol import ClientMessages, EditorActionStatus, SceneActions, ServerMessages
 from nodeserver.api.node_scene import NodeScene
 from nodeserver.networking.nodes.data.node_data_types import SuperSlotTypes
@@ -46,6 +49,7 @@ class BaseServerRuntime:
         for slot_type in current_node._mirror.slots:
             if slot_type != SuperSlotTypes.INPUT:
                 continue
+            
             for slot in current_node._mirror.slots[slot_type]:
                 connections_output = {}
                 for connected_slot in slot.connections:
@@ -197,16 +201,17 @@ class ServerInstance:
             self._send_callback({"type": ServerMessages.SYNC_ACTION.value, "action_statuses": {
                 uid: status.value for uid, status in action_statuses.items()
             }})
+            self._scene_changed()
         
         return action_statuses
 
     def _handle_action(self, action: Action) -> EditorActionStatus:
         match action.target_type:
             case ClientMessages.NODE_ACTION:
-                status = self._parse_node_action(action)
+                status = NodeActionUtils._parse_node_action(action, self)
 
             case ClientMessages.CONNECTION_ACTION:
-                status = self._parse_conn_action(action)
+                status = ConnActionUtils._parse_conn_action(action, self)
 
         return status
 
@@ -265,84 +270,3 @@ class ServerInstance:
 
     def load_internal_state(self, something):
         pass
-
-    # FIXME: Find some way of moving this somewhere else
-    def _parse_conn_action(self, action: Action) -> EditorActionStatus:
-        if not action.message.payload:
-            return EditorActionStatus.FAILED
-        
-        action_data = action.message.payload.get("action_data", {})
-        uids: list[str] = action.message.payload.get("uids", [])
-        match action:
-            case SceneActions.ADD:
-                if action_data == {}:
-                    return EditorActionStatus.FAILED
-                
-                for conn_uid in action_data:
-                    conn_data = ConnectionSceneData.from_dict(action_data[conn_uid], conn_uid)
-                    connection = self.mirror_manager.add_conn_mirror(conn_data)
-                self._scene.update_nodes()
-
-            case SceneActions.REMOVE:
-                if uids == []:
-                    return EditorActionStatus.FAILED
-                
-                self.mirror_manager.remove_conn_mirror(uids)
-                self._scene.update_nodes()
-
-        return EditorActionStatus.SUCCESSFULL
-    
-    # FIXME: Find some way of moving this somewhere else
-    def _parse_node_action(self, action: Action) -> EditorActionStatus:
-        if not action.message.payload:
-            return EditorActionStatus.FAILED
-        
-        action_data = action.message.payload.get("action_data", {})
-        uids: list[str] = action.message.payload.get("uids", [])
-        match action.type:
-            case SceneActions.ADD:
-                if action_data == {}:
-                    return EditorActionStatus.FAILED
-                
-                nodes: list[BaseNode] = []
-                for node_uid in action_data:
-                    node_data = NodeSceneData.from_dict(action_data[node_uid], node_uid)
-                    mirror = self.mirror_manager.add_node_mirror(node_data, node_data.uid)
-                    if not mirror:
-                        # FIXME: Should I just continue?
-                        return EditorActionStatus.FAILED
-                    
-                    node = self._scene.build_node(mirror)
-                    if node:
-                        nodes.append(node)
-
-                self._scene.add_nodes(nodes)
-                self._scene.update_nodes()
-
-            case SceneActions.REMOVE:
-                self.mirror_manager.remove_node_mirrors(uids)
-                self._scene.update_nodes()
-
-            # FIXME: Make some Update Node Parameter function
-            case SceneActions.UPDATE:
-                if action_data == {}:
-                    return EditorActionStatus.FAILED
-                
-                for node_uid in action_data:
-                    node_data = action_data[node_uid]
-                    mirror = self.mirror_manager.node_manager.get_node(node_uid)
-                    if not mirror:
-                        # FIXME: Should I just continue?
-                        return EditorActionStatus.FAILED
-
-                    for param_name in node_data.get("data", {}):
-                        parameter = mirror.data.parameters.get(param_name)
-                        if not parameter:
-                            continue
-                        
-                        parameter.value = node_data["data"][param_name]
-                    
-                    if self.mirror_manager.scene_reader.scene_data:
-                        self.mirror_manager.scene_reader.scene_data.nodes[node_uid].data = mirror.data.map_parameters()
-        
-        return EditorActionStatus.SUCCESSFULL
