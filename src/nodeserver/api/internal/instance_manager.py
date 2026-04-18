@@ -76,6 +76,9 @@ class InstanceRunner:
                     instance._handle_command_queue()
                     if instance.is_running():
                         instance.runtime_tick()
+                    
+                    if instance.is_waiting():
+                        instance._handle_action_queue()
                 # except Exception as e:
                 #     MANAGER_LOGGER.error("Some Instance fumbled", e)
         

@@ -5,8 +5,10 @@ from nodeserver.api.internal.websocket_protocol import ClientMessages, ServerMes
 class SocketMessage[MessageType: ServerMessages | ClientMessages]:
     type: MessageType
     payload: dict | None
+    raw_message: dict
 
-    def __init__(self, message_type: MessageType, payload: dict | None = None) -> None:
+    def __init__(self, raw_message: dict, message_type: MessageType, payload: dict | None = None) -> None:
+        self.raw_message = raw_message
         self.type = message_type
         self.payload = payload
 
@@ -20,12 +22,12 @@ class SocketMessage[MessageType: ServerMessages | ClientMessages]:
         return f"{self.__class__.__name__}({self.type.value}, payload_keys={list(self.payload.keys() if self.payload else [])})"
 
 class ServerMessage(SocketMessage[ServerMessages]): 
-    def __init__(self, message_type: ServerMessages, payload: dict | None = None) -> None:
-        super().__init__(message_type, payload)
+    def __init__(self, raw_message: dict, message_type: ServerMessages, payload: dict | None = None) -> None:
+        super().__init__(raw_message, message_type, payload)
 
 class ClientMessage(SocketMessage[ClientMessages]):
-    def __init__(self, message_type: ClientMessages, payload: dict | None = None) -> None:
-        super().__init__(message_type, payload)
+    def __init__(self, raw_message: dict, message_type: ClientMessages, payload: dict | None = None) -> None:
+        super().__init__(raw_message, message_type, payload)
 
 
 class MessageUtils:
@@ -43,4 +45,4 @@ class MessageUtils:
         if not type(payload) is dict:
             return None
         
-        return ClientMessage(message_type, payload)
+        return ClientMessage(message_dict, message_type, payload)

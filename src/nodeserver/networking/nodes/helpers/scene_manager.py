@@ -116,17 +116,25 @@ class MirrorSceneManager:
         return conn
 
 
-    def remove_node_mirror(self, uid: str, update_scene_data: bool = True):
-        if update_scene_data and self.scene_reader.scene_data:
-            self.scene_reader.scene_data.nodes.pop(uid)
+    def remove_node_mirrors(self, uids: list[str], update_scene_data: bool = True):
+        results: list[bool] = []
+        for uid in uids:
+            if update_scene_data and self.scene_reader.scene_data:
+                self.scene_reader.scene_data.nodes.pop(uid)
 
-        return self.node_manager.remove_node(uid)
+            results.append(self.node_manager.remove_node(uid))
+        
+        return results
 
-    def remove_conn_mirror(self, uid: str, update_scene_data: bool = True):
-        if update_scene_data and self.scene_reader.scene_data:
-            self.scene_reader.scene_data.connections.pop(uid)
+    def remove_conn_mirror(self, uids: list[str], update_scene_data: bool = True):
+        results: list[bool] = []
+        for uid in uids:
+            if update_scene_data and self.scene_reader.scene_data:
+                self.scene_reader.scene_data.connections.pop(uid)
 
-        return self.connection_manager.remove_connection(uid)
+            results.append(self.connection_manager.remove_connection(uid))
+
+        return results
     
 
     def get_scene_as_dict(self) -> dict:

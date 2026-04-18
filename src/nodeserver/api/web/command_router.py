@@ -2,6 +2,8 @@ from enum import Enum
 import json
 import logging
 
+from nodeserver.api.actions.action_controller import Action
+from nodeserver.api.base_nodes import BaseNode
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.api.internal.websocket_messages import ClientMessage
 from nodeserver.api.internal.websocket_protocol import ClientMessages, SceneActions, ServerMessages
@@ -9,7 +11,7 @@ from nodeserver.api.server_instance import ServerInstance
 from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
 
 COMMAND_LOGGER = logging.getLogger("nds.commands")
-
+# FIXME: Make requests Type Safe
 class BaseCommandRouter:
     def route_message(self, message: ClientMessage, instance: ServerInstance) -> dict | None:
         # TODO: Simplify this if return mess
@@ -101,71 +103,25 @@ class BaseCommandRouter:
         
         if not message.payload:
             return
-    
-        uid = message.payload.get("uid", None)
-        action = message.payload.get("action", None)
-        if not uid or not action:
+
+        
+        raw_action_type = message.payload.get("action", None)
+        if not raw_action_type:
             return
         
         try:
-            action_type = SceneActions(str(action).upper())
-            action_data = message.payload.get("action_data", {})
+            raw_action_type = SceneActions(str(raw_action_type).upper())
             match message.type:
                 case ClientMessages.NODE_ACTION:
-                    self._parse_node_commands(uid, action_type, action_data, instance)
-                    return
+                    node_action: Action = Action(message.raw_message.get("action_uid", ""), message, raw_action_type, message.type)
+                    instance.action_controller.queue_action(node_action)
+                    # return self._parse_node_commands(uids, raw_action_type, action_data, instance)
 
                 case ClientMessages.CONNECTION_ACTION:
-                    self._parse_conn_commands(uid, action_type, action_data, instance)
-                    return
+                    conn_action: Action = Action(message.raw_message.get("action_uid", ""), message, raw_action_type, message.type)
+                    instance.action_controller.queue_action(conn_action)
+                    # return self._parse_conn_commands(uids, raw_action_type, action_data, instance)
         
         except ValueError:
             # TODO: Handle Error
             pass
-
-    @staticmethod
-    def _parse_node_commands(node_uid: str, action: SceneActions, action_data: dict, instance: ServerInstance):
-        match action:
-            case SceneActions.ADD:
-                node_data = NodeSceneData.from_dict(action_data, node_uid)
-                mirror = instance.mirror_manager.add_node_mirror(node_data, node_data.uid)
-                if not mirror:
-                    return
-                
-                node = instance._scene.build_node(mirror)
-                if node:
-                    instance._scene.add_node(node)
-                    instance._scene.update_nodes()
-
-            case SceneActions.REMOVE:
-                instance.mirror_manager.remove_node_mirror(node_uid)
-                instance._scene.update_nodes()
-
-            # FIXME: Make some Update Node Parameter function
-            case SceneActions.UPDATE:
-                mirror = instance.mirror_manager.node_manager.get_node(node_uid)
-                if not mirror:
-                    return
-
-                for param_name in action_data.get("data", {}):
-                    parameter = mirror.data.parameters.get(param_name)
-                    if not parameter:
-                        continue
-                    
-                    parameter.value = action_data["data"][param_name]
-                
-                if instance.mirror_manager.scene_reader.scene_data:
-                    instance.mirror_manager.scene_reader.scene_data.nodes[node_uid].data = mirror.data.map_parameters()
-
-
-    @staticmethod
-    def _parse_conn_commands(conn_uid: str, action: SceneActions, action_data: dict, instance: ServerInstance):
-        match action:
-            case SceneActions.ADD:
-                conn_data = ConnectionSceneData.from_dict(action_data, conn_uid)
-                connection = instance.mirror_manager.add_conn_mirror(conn_data)
-                instance._scene.update_nodes()
-
-            case SceneActions.REMOVE:
-                instance.mirror_manager.remove_conn_mirror(conn_uid)
-                instance._scene.update_nodes()

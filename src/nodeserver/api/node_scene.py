@@ -26,11 +26,12 @@ class NodeScene:
             
         return None
     
-    def add_node(self, node: BaseNode):
-        if self.nodes.__contains__(node):
-            return
-        
-        self.nodes.append(node)
+    def add_nodes(self, nodes: list[BaseNode]):
+        for node in nodes:
+            if self.nodes.__contains__(node):
+                continue
+            
+            self.nodes.append(node)
 
 
     def build_node(self, mirror: NodeMirror) -> BaseNode | None:

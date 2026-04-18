@@ -10,6 +10,7 @@ class ServerMessages(Enum):
     NODE_OUTPUT = "node_output"
     SYNC_CLIENT_SCENE = "sync_client_scene"
     SYNC_INSTANCE_STATE = "sync_instance_state"
+    SYNC_ACTION = "sync_action"
 
 class ClientMessages(Enum):
     LOAD_SCENE = "LOAD_SCENE"
@@ -28,3 +29,9 @@ class SceneActions(Enum):
     ADD = "ADD"
     REMOVE = "REMOVE"
     UPDATE = "UPDATE"
+
+class EditorActionStatus(Enum):
+    SUCCESSFULL = "SUCCESSFULL",
+    UNSYNCED = "UNSYNCED",
+    FAILED = "FAILED"
+    
