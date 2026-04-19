@@ -1,7 +1,7 @@
 import re
 import uuid
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, field_validator
+from typing import Annotated, Any, Dict, Optional
+from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
 class Vector2(BaseModel):
     x: float = 0.0
@@ -34,6 +34,11 @@ class NodePathData(BaseModel):
     def from_dict(cls, data: dict, **kwargs):
         return cls.model_validate({**data, **kwargs})
 
+NodePathSerialized = Annotated[
+    NodePathData, 
+    PlainSerializer(lambda path: path.serialize(), return_type=str)
+]
+
 class NodeSceneData(BaseModel):
     uid: Optional[str] = None
     type: str = ""
@@ -41,19 +46,18 @@ class NodeSceneData(BaseModel):
     data: Dict[str, Any] = Field(default_factory=dict)
 
     def serialize(self) -> dict:
-        return self.model_dump()
+        return self.model_dump(by_alias=True)
     
     @classmethod
     def from_dict(cls, data: dict, **kwargs):
         return cls.model_validate({**data, **kwargs})
 
 class ConnectionSceneData(BaseModel):
-    uid: Optional[str] = None
-    from_slot: NodePathData = Field(alias="from") 
-    to_slot: NodePathData = Field(alias="to")
+    model_config = ConfigDict(populate_by_name=True)
 
-    class Config:
-        populate_by_name = True
+    uid: Optional[str] = None
+    from_slot: NodePathSerialized
+    to_slot: NodePathSerialized
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)

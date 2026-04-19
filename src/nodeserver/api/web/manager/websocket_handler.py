@@ -86,7 +86,7 @@ class WebsocketHandler:
             success = self.instance_manager.set_instance(user_id, new_instance)
 
         def _thread_safe_send(data: ServerMessage) -> None:
-            message = data.model_dump_json()
+            message = data.model_dump_json(by_alias=True)
 
             logger.debug(f"sending: {message}")
             if self.loop:
