@@ -125,7 +125,7 @@ class TypeFileReader:
 
     @staticmethod
     def _parse_json_data(json_data: dict) -> tuple[TypeFile, dict[str, BaseSlotType], dict[str, BaseMirrorConstructor]]:
-        type_data: TypeFile = TypeFile.from_dict(json_data)
+        type_data: TypeFile = TypeFile.model_validate(json_data)
         
         constructors: dict[str, BaseMirrorConstructor] = {}
         slot_types: dict[str, BaseSlotType] = {}

@@ -17,10 +17,10 @@ class SceneFileReader:
 
     def new_scene(self, node_types_id: str, node_types_version: int):
         self.scene_data = SceneData(
-            IDGenerator.generate_id(),
-            node_types_id,
-            node_types_version,
-            {}, {}
+            uid=IDGenerator.generate_id(),
+            node_types_id=node_types_id,
+            node_types_version=node_types_version,
+            nodes={}, connections={}
         )
 
     # TODO:

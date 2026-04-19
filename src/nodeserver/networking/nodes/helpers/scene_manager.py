@@ -96,16 +96,16 @@ class MirrorSceneManager:
         return new_mirror
 
     def add_conn_mirror(self, conn_data: ConnectionSceneData, update_scene_data: bool = True) -> ConnectionMirror | None:
-        if not conn_data.from_node.slot_name or not conn_data.to_node.slot_name:
+        if not conn_data.from_slot.slot_name or not conn_data.to_slot.slot_name:
             return None
         
-        node_a = self.node_manager.get_node(conn_data.from_node.node_id)
-        node_b = self.node_manager.get_node(conn_data.to_node.node_id)
+        node_a = self.node_manager.get_node(conn_data.from_slot.node_id)
+        node_b = self.node_manager.get_node(conn_data.to_slot.node_id)
         if not node_a or not node_b:
             return None
 
-        slot_a = node_a.get_slot(conn_data.from_node.slot_name)
-        slot_b = node_b.get_slot(conn_data.to_node.slot_name)
+        slot_a = node_a.get_slot(conn_data.from_slot.slot_name)
+        slot_b = node_b.get_slot(conn_data.to_slot.slot_name)
         if not slot_a or not slot_b:
             return None
 

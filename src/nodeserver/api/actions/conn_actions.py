@@ -17,7 +17,7 @@ class ConnActionUtils:
                     return EditorActionStatus.FAILED
                 
                 for conn_uid in action_data:
-                    conn_data = ConnectionSceneData.from_dict(action_data[conn_uid], conn_uid)
+                    conn_data = ConnectionSceneData(**action_data[conn_uid], uid=conn_uid)
                     connection = instance.mirror_manager.add_conn_mirror(conn_data)
                 instance._scene.update_nodes()
 

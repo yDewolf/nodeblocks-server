@@ -19,7 +19,7 @@ class NodeActionUtils:
                 
                 nodes: list[BaseNode] = []
                 for node_uid in action_data:
-                    node_data = NodeSceneData.from_dict(action_data[node_uid], node_uid)
+                    node_data = NodeSceneData.from_dict(action_data[node_uid], uid=node_uid)
                     mirror = instance.mirror_manager.add_node_mirror(node_data, node_data.uid)
                     if not mirror:
                         # FIXME: Should I just continue?

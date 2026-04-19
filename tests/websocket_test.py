@@ -73,9 +73,9 @@ slot_types: dict[str, BaseSlotType] = {
     "output": OUTPUT_TYPE
 }
 default_slots: dict[str, SlotData] = {
-    "in_0": SlotData("input", "float"),
-    "in_1": SlotData("input", "float"),
-    "out_0": SlotData("output", "float"),
+    "in_0": SlotData(type="input", data_type="float"),
+    "in_1": SlotData(type="input", data_type="float"),
+    "out_0": SlotData(type="output", data_type="float"),
 }
 
 def my_parser(mirror: NodeMirror) -> BaseNode:
@@ -95,7 +95,7 @@ def my_parser(mirror: NodeMirror) -> BaseNode:
 my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
 my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
     my_cool_types, default_slots, my_parser, [
-        ConstructorModel.new("InputNode", NodeData({"value": NodeParameterData("float")}), {"out_0": SlotData("output", "float")}),
+        ConstructorModel.new("InputNode", NodeData({"value": NodeParameterData(type="float")}), {"out_0": SlotData(type="output", data_type="float")}),
         ConstructorModel.new("SumNode"),
         ConstructorModel.new("SubNode"),
         ConstructorModel.new("MulNode"),

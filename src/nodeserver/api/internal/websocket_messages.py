@@ -1,5 +1,4 @@
 import json
-
 from nodeserver.api.internal.websocket_protocol import ClientMessages, ServerMessages
 
 class SocketMessage[MessageType: ServerMessages | ClientMessages]:
