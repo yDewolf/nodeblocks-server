@@ -83,7 +83,7 @@ class MirrorSceneManager:
             node_name,
             node_data.uid,
             node_data.data,
-            node_data.position.serialize()
+            node_data.position
         )
 
         if not new_mirror:
@@ -136,6 +136,8 @@ class MirrorSceneManager:
 
         return results
     
-
     def get_scene_as_dict(self) -> dict:
         return self.scene_reader.scene_data.serialize() if self.scene_reader.scene_data else {}
+    
+    def get_scene(self) -> SceneData | None:
+        return self.scene_reader.scene_data

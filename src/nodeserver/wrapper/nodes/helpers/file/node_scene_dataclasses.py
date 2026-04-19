@@ -6,9 +6,6 @@ from pydantic import BaseModel, Field, field_validator
 class Vector2(BaseModel):
     x: float = 0.0
     y: float = 0.0
-
-    def serialize(self) -> List[float]:
-        return [self.x, self.y]
     
     @classmethod
     def from_dict(cls, data: dict, **kwargs):

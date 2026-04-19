@@ -5,6 +5,7 @@ from nodeserver.wrapper.nodes.data.node_data_types import  UNKNOWN_TYPE, BaseSlo
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.api.instance.base_nodes import BaseNode
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import Vector2
 
 
 def _default_build_func(mirror: NodeMirror) -> BaseNode:
@@ -27,7 +28,7 @@ class BaseMirrorConstructor:
         self._slots = {}
         self._slot_types = {}
     
-    def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any], _position: list[float] = [0, 0]) -> NodeMirror | None:
+    def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any], _position: Vector2) -> NodeMirror | None:
         mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), id, self.type_name, _position)
         mirror.data.parse_parameters(node_data)
 

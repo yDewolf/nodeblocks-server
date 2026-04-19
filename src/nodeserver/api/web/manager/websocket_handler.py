@@ -1,16 +1,17 @@
 import asyncio
 
 from websockets.asyncio.server import ServerConnection
-from nodeserver.api.web.websocket_messages import MessageUtils
-from nodeserver.api.utils.url_routing import Endpoint, URLRouter
-from nodeserver.api.web.message_router import BaseMessagerouter
-from nodeserver.api.internal.instance_manager import InstanceManager
-from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvHandshakeError, SrvHandshakeSuccess
-from nodeserver.api.web.websocket_protocol import ServerMessages, WebsocketStatus
 from nodeserver.api.instance.server_instance import ServerInstance
+from nodeserver.api.utils.url_routing import Endpoint, URLRouter
+from nodeserver.api.internal.instance_manager import InstanceManager
 import websockets
 import json
 import logging
+
+from nodeserver.api.web.message_router import BaseMessagerouter
+from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvHandshakeError, SrvHandshakeSuccess
+from nodeserver.api.web.websocket_messages import MessageUtils
+from nodeserver.api.web.websocket_protocol import ServerMessages, WebsocketStatus
 
 logger = logging.getLogger("nds.websocket")
 
@@ -98,7 +99,6 @@ class WebsocketHandler:
             self.connections[websocket] = new_instance
             type_data = new_instance.mirror_manager.type_reader.serialize_to_dict()
             logger.info(f"Connected websocket to instance {user_id}")
-            
             await websocket.send(SrvHandshakeSuccess(
                 status=WebsocketStatus.CONNECTED,
                 session=user_id,
@@ -132,12 +132,12 @@ class WebsocketHandler:
 
                 out_data = await self._route_message(instance, data)
                 if out_data:
-                    await websocket.send(json.dumps(out_data))
+                    await websocket.send(out_data.model_dump_json())
 
             except json.JSONDecodeError:
                 continue
     
-    async def _route_message(self, instance: ServerInstance, data: dict) -> dict | None:
+    async def _route_message(self, instance: ServerInstance, data: dict) -> ServerMessage | None:
         message = MessageUtils.parse_client_message(data)
         logger.info(f"Command Received: {message} for Instance '{instance._attributed_id}'")
         if not message:

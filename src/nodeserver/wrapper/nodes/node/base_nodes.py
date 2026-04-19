@@ -1,10 +1,12 @@
 from __future__ import annotations
+from typing import Optional
 
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodePathData
 from nodeserver.wrapper.nodes.node.node_types import SuperSlotTypes
 from nodeserver.wrapper.utils.uuid_utils import IDGenerator
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import Vector2
 
 class NodeMirror:
     uid: str
@@ -13,11 +15,11 @@ class NodeMirror:
 
     data: NodeData
     raw_data: dict
-    _position: list[float]
+    _position: Optional[Vector2]
 
     slots: dict[SuperSlotTypes, list[SlotMirror]]
 
-    def __init__(self, node_name: str, node_data: NodeData, uid: str | None = None, type_name: str = "BaseNode", _position: list[float] = [0, 0]):
+    def __init__(self, node_name: str, node_data: NodeData, uid: str | None = None, type_name: str = "BaseNode", _position: Vector2 | None = None):
         self.uid = uid if uid != None else IDGenerator.generate_node_id()
         self.node_name = node_name
         self.type_name = type_name

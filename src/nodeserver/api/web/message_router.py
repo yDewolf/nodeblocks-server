@@ -3,23 +3,23 @@ import json
 import logging
 
 from nodeserver.api.instance.actions.action_controller import Action
+from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvSyncScene
 from nodeserver.api.web.websocket_messages import ClientMessageWrapper
-from nodeserver.api.web.requests.client_requests import ClientCommand, MsgConnectionAction, MsgInstanceCommand, MsgInstanceState, MsgLoadScene, MsgLoopState, MsgNodeAction, MsgSimple
-from nodeserver.api.web.websocket_protocol import ClientMessages, ServerMessages
+from nodeserver.api.web.requests.client_requests import MsgConnectionAction, MsgInstanceCommand, MsgInstanceState, MsgLoadScene, MsgLoopState, MsgNodeAction, MsgSimple
+from nodeserver.api.web.websocket_protocol import ClientMessages
 from nodeserver.api.instance.server_instance import ServerInstance
-from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
 
 COMMAND_LOGGER = logging.getLogger("nds.commands")
 class BaseMessagerouter:
-    def route_message(self, message: ClientMessageWrapper, instance: ServerInstance) -> dict | None:
+    def route_message(self, message: ClientMessageWrapper, instance: ServerInstance) -> ServerMessage | None:
         COMMAND_LOGGER.info(f"Routing command: {message.msg.type}")
 
         if isinstance(message.msg, MsgSimple):
             if message.msg.type == ClientMessages.SYNC_CLIENT_SCENE:
-                return {
-                    "type": ServerMessages.SYNC_CLIENT_SCENE.value,
-                    "payload": instance._scene.mirror_manager.get_scene_as_dict()
-                }
+                scene_data = instance._scene.mirror_manager.get_scene()
+                return SrvSyncScene(
+                    payload=scene_data
+                )
 
         elif isinstance(message.msg, MsgInstanceState):
             instance.state_controller.queue_state(message.msg.payload.state)

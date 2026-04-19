@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Dict, Literal, Union
+from typing import Annotated, Any, Dict, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from nodeserver.api.instance.instance_states import InstanceStates, LoopStates
 from nodeserver.api.web.websocket_protocol import EditorActionStatus, ServerMessages, WebsocketStatus
@@ -33,7 +33,7 @@ class SrvSyncAction(BaseSocketModel):
 
 class SrvSyncScene(BaseSocketModel):
     type: Literal[ServerMessages.SYNC_CLIENT_SCENE] = ServerMessages.SYNC_CLIENT_SCENE
-    payload: SceneData
+    payload: Optional[SceneData]
 
 class SrvSyncState(BaseSocketModel):
     type: Literal[ServerMessages.SYNC_INSTANCE_STATE] = ServerMessages.SYNC_INSTANCE_STATE
