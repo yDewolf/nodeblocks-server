@@ -7,6 +7,7 @@ from nodeserver.api.actions.node_actions import NodeActionUtils
 from nodeserver.api.base_nodes import BaseNode
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
+from nodeserver.api.web.requests.websocket_requests import ServerMessage, ServerMessageAdapter, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes, ServerMessages
 from nodeserver.api.node_scene import NodeScene
 from nodeserver.networking.nodes.data.node_data_types import SuperSlotTypes
@@ -93,7 +94,7 @@ class BaseServerRuntime:
 class ServerInstance:
     _attributed_id: str = ""
     _runtime: BaseServerRuntime
-    _send_callback: Callable[[dict], None] | None = None
+    _send_callback: Callable[[ServerMessage], None] | None = None
 
     state_controller: StateController
     action_controller: ActionController
@@ -144,11 +145,12 @@ class ServerInstance:
                 for slot, result in slot_results.items():
                     result_data[slot.slot_name] = result
 
-            self._send_callback({
-                "type": ServerMessages.NODE_OUTPUT.value,
-                "node_id": node._mirror.uid,
-                "value": result_data
-            })
+            
+            
+            self._send_callback(SrvNodeOutput(
+                node_id=node._mirror.uid,
+                value=result_data
+            ))
             
         logger.info("DEBUG: Running server instance")
 
@@ -198,9 +200,11 @@ class ServerInstance:
                 break
             
         if self._send_callback and action_statuses != {}:
-            self._send_callback({"type": ServerMessages.SYNC_ACTION.value, "action_statuses": {
-                uid: status.value for uid, status in action_statuses.items()
-            }})
+            self._send_callback(SrvSyncAction(
+                action_statuses={
+                    uid: status for uid, status in action_statuses.items()
+                }
+            ))
             self._scene_changed()
         
         return action_statuses
@@ -215,7 +219,7 @@ class ServerInstance:
 
         return status
 
-    def set_send_callback(self, callback: Callable[[dict], None]):
+    def set_send_callback(self, callback: Callable[[ServerMessage], None]):
         self._send_callback = callback
 
 
@@ -256,13 +260,13 @@ class ServerInstance:
         if not self._send_callback:
             return
         
-        self._send_callback({
-            "type": ServerMessages.SYNC_INSTANCE_STATE.value,
-            "payload": {
-                "loop_state": self.state_controller.loop_state.value,
-                "instance_state": self.state_controller.instance_state.value
-            }
-        })
+        
+        self._send_callback(SrvSyncState(
+            payload=SyncStatePayload(
+                loop_state=self.state_controller.loop_state,
+                instance_state=self.state_controller.instance_state
+            )
+        ))
 
 
     def save_internal_state(self):

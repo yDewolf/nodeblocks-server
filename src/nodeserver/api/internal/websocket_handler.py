@@ -5,6 +5,7 @@ from nodeserver.api.internal.websocket_messages import MessageUtils
 from nodeserver.api.utils.url_routing import Endpoint, URLRouter
 from nodeserver.api.web.command_router import CommandRouter
 from nodeserver.api.internal.instance_manager import InstanceManager
+from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvHandshakeError, SrvHandshakeSuccess
 from nodeserver.api.web.websocket_protocol import ServerMessages, WebsocketStatus
 from nodeserver.api.server_instance import ServerInstance
 import websockets
@@ -83,8 +84,8 @@ class WebsocketHandler:
             new_instance._attributed_id = user_id
             success = self.instance_manager.set_instance(user_id, new_instance)
 
-        def _thread_safe_send(data: dict) -> None:
-            message = json.dumps(data)
+        def _thread_safe_send(data: ServerMessage) -> None:
+            message = data.model_dump_json()
 
             logger.debug(f"sending: {message}")
             if self.loop:
@@ -97,11 +98,19 @@ class WebsocketHandler:
             self.connections[websocket] = new_instance
             type_data = new_instance.mirror_manager.type_reader.serialize_to_dict()
             logger.info(f"Connected websocket to instance {user_id}")
-            await websocket.send(json.dumps({"type": ServerMessages.HANDSHAKE_SYNC.value, "status": WebsocketStatus.CONNECTED.value, "session": user_id, "type_data": type_data}))
+            
+            await websocket.send(SrvHandshakeSuccess(
+                status=WebsocketStatus.CONNECTED,
+                session=user_id,
+                type_data=type_data
+            ).model_dump_json())
             return
         
         logger.info("Couldn't connect websocket to instance")
-        await websocket.send(json.dumps({"type": ServerMessages.HANDSHAKE_SYNC.value, "status": WebsocketStatus.ERROR.value, "message": "Server might be full"}))
+        await websocket.send(SrvHandshakeError(
+            status=WebsocketStatus.ERROR,
+            message="Server might be full"
+        ).model_dump_json())
 
     # Routes
     async def instance_listen_route(self, data: dict, websocket: ServerConnection) -> dict | None:

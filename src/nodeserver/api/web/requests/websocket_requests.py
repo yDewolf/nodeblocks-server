@@ -17,31 +17,31 @@ class SyncStatePayload(BaseSocketModel):
 
 
 class SrvHandshakeSuccess(BaseSocketModel):
-    type: Literal[ServerMessages.HANDSHAKE_SYNC]
+    type: Literal[ServerMessages.HANDSHAKE_SYNC] = ServerMessages.HANDSHAKE_SYNC
     status: Literal[WebsocketStatus.CONNECTED]
     session: str
     type_data: Any
 
 class SrvHandshakeError(BaseSocketModel):
-    type: Literal[ServerMessages.HANDSHAKE_SYNC]
+    type: Literal[ServerMessages.HANDSHAKE_SYNC] = ServerMessages.HANDSHAKE_SYNC
     status: Literal[WebsocketStatus.DISCONNECTED, WebsocketStatus.ERROR]
     message: str
 
 class SrvSyncAction(BaseSocketModel):
-    type: Literal[ServerMessages.SYNC_ACTION]
+    type: Literal[ServerMessages.SYNC_ACTION] = ServerMessages.SYNC_ACTION
     action_statuses: Dict[str, EditorActionStatus]
 
 class SrvSyncScene(BaseSocketModel):
-    type: Literal[ServerMessages.SYNC_CLIENT_SCENE]
+    type: Literal[ServerMessages.SYNC_CLIENT_SCENE] = ServerMessages.SYNC_CLIENT_SCENE
     payload: SceneData
 
 class SrvSyncState(BaseSocketModel):
-    type: Literal[ServerMessages.SYNC_INSTANCE_STATE]
+    type: Literal[ServerMessages.SYNC_INSTANCE_STATE] = ServerMessages.SYNC_INSTANCE_STATE
     payload: SyncStatePayload
 
 
 class SrvNodeOutput(BaseSocketModel):
-    type: Literal[ServerMessages.NODE_OUTPUT]
+    type: Literal[ServerMessages.NODE_OUTPUT] = ServerMessages.NODE_OUTPUT
     node_id: str
     value: dict[str, Any]
 

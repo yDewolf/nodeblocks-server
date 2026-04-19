@@ -3,7 +3,7 @@ import json
 import logging
 
 from nodeserver.api.actions.action_controller import Action
-from nodeserver.api.internal.websocket_messages import ClientMessage
+from nodeserver.api.internal.websocket_messages import ClientMessageWrapper
 from nodeserver.api.web.requests.client_requests import ClientCommand, MsgConnectionAction, MsgInstanceCommand, MsgInstanceState, MsgLoadScene, MsgLoopState, MsgNodeAction, MsgSimple
 from nodeserver.api.web.websocket_protocol import ClientMessages, ServerMessages
 from nodeserver.api.server_instance import ServerInstance
@@ -11,7 +11,7 @@ from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import Conn
 
 COMMAND_LOGGER = logging.getLogger("nds.commands")
 class CommandRouter:
-    def route_message(self, message: ClientMessage, instance: ServerInstance) -> dict | None:
+    def route_message(self, message: ClientMessageWrapper, instance: ServerInstance) -> dict | None:
         COMMAND_LOGGER.info(f"Routing command: {message.msg.type}")
 
         if isinstance(message.msg, MsgSimple):

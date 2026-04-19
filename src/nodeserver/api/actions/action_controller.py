@@ -2,7 +2,7 @@
 from queue import Queue
 from typing import Literal
 
-from nodeserver.api.internal.websocket_messages import ClientMessage
+from nodeserver.api.internal.websocket_messages import ClientMessageWrapper
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes
 
 class Action:
@@ -10,9 +10,9 @@ class Action:
     type: SceneActionTypes
     target_type: Literal[ClientMessages.NODE_ACTION] | Literal[ClientMessages.CONNECTION_ACTION]
 
-    message: ClientMessage
+    message: ClientMessageWrapper
 
-    def __init__(self, uid: str, message: ClientMessage, type: SceneActionTypes, target_type: Literal[ClientMessages.NODE_ACTION] | Literal[ClientMessages.CONNECTION_ACTION]) -> None:
+    def __init__(self, uid: str, message: ClientMessageWrapper, type: SceneActionTypes, target_type: Literal[ClientMessages.NODE_ACTION] | Literal[ClientMessages.CONNECTION_ACTION]) -> None:
         self.uid = uid
         self.message = message
         self.type = type
