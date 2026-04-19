@@ -1,4 +1,4 @@
-from nodeserver.networking.nodes.data.node_data_types import BaseDataType, SuperSlotTypes
+from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType, SuperSlotTypes
 
 class SlotType:
     type_name: str

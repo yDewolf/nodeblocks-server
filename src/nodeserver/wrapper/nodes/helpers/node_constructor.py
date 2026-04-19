@@ -1,10 +1,10 @@
 
 from typing import Any, Callable
-from nodeserver.networking.nodes.data.node_data import NodeData
-from nodeserver.networking.nodes.data.node_data_types import  UNKNOWN_TYPE, BaseSlotType, DataTypeUtils
-from nodeserver.networking.nodes.helpers.file.type_dataclasses import SlotData
-from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
-from nodeserver.api.base_nodes import BaseNode
+from nodeserver.wrapper.nodes.data.node_data import NodeData
+from nodeserver.wrapper.nodes.data.node_data_types import  UNKNOWN_TYPE, BaseSlotType, DataTypeUtils
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.api.instance.base_nodes import BaseNode
 
 
 def _default_build_func(mirror: NodeMirror) -> BaseNode:

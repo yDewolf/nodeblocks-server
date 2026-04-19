@@ -1,14 +1,14 @@
 
 import asyncio
 
-from nodeserver.api.base_nodes import BaseNode
-from nodeserver.api.web.websocket_manager import WebsocketInstanceManager
-from nodeserver.networking.nodes.data.node_data import NodeData
-from nodeserver.networking.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
-from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeParameterData, SlotData
-from nodeserver.networking.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader, TypeReaderUtils
-from nodeserver.networking.nodes.helpers.node_constructor import CustomMirrorConstructor
-from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.api.instance.base_nodes import BaseNode
+from nodeserver.api.websocket_manager import WebsocketInstanceManager
+from nodeserver.wrapper.nodes.data.node_data import NodeData
+from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, SlotData
+from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader, TypeReaderUtils
+from nodeserver.wrapper.nodes.helpers.node_constructor import CustomMirrorConstructor
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 
 import logging
 import logging.config

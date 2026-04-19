@@ -1,13 +1,13 @@
 import asyncio
 
 from websockets.asyncio.server import ServerConnection
-from nodeserver.api.internal.websocket_messages import MessageUtils
+from nodeserver.api.web.websocket_messages import MessageUtils
 from nodeserver.api.utils.url_routing import Endpoint, URLRouter
-from nodeserver.api.web.command_router import CommandRouter
+from nodeserver.api.web.message_router import BaseMessagerouter
 from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvHandshakeError, SrvHandshakeSuccess
 from nodeserver.api.web.websocket_protocol import ServerMessages, WebsocketStatus
-from nodeserver.api.server_instance import ServerInstance
+from nodeserver.api.instance.server_instance import ServerInstance
 import websockets
 import json
 import logging
@@ -21,10 +21,10 @@ class WebsocketHandler:
     connections: dict[ServerConnection, ServerInstance] # type: ignore
     
     server_instance_type: type[ServerInstance] = ServerInstance
-    _router: CommandRouter
+    _router: BaseMessagerouter
     _url_router: URLRouter
 
-    def __init__(self, instance_manager: InstanceManager, server_instance_type: type[ServerInstance], router_type: type[CommandRouter]) -> None:
+    def __init__(self, instance_manager: InstanceManager, server_instance_type: type[ServerInstance], router_type: type[BaseMessagerouter]) -> None:
         self.server_instance_type = server_instance_type
         self.instance_manager = instance_manager
         self._router = router_type()

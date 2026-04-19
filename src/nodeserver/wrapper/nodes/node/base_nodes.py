@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from nodeserver.networking.nodes.data.node_data import NodeData
-from nodeserver.networking.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
-from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodePathData
-from nodeserver.networking.nodes.node.node_types import SuperSlotTypes
-from nodeserver.networking.utils.uuid_utils import IDGenerator
+from nodeserver.wrapper.nodes.data.node_data import NodeData
+from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodePathData
+from nodeserver.wrapper.nodes.node.node_types import SuperSlotTypes
+from nodeserver.wrapper.utils.uuid_utils import IDGenerator
 
 class NodeMirror:
     uid: str

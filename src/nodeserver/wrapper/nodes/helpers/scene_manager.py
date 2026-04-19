@@ -1,10 +1,10 @@
 
-from nodeserver.networking.nodes.helpers.connection_manager import ConnectionManager
-from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
-from nodeserver.networking.nodes.helpers.file.node_scene_reader import SceneFileReader
-from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
-from nodeserver.networking.nodes.helpers.node_manager import NodeMirrorManager
-from nodeserver.networking.nodes.node.base_nodes import ConnectionMirror, NodeMirror
+from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
+from nodeserver.wrapper.nodes.helpers.file.node_scene_reader import SceneFileReader
+from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.wrapper.nodes.helpers.node_manager import NodeMirrorManager
+from nodeserver.wrapper.nodes.node.base_nodes import ConnectionMirror, NodeMirror
 
 class MirrorSceneManager:
     type_reader: TypeFileReader

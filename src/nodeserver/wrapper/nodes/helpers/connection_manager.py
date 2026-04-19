@@ -1,5 +1,5 @@
 
-from nodeserver.networking.nodes.node.base_nodes import ConnectionMirror, SlotMirror
+from nodeserver.wrapper.nodes.node.base_nodes import ConnectionMirror, SlotMirror
 
 
 class ConnectionManager:

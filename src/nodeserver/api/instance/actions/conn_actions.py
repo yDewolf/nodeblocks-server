@@ -1,4 +1,4 @@
-from nodeserver.api.actions.action_controller import Action
+from nodeserver.api.instance.actions.action_controller import Action
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.web.requests.action_requests import ConnectionActionAddUpdate, ConnectionActionRemove
 from nodeserver.api.web.requests.client_requests import MsgConnectionAction

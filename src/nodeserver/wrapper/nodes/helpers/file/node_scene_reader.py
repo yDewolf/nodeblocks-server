@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
-from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
-from nodeserver.networking.utils.uuid_utils import IDGenerator
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.wrapper.utils.uuid_utils import IDGenerator
 
 
 class SceneFileReader:

@@ -2,10 +2,10 @@ import asyncio
 from websockets.asyncio.server import serve
 
 from nodeserver.api.internal.instance_manager import InstanceManager
-from nodeserver.api.internal.websocket_handler import WebsocketHandler
-from nodeserver.api.server_instance import ServerInstance
-from nodeserver.api.web.command_router import CommandRouter
-from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.api.web.manager.websocket_handler import WebsocketHandler
+from nodeserver.api.instance.server_instance import ServerInstance
+from nodeserver.api.web.message_router import BaseMessagerouter
+from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 
 import logging
 logger = logging.getLogger("nds.websocket")
@@ -20,7 +20,7 @@ class WebsocketInstanceManager(InstanceManager):
 
     def __init__(self, default_types: TypeFileReader | None = None, host="0.0.0.0", port=3001):
         super().__init__(default_types)
-        self.handler = WebsocketHandler(self, ServerInstance, CommandRouter)
+        self.handler = WebsocketHandler(self, ServerInstance, BaseMessagerouter)
         
         self.host = host
         self.port = port

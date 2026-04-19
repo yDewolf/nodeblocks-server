@@ -1,5 +1,5 @@
 
-from nodeserver.networking.nodes.node.base_nodes import NodeMirror
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
 
 
 class NodeMirrorManager:

@@ -2,11 +2,11 @@ from typing import Annotated, Literal, Union
 from pydantic import Field
 from pydantic import TypeAdapter
 
-from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
+from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.api.web.requests.action_requests import ConnectionActionPayload, NodeActionPayload
 from nodeserver.api.web.requests.websocket_requests import BaseSocketModel
 from nodeserver.api.web.websocket_protocol import ClientMessages
-from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 
 class InstanceCommandPayload(BaseSocketModel):
     action: InstanceCommands

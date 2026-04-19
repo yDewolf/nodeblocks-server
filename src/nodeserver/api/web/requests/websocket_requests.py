@@ -1,8 +1,8 @@
 from typing import Annotated, Any, Dict, Literal, Union
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
-from nodeserver.api.instance_states import InstanceStates, LoopStates
+from nodeserver.api.instance.instance_states import InstanceStates, LoopStates
 from nodeserver.api.web.websocket_protocol import EditorActionStatus, ServerMessages, WebsocketStatus
-from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 
 class BaseSocketModel(BaseModel):
     model_config = ConfigDict(

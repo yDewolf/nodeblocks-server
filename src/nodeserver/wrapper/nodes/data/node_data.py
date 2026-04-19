@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Any
 
-from nodeserver.networking.nodes.data.node_data_types import BaseDataType
-from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeParameterData
+from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData
 
 
 class NodeParameter:

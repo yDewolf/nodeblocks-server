@@ -1,5 +1,5 @@
 
-from nodeserver.networking.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils, SuperSlotTypes
+from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils, SuperSlotTypes
 
 
 class CustomSlotType(BaseSlotType):

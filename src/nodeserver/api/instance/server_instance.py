@@ -1,21 +1,21 @@
 import logging
 import queue
 from typing import Callable
-from nodeserver.api.actions.action_controller import Action, ActionController
-from nodeserver.api.actions.conn_actions import ConnActionUtils
-from nodeserver.api.actions.node_actions import NodeActionUtils
-from nodeserver.api.base_nodes import BaseNode
-from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
+from nodeserver.api.instance.actions.action_controller import Action, ActionController
+from nodeserver.api.instance.actions.conn_actions import ConnActionUtils
+from nodeserver.api.instance.actions.node_actions import NodeActionUtils
+from nodeserver.api.instance.base_nodes import BaseNode
+from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.web.requests.websocket_requests import ServerMessage, ServerMessageAdapter, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes, ServerMessages
-from nodeserver.api.node_scene import NodeScene
-from nodeserver.networking.nodes.data.node_data_types import SuperSlotTypes
-from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
-from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
-from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
-from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
-from nodeserver.networking.nodes.node.node_utils import NodeUtils
+from nodeserver.api.instance.node_scene import NodeScene
+from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
+from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.wrapper.nodes.node.node_utils import NodeUtils
 
 logger = logging.getLogger("nds.instances")
 

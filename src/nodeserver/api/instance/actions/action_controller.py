@@ -2,7 +2,7 @@
 from queue import Queue
 from typing import Literal
 
-from nodeserver.api.internal.websocket_messages import ClientMessageWrapper
+from nodeserver.api.web.websocket_messages import ClientMessageWrapper
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes
 
 class Action:
