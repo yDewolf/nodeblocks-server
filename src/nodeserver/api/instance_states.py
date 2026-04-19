@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 import queue
 import logging
 from typing import Callable
@@ -6,16 +6,16 @@ from typing import Callable
 
 logger = logging.getLogger("nds.instances")
 
-class InstanceStates(Enum):
+class InstanceStates(IntEnum):
     WAITING = 0
     RUNNING = 1
 
-class LoopStates(Enum):
+class LoopStates(str, Enum):
     AUTO_LOOP = "auto_loop" # Keeps the loop running
     WAIT_RESUME = "wait_resume" # Runs the full loop and waits
     WAIT_STEP = "wait_step" # Process a node and waits
 
-class InstanceCommands(Enum):
+class InstanceCommands(str, Enum):
     STEP = "STEP"
     RESUME = "RESUME"
     STOP = "STOP"

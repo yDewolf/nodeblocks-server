@@ -7,10 +7,10 @@ from nodeserver.api.actions.node_actions import NodeActionUtils
 from nodeserver.api.base_nodes import BaseNode
 from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
-from nodeserver.api.internal.websocket_protocol import ClientMessages, EditorActionStatus, SceneActions, ServerMessages
+from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes, ServerMessages
 from nodeserver.api.node_scene import NodeScene
 from nodeserver.networking.nodes.data.node_data_types import SuperSlotTypes
-from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
+from nodeserver.networking.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
 from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.networking.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
@@ -246,7 +246,7 @@ class ServerInstance:
         self.mirror_manager.load_types(json_data)
         self._scene.update_nodes()
 
-    def load_new_scene(self, json_data: dict):
+    def load_new_scene(self, json_data: dict| SceneData):
         self.mirror_manager.load_new_scene(json_data)
         self._scene.update_nodes()
         self._scene_changed()

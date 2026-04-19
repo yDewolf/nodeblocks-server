@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, TypeVar, Literal
 
-class DataTypes(Enum):
+class DataTypes(str, Enum):
     FLOAT = "float"
     UINT = "uint"
     INT = "int"
@@ -9,7 +9,7 @@ class DataTypes(Enum):
     CUSTOM = "custom"
     UNKNOWN = "unknown"
 
-class SuperSlotTypes(Enum):
+class SuperSlotTypes(str, Enum):
     INPUT = "input_slot"
     OUTPUT = "output_slot"
     UNKNOWN = "unknown"

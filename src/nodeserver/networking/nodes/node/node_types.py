@@ -1,4 +1,3 @@
-from enum import Enum
 from nodeserver.networking.nodes.data.node_data_types import BaseDataType, SuperSlotTypes
 
 class SlotType:

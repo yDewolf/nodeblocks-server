@@ -1,47 +1,36 @@
-import json
-from nodeserver.api.internal.websocket_protocol import ClientMessages, ServerMessages
+from typing import Optional
+from nodeserver.api.web.requests.client_requests import ClientCommand, ClientCommandAdapter
+from nodeserver.api.web.requests.websocket_requests import ServerMessage
 
-class SocketMessage[MessageType: ServerMessages | ClientMessages]:
-    type: MessageType
-    payload: dict | None
+class SocketMessage[MessageType: ServerMessage | ClientCommand]:
+    msg: MessageType
     raw_message: dict
 
-    def __init__(self, raw_message: dict, message_type: MessageType, payload: dict | None = None) -> None:
+    def __init__(self, raw_message: dict, message_data: MessageType) -> None:
         self.raw_message = raw_message
-        self.type = message_type
-        self.payload = payload
+        self.msg = message_data
 
-    def to_dict(self) -> dict:
-        return {
-            "type": self.type,
-            "payload": self.payload
-        }
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}({self.type.value}, payload_keys={list(self.payload.keys() if self.payload else [])})"
+        return f"{self.__class__.__name__}({self.msg.type})"
+        # return f"{self.__class__.__name__}({self.message.type.value}, payload_keys={list(self.message.payload.keys() if self.payload else [])})"
 
-class ServerMessage(SocketMessage[ServerMessages]): 
-    def __init__(self, raw_message: dict, message_type: ServerMessages, payload: dict | None = None) -> None:
-        super().__init__(raw_message, message_type, payload)
+# class ServerMessage(SocketMessage[ServerMessages]): 
+#     def __init__(self, raw_message: dict, message_data: Annotated) -> None:
+#         super().__init__(raw_message, message_data)
 
-class ClientMessage(SocketMessage[ClientMessages]):
-    def __init__(self, raw_message: dict, message_type: ClientMessages, payload: dict | None = None) -> None:
-        super().__init__(raw_message, message_type, payload)
+class ClientMessage(SocketMessage[ClientCommand]):
+    def __init__(self, raw_message: dict, message_data: ClientCommand) -> None:
+        super().__init__(raw_message, message_data)
 
 
 class MessageUtils:
     @staticmethod
-    def client_from_dict(message_dict: dict) -> ClientMessage | None:
+    def parse_client_message(message_dict: dict) -> Optional[ClientMessage]:
         try:
-            message_type = ClientMessages(message_dict.get("type", ""))
-        except ValueError:
-            return None
-
-        payload = message_dict.get("payload", "{}")
-        if type(payload) is str:
-            payload = json.loads(payload)
+            command = ClientCommandAdapter.validate_python(message_dict)
+            return ClientMessage(message_dict, command) 
         
-        if not type(payload) is dict:
+        except Exception as e:
+            print(f"Invalid Message Structure: {e}")
             return None
-        
-        return ClientMessage(message_dict, message_type, payload)

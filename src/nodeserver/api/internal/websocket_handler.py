@@ -3,9 +3,9 @@ import asyncio
 from websockets.asyncio.server import ServerConnection
 from nodeserver.api.internal.websocket_messages import MessageUtils
 from nodeserver.api.utils.url_routing import Endpoint, URLRouter
-from nodeserver.api.web.command_router import BaseCommandRouter
+from nodeserver.api.web.command_router import CommandRouter
 from nodeserver.api.internal.instance_manager import InstanceManager
-from nodeserver.api.internal.websocket_protocol import ServerMessages, WebsocketStatus
+from nodeserver.api.web.websocket_protocol import ServerMessages, WebsocketStatus
 from nodeserver.api.server_instance import ServerInstance
 import websockets
 import json
@@ -20,10 +20,10 @@ class WebsocketHandler:
     connections: dict[ServerConnection, ServerInstance] # type: ignore
     
     server_instance_type: type[ServerInstance] = ServerInstance
-    _router: BaseCommandRouter
+    _router: CommandRouter
     _url_router: URLRouter
 
-    def __init__(self, instance_manager: InstanceManager, server_instance_type: type[ServerInstance], router_type: type[BaseCommandRouter]) -> None:
+    def __init__(self, instance_manager: InstanceManager, server_instance_type: type[ServerInstance], router_type: type[CommandRouter]) -> None:
         self.server_instance_type = server_instance_type
         self.instance_manager = instance_manager
         self._router = router_type()
@@ -129,7 +129,7 @@ class WebsocketHandler:
                 continue
     
     async def _route_message(self, instance: ServerInstance, data: dict) -> dict | None:
-        message = MessageUtils.client_from_dict(data)
+        message = MessageUtils.parse_client_message(data)
         logger.info(f"Command Received: {message} for Instance '{instance._attributed_id}'")
         if not message:
             return

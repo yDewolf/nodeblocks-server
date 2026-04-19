@@ -1,6 +1,6 @@
 import re
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
 
 class Vector2(BaseModel):
@@ -38,7 +38,7 @@ class NodePathData(BaseModel):
         return cls.model_validate({**data, **kwargs})
 
 class NodeSceneData(BaseModel):
-    uid: str
+    uid: Optional[str] = None
     type: str = ""
     position: Vector2
     data: Dict[str, Any] = Field(default_factory=dict)
@@ -51,7 +51,7 @@ class NodeSceneData(BaseModel):
         return cls.model_validate({**data, **kwargs})
 
 class ConnectionSceneData(BaseModel):
-    uid: str
+    uid: Optional[str] = None
     from_slot: NodePathData = Field(alias="from") 
     to_slot: NodePathData = Field(alias="to")
 

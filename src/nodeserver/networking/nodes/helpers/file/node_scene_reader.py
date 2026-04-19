@@ -66,10 +66,14 @@ class SceneFileReader:
             self._load_json_data(json_data)
 
 
-    def _load_json_data(self, json_data: dict):
+    def _load_json_data(self, json_data: dict| SceneData):
         if not self._virtual_file:
             return
         
+        if isinstance(json_data, SceneData):
+            self._virtual_file.scene_data = json_data
+            self._virtual_file.raw_data = json_data.serialize()
+            return
         scene_data = SceneData.from_dict(json_data)
         self._virtual_file.scene_data = scene_data
         self._virtual_file.raw_data = json_data

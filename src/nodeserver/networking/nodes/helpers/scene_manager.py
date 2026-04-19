@@ -29,7 +29,7 @@ class MirrorSceneManager:
     def load_types(self, json_data: dict):
         self.type_reader._load_json_data(json_data)
 
-    def load_new_scene(self, json_data: dict):
+    def load_new_scene(self, json_data: dict| SceneData):
         self.scene_reader._load_json_data(json_data)
         self.safe_parse_loaded_scene()
 
@@ -76,7 +76,7 @@ class MirrorSceneManager:
 
     def add_node_mirror(self, node_data: NodeSceneData, node_name: str, update_scene_data: bool = True) -> NodeMirror | None:
         constructor = self.type_reader.get_constructor(node_data.type)
-        if node_data.uid == -1 or not constructor:
+        if node_data.uid == None or not constructor:
             return None
         
         new_mirror = constructor.make_node_mirror(

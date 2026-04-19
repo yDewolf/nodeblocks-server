@@ -1,18 +1,18 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
-class WebsocketStatus(Enum):
+class WebsocketStatus(IntEnum, Enum):
     ERROR = -1
     CONNECTED = 1
     DISCONNECTED = 0
 
-class ServerMessages(Enum):
+class ServerMessages(str, Enum):
     HANDSHAKE_SYNC = "handshake_sync"
     NODE_OUTPUT = "node_output"
     SYNC_CLIENT_SCENE = "sync_client_scene"
     SYNC_INSTANCE_STATE = "sync_instance_state"
     SYNC_ACTION = "sync_action"
 
-class ClientMessages(Enum):
+class ClientMessages(str, Enum):
     LOAD_SCENE = "LOAD_SCENE"
     SYNC_CLIENT_SCENE = "SYNC_CLIENT_SCENE"
     GET_TYPES = "GET_TYPES"
@@ -25,12 +25,12 @@ class ClientMessages(Enum):
 
     INSTANCE_COMMAND = "INSTANCE"
 
-class SceneActions(Enum):
+class SceneActionTypes(str, Enum):
     ADD = "ADD"
     REMOVE = "REMOVE"
     UPDATE = "UPDATE"
 
-class EditorActionStatus(Enum):
+class EditorActionStatus(str, Enum):
     SUCCESSFULL = "SUCCESSFULL",
     UNSYNCED = "UNSYNCED",
     FAILED = "FAILED"
