@@ -13,6 +13,7 @@ class UserSession:
     def __init__(self, token: str, instance_id: str) -> None:
         self.token = token
         self.instance_id = instance_id
+        self.is_disconnected = False
 
     def mark_disconnected(self):
         self.is_disconnected = True

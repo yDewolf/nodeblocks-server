@@ -31,11 +31,11 @@ class WebsocketInstanceManager(InstanceManager):
 
 
     async def run_server(self):
-        self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.get_running_loop()
         self.handler._set_loop(self.loop)
 
         self.stop = asyncio.get_running_loop().create_future()
-        asyncio.create_task(self._clean_sessions_task())
+        self.loop.create_task(self._clean_sessions_task())
 
         async with serve(
             self.handler.main_router, 
@@ -55,3 +55,5 @@ class WebsocketInstanceManager(InstanceManager):
             removed_sessions = self.session_manager._clean_inactive_sessions()
             for session in removed_sessions:
                 self.remove_instance(session.instance_id)
+                logger.info(f"Removing inactive Instance {session.instance_id}")
+        pass

@@ -181,7 +181,8 @@ class WebsocketHandler:
         
         output = self._router.route_message(message, instance)
         if output:
-            logger.info(f"Sending route output to {instance} | output: {output}")
+            logger.info(f"Sending route output to {instance} | output: {output.type}")
+            logger.debug(f"Output Data: {output}")
 
         return output
 

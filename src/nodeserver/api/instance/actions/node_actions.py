@@ -36,6 +36,7 @@ class NodeActionUtils:
             if not mirror:
                 return EditorActionStatus.FAILED
 
+            mirror._position = node_data.position
             for param_name in node_data.data:
                 parameter = mirror.data.parameters.get(param_name)
                 if not parameter:
@@ -44,8 +45,8 @@ class NodeActionUtils:
                 parameter.value = node_data.data.get(param_name)
             
             if instance.mirror_manager.scene_reader.scene_data:
-                instance.mirror_manager.scene_reader.scene_data.nodes[node_uid].data = mirror.data.map_parameters()
-        
+                instance.mirror_manager.scene_reader.sync_node(mirror)
+
         return EditorActionStatus.SUCCESSFULL
     
     @staticmethod

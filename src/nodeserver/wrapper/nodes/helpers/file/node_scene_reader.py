@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
 from nodeserver.wrapper.utils.uuid_utils import IDGenerator
 
 
@@ -77,3 +78,11 @@ class SceneFileReader:
         scene_data = SceneData.from_dict(json_data)
         self._virtual_file.scene_data = scene_data
         self._virtual_file.raw_data = json_data
+
+    
+    def sync_node(self, mirror: NodeMirror):
+        if not self.scene_data: return
+        self.scene_data.nodes[mirror.uid].data = mirror.data.map_parameters()
+            
+        if mirror._position:
+            self.scene_data.nodes[mirror.uid].position = mirror._position

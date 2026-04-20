@@ -22,24 +22,28 @@ class SessionManager:
 
     def finish_session(self, token: str) -> UserSession:
         session = self.sessions.pop(token)
-
         return session
 
 
     def _clean_inactive_sessions(self) -> list[UserSession]:
         removed_sessions: list[UserSession] = []
         now = datetime.datetime.now(datetime.timezone.utc)
-        for token in list(self.sessions.keys()):
+        for token, session in self.sessions.items():
+            if not session.is_disconnected: continue
             payload = validate_session_token(token)
             
-            is_zombie = session.is_disconnected and (now - session.disconnected_at).total_seconds() > self.grace_period_seconds
+            time_passed = (now - session.disconnected_at).total_seconds()
+            is_zombie = session.is_disconnected and time_passed > self.grace_period_seconds
+            
             if payload is None or is_zombie:
                 try: 
-                    session = self.finish_session(token)
                     removed_sessions.append(session)
 
                 except KeyError:
                     logger.warning(f"Tried to remove a session that wasn't indexed - Token: {token}")
+
+        for session in removed_sessions:
+            self.finish_session(session.token)
 
         return removed_sessions
 
