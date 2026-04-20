@@ -1,7 +1,8 @@
 import jwt
 import datetime
 
-SECRET_KEY = "TODO"
+from nodeserver.api.utils.env_variables import SECRET_KEY
+
 
 class UserSession:
     token: str

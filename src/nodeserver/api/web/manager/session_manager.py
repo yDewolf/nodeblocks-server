@@ -1,7 +1,8 @@
-import asyncio
 import datetime
 import logging
+import os
 
+from nodeserver.api.utils.env_variables import SESSION_GRACE_PERIOD
 from nodeserver.api.utils.session_utils import UserSession, create_session_token, validate_session_token
 
 logger = logging.getLogger("nds.websocket")
@@ -12,6 +13,8 @@ class SessionManager:
     sessions: dict[str, UserSession]
 
     def __init__(self) -> None:
+        self.grace_period_seconds = SESSION_GRACE_PERIOD
+        
         self.sessions = {}
 
     def start_session(self, user_id: str, instance_id: str) -> UserSession:
