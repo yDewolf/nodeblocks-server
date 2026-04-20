@@ -1,16 +1,16 @@
 import json
 import logging
 
-from nodeserver.api.base_nodes import BaseNode
-from nodeserver.api.instance_states import InstanceCommands, InstanceStates, LoopStates
+from nodeserver.api.instance.base_nodes import BaseNode
+from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.api.internal.instance_manager import InstanceManager
-from nodeserver.api.server_instance import ServerInstance
-from nodeserver.networking.nodes.data.node_data import NodeData
-from nodeserver.networking.nodes.data.node_data_types import FLOAT_TYPE, INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
-from nodeserver.networking.nodes.helpers.file.type_dataclasses import NodeParameterData, SlotData
-from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
-from nodeserver.networking.nodes.helpers.node_constructor import CustomMirrorConstructor
-from nodeserver.networking.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.api.instance.server_instance import ServerInstance
+from nodeserver.wrapper.nodes.data.node_data import NodeData
+from nodeserver.wrapper.nodes.data.node_data_types import FLOAT_TYPE, INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, SlotData
+from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.wrapper.nodes.helpers.node_constructor import CustomMirrorConstructor
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 
 logger = logging.getLogger("root")
 manager = InstanceManager()

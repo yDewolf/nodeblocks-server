@@ -1,7 +1,7 @@
 import logging
 from threading import Thread, Lock, Event
-from nodeserver.api.server_instance import ServerInstance
-from nodeserver.networking.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.api.instance.server_instance import ServerInstance
+from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 
 MANAGER_LOGGER = logging.getLogger("InstanceLogger")
 
@@ -76,6 +76,9 @@ class InstanceRunner:
                     instance._handle_command_queue()
                     if instance.is_running():
                         instance.runtime_tick()
+                    
+                    if instance.is_waiting():
+                        instance._handle_action_queue()
                 # except Exception as e:
                 #     MANAGER_LOGGER.error("Some Instance fumbled", e)
         
