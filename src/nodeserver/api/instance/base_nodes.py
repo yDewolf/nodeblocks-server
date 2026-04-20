@@ -16,12 +16,8 @@ class BaseNode:
     # so the end developer can set what it needs as inputs
     # and just program what it does with the inputs (not to all the checks if the inputs exist)
     def forward(self, inputs: dict[SlotMirror, dict[SlotMirror, dict]]) -> dict[SlotMirror, Any]:
-        outputs: dict[str, Any] = {}
-        for slot_type in self._mirror.slots:
-            for slot in self._mirror.slots[slot_type]:
-                outputs[slot.slot_name] = 0
-        
-        return self.map_to_slots(outputs)
+        output_data = {}
+        return self.map_to_slots(output_data)
     
     def map_to_slots(self, data: dict[str, Any]) -> dict[SlotMirror, Any]:
         output_map: dict[SlotMirror, Any] = {}

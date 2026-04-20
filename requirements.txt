@@ -1,3 +1,4 @@
 setuptools
 websockets
 pydantic
+pyjwt

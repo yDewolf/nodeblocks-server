@@ -85,12 +85,14 @@ class InstanceRunner:
 
         MANAGER_LOGGER.info(f"Runner {self.id} stopped")
 
+
 class InstanceManager:
     _default_types: TypeFileReader | None = None
     runners: int = 2
     max_runner_instances: int = 4
 
     instance_runners: dict[str, InstanceRunner] = {}
+    # InstanceID -> RunnerID
     instance_mappings: dict[str, str] = {}
 
     def __init__(self, _default_types: TypeFileReader | None = None):
@@ -159,7 +161,13 @@ class InstanceManager:
         for id in self.instance_runners:
             runner = self.instance_runners[id]
             runner.start_thread()
-        
+    
+    def is_full(self) -> bool:
+        runner = self._get_available_runner()
+        if runner == None:
+            return True
+
+        return False
 
     def _get_available_runner(self) -> InstanceRunner | None:
         for runner_id in self.instance_runners:

@@ -20,6 +20,7 @@ class SrvHandshakeSuccess(BaseSocketModel):
     status: Literal[WebsocketStatus.CONNECTED]
     session: str
     type_data: Any
+    reconnection: bool = False
 
 class SrvHandshakeError(BaseSocketModel):
     type: Literal[ServerMessages.HANDSHAKE_SYNC] = ServerMessages.HANDSHAKE_SYNC
