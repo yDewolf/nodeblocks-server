@@ -1,11 +1,13 @@
 import logging
+import os
 import queue
-from typing import Callable
+from typing import Callable, Optional
 from nodeserver.api.instance.actions.action_controller import Action, ActionController
 from nodeserver.api.instance.actions.conn_actions import ConnActionUtils
 from nodeserver.api.instance.actions.node_actions import NodeActionUtils
 from nodeserver.api.instance.base_nodes import BaseNode
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
+from nodeserver.api.internal.instance_state import NODE_STATE_SUBFOLDER, InstanceState, InternalNodeState, InternalState, StateFileUtils
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.web.requests.websocket_requests import ServerMessage, ServerMessageAdapter, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes, ServerMessages
@@ -91,8 +93,12 @@ class BaseServerRuntime:
             self._current_idx = None
 
 
+INSTANCE_VERSION: str = "0.3.1" # TODO: Use Version Manager
 class ServerInstance:
     _attributed_id: str = ""
+    _user_id: str = ""
+    _created_at: float = 0
+
     _runtime: BaseServerRuntime
     _send_callback: Callable[[ServerMessage], None] | None = None
 
@@ -269,8 +275,41 @@ class ServerInstance:
         ))
 
 
-    def save_internal_state(self):
-        pass
+    def save_internal_state(self, root_path: str) -> Optional[InstanceState]:
+        scene_data = self.mirror_manager.get_scene()
+        if not scene_data:
+            return
+        
+        instance_path, node_state_path = StateFileUtils.prepare_instance_path(root_path, self._attributed_id)
+        nodes_internal_state: dict[str, InternalNodeState] = {}
+        for node in self._scene.nodes:
+            internal_state = node.save_state(node_state_path)
+            
+            if internal_state:
+                nodes_internal_state[node._mirror.uid] = internal_state
 
-    def load_internal_state(self, something):
-        pass
+        state_data = InstanceState(
+            instance_id=self._attributed_id,
+            user_id=self._user_id,
+            instance_creation_time=self._created_at,
+            instance_version=INSTANCE_VERSION,
+            scene_data=scene_data,
+            types_data=self.mirror_manager.type_reader.serialize(),
+            internal_states=InternalState(
+                nodes=nodes_internal_state
+            )
+        )
+
+        StateFileUtils.save_instance_state(state_data, instance_path)
+        return state_data
+
+    def load_internal_state(self, root_folder: str, state: InstanceState):
+        # TODO: Check type stuff
+        self.load_new_scene(state.scene_data)
+        instance_path = StateFileUtils.get_instance_path(root_folder, state.instance_id)
+        node_state_path = StateFileUtils.get_node_states_path(instance_path)
+        for node in self._scene.nodes:
+            node_state = state.internal_states.nodes.get(node._mirror.uid)
+            if node_state:
+                node.load_state(node_state_path, node_state)
+    

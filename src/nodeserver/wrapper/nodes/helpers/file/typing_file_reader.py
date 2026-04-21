@@ -81,13 +81,8 @@ class TypeFileReader:
             self._load_json_data(json_data)
 
 
-    def serialize_to_dict(self) -> dict:
-        json_data: dict = {
-            "id": self._node_types_id,
-            "version": self._node_types_version,
-            "slot_types": {},
-            "node_types": {}
-        }
+    def serialize(self) -> TypeFile:
+        _slot_types: dict[str, SlotTypeData] = {}
         for type_name, slot_type in self.slot_types.items():
             whitelist: list[str] = []
             for name in slot_type._name_whitelist: whitelist.append(name)
@@ -96,19 +91,25 @@ class TypeFileReader:
                 extends=slot_type._super_type.value,
                 conn_whitelist=whitelist,
                 default_data_type=slot_type.data_type.type_name
-            ).serialize()
+            )
+            _slot_types[type_name] = type_data
 
-            json_data["slot_types"][type_name] = type_data
-
-        
+        _node_types: dict[str, NodeTypeData] = {}
         for type_name, constructor in self.node_constructors.items():
             type_data = NodeTypeData(
                 parameters=constructor._data_model.param_model,
                 slots=constructor._slots
-            ).serialize()
-            json_data["node_types"][type_name] = type_data
+            )
+            _node_types[type_name] = type_data
         
-        return json_data
+        type_data = TypeFile(
+            id=self._node_types_id if self._node_types_id else "unknown",
+            version=self._node_types_version,
+            slot_types=_slot_types,
+            node_types=_node_types
+        )
+
+        return type_data
         
 
     def _load_json_data(self, json_data: dict):

@@ -1,6 +1,10 @@
 
-from typing import Any
+import json
+import os
+import pathlib
+from typing import Any, Optional
 
+from nodeserver.api.internal.instance_state import InternalNodeState
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 
@@ -34,3 +38,37 @@ class BaseNode:
             output_map[slot] = data[key]
 
         return output_map
+
+    # Override these on your Node class:
+    # Your load state logic
+    def load_state(self, root_state_path: str, state: InternalNodeState):
+        if state.relative_state_path:
+            my_state_file_path = os.path.join(root_state_path, state.relative_state_path)
+            print(my_state_file_path)
+            # Open file and load stuff
+
+
+    # Should have save logic
+    def save_state(self, root_state_path: str) -> Optional[InternalNodeState]:
+        state = self.get_state()
+        if state:
+            my_state_file_path, filename = self.make_state_file_path(root_state_path, "json")
+            state.relative_state_path = str(pathlib.Path(my_state_file_path).relative_to(root_state_path))
+            
+            with open(my_state_file_path, "w") as file:
+                file.write(json.dumps({"some": "data"}))
+
+        # Do some Save stuff if you need to
+        return state
+
+    # Shouldn't have save logic
+    def get_state(self) -> Optional[InternalNodeState]:
+        return InternalNodeState(
+            relative_state_path=None,
+            state_data=None
+        )
+
+    # Extension without .
+    def make_state_file_path(self, root_path: str, extension: str) -> tuple[str, str]:
+        filename = f"{self._mirror.uid}.{extension}"
+        return os.path.join(root_path, filename), filename

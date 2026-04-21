@@ -1,9 +1,11 @@
 import asyncio
+import os
 from typing import Optional
 
 from websockets.asyncio.server import ServerConnection
 from nodeserver.api.instance.server_instance import ServerInstance
-from nodeserver.api.utils.session_utils import UserSession, create_session_token, validate_session_token
+from nodeserver.api.internal.instance_state import InstanceState, StateFileUtils
+from nodeserver.api.utils.session_utils import UserSession, validate_session_token
 from nodeserver.api.utils.url_routing import Endpoint, URLRouter
 from nodeserver.api.internal.instance_manager import InstanceManager
 import websockets
@@ -80,7 +82,9 @@ class WebsocketHandler:
                 logger.info(f"Session '{instance_id}' disconnected. Entering grace period.")
             
             instance.stop_running()
-            instance.save_internal_state()
+
+            user_instances: str = StateFileUtils.prepare_user_instance_path(instance._user_id)
+            instance.save_internal_state(user_instances)
     
 
     async def on_handshake(self, websocket: ServerConnection, user_id: str, token: Optional[str] = None):
@@ -105,7 +109,7 @@ class WebsocketHandler:
         instance.set_send_callback(_thread_safe_send)
         self.connections[websocket] = instance
 
-        type_data = instance.mirror_manager.type_reader.serialize_to_dict()
+        type_data = instance.mirror_manager.type_reader.serialize()
         await websocket.send(SrvHandshakeSuccess(
             status=WebsocketStatus.CONNECTED,
             session=session.token,
@@ -118,18 +122,25 @@ class WebsocketHandler:
         instance: Optional[ServerInstance] = None
         is_reconnection: bool = False
         
+        loaded_state: Optional[InstanceState] = None
+        state_root: Optional[str] = None
         if token:
             payload = validate_session_token(token)
             if payload:
                 session = self.session_manager.get_session(token)
-                
                 if session:
                     instance = self.instance_manager.get_instance(session.instance_id)
+                else:
+                    state_stuff = StateFileUtils.get_user_recent_instance_state(user_id)
+                    if state_stuff: state_root, loaded_state = state_stuff
 
         if not instance:
             instance = self.server_instance_type(self.instance_manager._default_types)
-            instance._attributed_id = WebsocketHandler.make_instance_id(user_id)
-            
+            instance._attributed_id, instance._created_at = WebsocketHandler.make_instance_id(user_id)
+            instance._user_id = user_id
+            if loaded_state and state_root:
+                instance.load_internal_state(state_root, loaded_state)
+
             self.instance_manager.set_instance(instance._attributed_id, instance)
             logger.info(f"New Instance created for user {user_id}: {instance._attributed_id}")
         
@@ -187,5 +198,6 @@ class WebsocketHandler:
         return output
 
     @staticmethod
-    def make_instance_id(user_id: str):
-        return f"{user_id}_{asyncio.get_event_loop().time()}"
+    def make_instance_id(user_id: str) -> tuple[str, float]:
+        time = asyncio.get_event_loop().time()
+        return f"{user_id}-{time}", time
