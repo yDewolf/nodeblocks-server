@@ -54,6 +54,7 @@ class WebsocketInstanceManager(InstanceManager):
 
             removed_sessions = self.session_manager._clean_inactive_sessions()
             for session in removed_sessions:
-                self.remove_instance(session.instance_id)
-                logger.info(f"Removing inactive Instance {session.instance_id}")
+                if session.workspace.instance_id:
+                    self.remove_instance(session.workspace.instance_id)
+                    logger.info(f"Removing inactive Instance {session.workspace.instance_id}")
         pass

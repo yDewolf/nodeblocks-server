@@ -1,5 +1,4 @@
 import logging
-import os
 import queue
 from typing import Callable, Optional
 from nodeserver.api.instance.actions.action_controller import Action, ActionController
@@ -7,13 +6,12 @@ from nodeserver.api.instance.actions.conn_actions import ConnActionUtils
 from nodeserver.api.instance.actions.node_actions import NodeActionUtils
 from nodeserver.api.instance.base_nodes import BaseNode
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
-from nodeserver.api.internal.instance_state import NODE_STATE_SUBFOLDER, InstanceState, InternalNodeState, InternalState, StateFileUtils
-from nodeserver.api.internal.internal_protocols import InstanceProtocol
-from nodeserver.api.web.requests.websocket_requests import ServerMessage, ServerMessageAdapter, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
-from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes, ServerMessages
+from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
+from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
+from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus
 from nodeserver.api.instance.node_scene import NodeScene
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
-from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
+from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
@@ -275,12 +273,11 @@ class ServerInstance:
         ))
 
 
-    def save_internal_state(self, root_path: str) -> Optional[InstanceState]:
+    def save_internal_state(self, instance_path: str, node_state_path: str) -> Optional[InstanceState]:
         scene_data = self.mirror_manager.get_scene()
         if not scene_data:
             return
         
-        instance_path, node_state_path = StateFileUtils.prepare_instance_path(root_path, self._attributed_id)
         nodes_internal_state: dict[str, InternalNodeState] = {}
         for node in self._scene.nodes:
             internal_state = node.save_state(node_state_path)
@@ -303,11 +300,9 @@ class ServerInstance:
         StateFileUtils.save_instance_state(state_data, instance_path)
         return state_data
 
-    def load_internal_state(self, root_folder: str, state: InstanceState):
+    def load_internal_state(self, instance_path: str, node_state_path: str, state: InstanceState):
         # TODO: Check type stuff
         self.load_new_scene(state.scene_data)
-        instance_path = StateFileUtils.get_instance_path(root_folder, state.instance_id)
-        node_state_path = StateFileUtils.get_node_states_path(instance_path)
         for node in self._scene.nodes:
             node_state = state.internal_states.nodes.get(node._mirror.uid)
             if node_state:
