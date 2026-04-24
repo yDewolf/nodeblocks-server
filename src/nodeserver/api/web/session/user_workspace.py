@@ -6,6 +6,7 @@ from typing import Optional
 from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.utils.workspace_utils import INSTANCE_FOLDER, UPLOADS_FOLDER, WorkspaceUtils
+from nodeserver.api.web.requests.websocket_requests import ServerMessage
 
 logger = logging.getLogger("nds.workspace")
 
@@ -30,6 +31,16 @@ class UserWorkspace:
     def assign_instance(self, instance: ServerInstance):
         self.instance_id = instance._attributed_id
         self.current_instance = instance
+
+    def send_msg_as_instance(self, data: ServerMessage) -> bool:
+        if not self.current_instance:
+            return False
+
+        if not self.current_instance._send_callback:
+            return False
+        
+        self.current_instance._send_callback(data)
+        return True
 
     
     def get_instance_path(self):

@@ -1,10 +1,18 @@
+from enum import Enum
 from typing import Optional
 
 from aiohttp import web
 import os
 
 from nodeserver.api.web.manager.session_manager import SessionManager
+from nodeserver.api.web.requests.websocket_requests import SrvSyncFiles
 from nodeserver.api.web.session.user_session import UserSession
+
+class FileRequestType(Enum):
+    GET = 0
+    DELETE = 1
+    UPLOAD = 2
+    DOWNLOAD = 3
 
 class FileHandler:
     session_manager: SessionManager
@@ -12,11 +20,37 @@ class FileHandler:
     def __init__(self, session_manager: SessionManager) -> None:
         self.session_manager = session_manager
 
-    async def list_files(self, request: web.Request):
+    async def route_file_request(self, request: web.Request, request_type: FileRequestType) -> web.StreamResponse:
         user_session, error = self.get_session_from_request(request)
         if error: return error
         if not user_session: return web.json_response({})
 
+        result = web.json_response({"message": "internal_error"}, status=400)
+        match request_type:
+            case FileRequestType.GET: result = self._list_files(request, user_session) 
+            case FileRequestType.DELETE: result = self._delete_file(request, user_session)
+            case FileRequestType.DOWNLOAD: result = self._download_file(request, user_session)
+            # case FileRequestType.UPLOAD: return await self._list_files(request, user_session)
+        
+        if request_type != FileRequestType.GET:
+            user_session.workspace.send_msg_as_instance(SrvSyncFiles())
+        
+        return result
+
+    async def list_files(self, request: web.Request):
+        return await self.route_file_request(request, FileRequestType.GET)
+    
+    async def delete_file(self, request: web.Request):
+        return await self.route_file_request(request, FileRequestType.DELETE)
+    
+    async def download_file(self, request: web.Request):
+        return await self.route_file_request(request, FileRequestType.DOWNLOAD)
+    
+    async def upload_file(self, request: web.Request):
+        return await self.route_file_request(request, FileRequestType.UPLOAD)
+
+
+    def _list_files(self, request: web.Request, user_session: UserSession):
         upload_path = user_session.workspace.get_uploads_path()
         if not os.path.exists(upload_path):
             return web.json_response([])
@@ -32,11 +66,7 @@ class FileHandler:
         
         return web.json_response(files)
 
-    async def delete_file(self, request: web.Request):
-        user_session, error = self.get_session_from_request(request)
-        if error: return error
-        if not user_session: return web.json_response({})
-        
+    def _delete_file(self, request: web.Request, user_session: UserSession):
         filename = request.query.get("filename")
         if not filename:
             return web.json_response({"message": "missing filename"})
@@ -51,11 +81,7 @@ class FileHandler:
 
         return web.json_response({"message": "File doesn't exist"}, status=404)
 
-    async def download_file(self, request: web.Request):
-        user_session, error = self.get_session_from_request(request)
-        if error: return error
-        if not user_session: return web.json_response({})
-        
+    def _download_file(self, request: web.Request, user_session: UserSession):
         filename = request.query.get("filename")
         if not filename:
             return web.json_response({"message": "missing filename"})
