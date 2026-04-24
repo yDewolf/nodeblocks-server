@@ -8,3 +8,8 @@ class InstanceProtocol(Protocol):
     _scene: NodeScene
     
     _attributed_id: str
+
+
+class WorkspaceProtocol(Protocol):
+    user_id: str
+    workspace_path: str

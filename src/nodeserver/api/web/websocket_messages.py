@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from nodeserver.api.web.requests.client_requests import ClientCommand, ClientCommandAdapter
 from nodeserver.api.web.requests.websocket_requests import ServerMessage
@@ -26,9 +27,10 @@ class ClientMessageWrapper(SocketMessage[ClientCommand]):
 
 class MessageUtils:
     @staticmethod
-    def parse_client_message(message_dict: dict) -> Optional[ClientMessageWrapper]:
+    def parse_client_message(message_str: str) -> Optional[ClientMessageWrapper]:
         try:
-            command = ClientCommandAdapter.validate_python(message_dict)
+            command = ClientCommandAdapter.validate_json(message_str)
+            message_dict = json.loads(message_str)
             return ClientMessageWrapper(message_dict, command) 
         
         except Exception as e:

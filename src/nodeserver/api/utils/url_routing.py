@@ -1,8 +1,8 @@
+from aiohttp import web
 import re as regex
 from types import CoroutineType
 from typing import Any, Callable
 from urllib.parse import parse_qs, urlparse
-from websockets.asyncio.server import ServerConnection
 
 class Endpoint:
     raw_url: str
@@ -31,13 +31,13 @@ class Endpoint:
 
 
 class URLRouter:
-    routes: dict[Endpoint, Callable[[dict, dict, ServerConnection], CoroutineType[Any, Any, dict | None]]]
+    routes: dict[Endpoint, Callable[[dict, dict, web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]]
 
-    def __init__(self, routes: dict[Endpoint, Callable[[dict, dict, ServerConnection], CoroutineType[Any, Any, dict | None]]]) -> None:
+    def __init__(self, routes: dict[Endpoint, Callable[[dict, dict, web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]]) -> None:
         self.routes = routes
 
 
-    def route_url(self, url: str) -> tuple[dict, dict, Callable[[dict, dict, ServerConnection], CoroutineType[Any, Any, dict | None]]] | None:
+    def route_url(self, url: str) -> tuple[dict, dict, Callable[[dict, dict, web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]] | None:
         target_endpoint = None
         for endpoint in self.routes:
             if self.endpoint_matches_url(endpoint, url):

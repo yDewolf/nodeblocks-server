@@ -1,23 +1,22 @@
-import asyncio
-import os
 from typing import Optional
-
-from websockets.asyncio.server import ServerConnection
-from nodeserver.api.instance.server_instance import ServerInstance
-from nodeserver.api.internal.instance_state import InstanceState, StateFileUtils
-from nodeserver.api.web.session.user_session import SessionUtils, UserSession
-from nodeserver.api.utils.url_routing import Endpoint, URLRouter
-from nodeserver.api.internal.instance_manager import InstanceManager
+from aiohttp import web
+import asyncio
 import websockets
 import json
 import logging
+
+from nodeserver.api.instance.server_instance import ServerInstance
+from nodeserver.api.internal.instance_state import StateFileUtils
+from nodeserver.api.web.session.user_session import SessionUtils, UserSession
+from nodeserver.api.utils.url_routing import Endpoint, URLRouter
+from nodeserver.api.internal.instance_manager import InstanceManager
 
 from nodeserver.api.web.manager.session_manager import SessionManager
 from nodeserver.api.web.message_router import BaseMessagerouter
 from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvHandshakeError, SrvHandshakeSuccess
 from nodeserver.api.web.session.user_workspace import WorkspaceUtils
 from nodeserver.api.web.websocket_messages import MessageUtils
-from nodeserver.api.web.websocket_protocol import ServerMessages, WebsocketStatus
+from nodeserver.api.web.websocket_protocol import WebsocketStatus
 
 logger = logging.getLogger("nds.websocket")
 
@@ -26,7 +25,7 @@ class WebsocketHandler:
     session_manager: SessionManager
 
     loop: asyncio.AbstractEventLoop | None = None
-    connections: dict[ServerConnection, ServerInstance] # type: ignore
+    connections: dict[web.WebSocketResponse, ServerInstance] # type: ignore
     
     server_instance_type: type[ServerInstance] = ServerInstance
     _router: BaseMessagerouter
@@ -54,25 +53,25 @@ class WebsocketHandler:
         self._path_cache[connection] = request.path
         return None
 
-    async def main_router(self, websocket: ServerConnection):
-        path = self._path_cache.get(websocket, "")
+    async def main_router(self, websocket: web.WebSocketResponse, request: web.Request):
         try:
-            route_stuff = self._url_router.route_url(path)
+            route_stuff = self._url_router.route_url(request.path)
             if route_stuff:
-                parameters, query_data, route_callable = route_stuff
-                await route_callable(parameters, query_data, websocket)
-
-            await websocket.close(1003, "Invalid Route")
+                parameters, _, route_callable = route_stuff
+                await route_callable(parameters, {k: request.query.getall(k) for k in request.query.keys()}, websocket)
             
-        except websockets.ConnectionClosed:
+            else:
+                await websocket.close(code=1003) #message="Invalid Route")
+        
+        except Exception as e:
+            logger.error(f"Socket {websocket} closed because of {e}")
             self.on_disconnect(websocket)
             
         finally:
             self.on_disconnect(websocket)
 
     # Server Stuff
-
-    def on_disconnect(self, websocket):
+    def on_disconnect(self, websocket: web.WebSocketResponse):
         instance = self.connections.pop(websocket, None)
         if instance:
             instance_id = instance._attributed_id
@@ -86,23 +85,21 @@ class WebsocketHandler:
             instance.stop_running()
     
 
-    async def on_handshake(self, websocket: ServerConnection, user_id: str, token: Optional[str] = None):
+    async def on_handshake(self, websocket: web.WebSocketResponse, user_id: str, token: Optional[str] = None):
         if self.instance_manager.is_full():
-            await websocket.send(SrvHandshakeError(
-                status=WebsocketStatus.DISCONNECTED,
-                message="Server is full."
-            ).model_dump_json())
+            await self._send_error(websocket, "Server is Full")
             return
         
-        instance, session, is_reconnection = self._prepare_socket_session(user_id, token)
+        instance, session, has_content_to_sync = self._prepare_socket_session(user_id, token)
         if not instance or not session:
             return
 
         def _thread_safe_send(data: ServerMessage) -> None:
             message = data.model_dump_json(by_alias=True)
-            if self.loop:
-                self.loop.call_soon_threadsafe(
-                    lambda: asyncio.create_task(websocket.send(message))
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(
+                    websocket.send_str(message), 
+                    self.loop
                 )
 
         instance.set_send_callback(_thread_safe_send)
@@ -113,20 +110,21 @@ class WebsocketHandler:
             logger.error(f"Session doesn't have any token for some reason. User ID: {user_id}")
             return
         
-        await websocket.send(SrvHandshakeSuccess(
+        response = SrvHandshakeSuccess(
             status=WebsocketStatus.CONNECTED,
             session=session.token,
             type_data=type_data,
-            reconnection=is_reconnection
-        ).model_dump_json())
+            reconnection=has_content_to_sync
+        )
+        await websocket.send_str(response.model_dump_json())
+
 
     def _prepare_socket_session(self, user_id: str, token: Optional[str] = None) -> tuple[Optional[ServerInstance], Optional[UserSession], bool]:
         session: UserSession = self.session_manager.create_session(user_id, None)
         instance: Optional[ServerInstance] = None
         has_content_to_sync: bool = False
-        
+        # Validate token payload and recover session if it exists
         if token:
-            # Validate token payload and recover session if it exists
             payload = SessionUtils.validate_session_token(token)
             if payload:
                 token_session = self.session_manager.get_session(token)
@@ -138,28 +136,10 @@ class WebsocketHandler:
                     has_content_to_sync = True
 
         if not instance:
-            # Create a new instance
-            instance = self.server_instance_type(self.instance_manager._default_types)
-            instance._attributed_id, instance._created_at = WebsocketHandler.make_instance_id(user_id)
-            instance._user_id = user_id
-            
-            # Load previous instance state, if it exists
-            state_paths = session.workspace.get_saved_instances()
-            if state_paths:
-                state_root = state_paths[0]
-                loaded_state = StateFileUtils.get_instance_state(state_root)
-                
-                if loaded_state:
-                    instance_path = WorkspaceUtils.get_instance_path(state_root, instance._attributed_id)
-                    node_state_path = WorkspaceUtils.get_node_states_path(instance_path)
-                    instance.load_internal_state(
-                        instance_path, node_state_path, loaded_state
-                    )
-                    has_content_to_sync = True
-
+            instance, loaded_from_file = self._create_new_instance(session, user_id)
+            has_content_to_sync = loaded_from_file or has_content_to_sync
             self.instance_manager.set_instance(instance._attributed_id, instance)
-            logger.info(f"New Instance created for user {user_id}: {instance._attributed_id}")
-        
+
         if has_content_to_sync:
             logger.info(f"User {user_id} reconnected to instance {instance._attributed_id}")
 
@@ -169,37 +149,62 @@ class WebsocketHandler:
 
         return (instance, session, has_content_to_sync)
 
+    # Important: doesn't set the instance on instance_manager
+    def _create_new_instance(self, session: UserSession, user_id: str) -> tuple[ServerInstance, bool]:
+        loaded_from_file: bool = False
+        instance = self.server_instance_type(self.instance_manager._default_types)
+        instance._attributed_id, instance._created_at = WebsocketHandler.make_instance_id(user_id)
+        instance._user_id = user_id
+        
+        # Load previous instance state, if it exists
+        state_paths = session.workspace.get_saved_instances()
+        if state_paths:
+            state_root = state_paths[0]
+            loaded_state = StateFileUtils.get_instance_state(state_root)
+            
+            if loaded_state:
+                instance_path = WorkspaceUtils.get_instance_path(state_root, instance._attributed_id)
+                node_state_path = WorkspaceUtils.get_node_states_path(instance_path)
+                instance.load_internal_state(
+                    instance_path, node_state_path, loaded_state
+                )
+                loaded_from_file = True
+
+        logger.info(f"New Instance created for user {user_id}: {instance._attributed_id}")
+        return (instance, loaded_from_file)
+
+
     # Routes
-    async def instance_listen_route(self, data: dict, query_data: dict, websocket: ServerConnection) -> dict | None:
+    async def instance_listen_route(self, data: dict, query_data: dict, websocket: web.WebSocketResponse) -> dict | None:
         user_id = data.get("user_id")
         if user_id == None:
             # FIXME: Raise some exception
             return
         
         if user_id is None:
-            await websocket.close(1008, "Missing user_id")
+            await websocket.close(code=1008)#, "Missing user_id")
             return
 
         token = query_data.get("token", None)
         await self.on_handshake(websocket, user_id, token)
         await self._listen_loop(websocket)
 
-    async def _listen_loop(self, websocket: ServerConnection) -> dict | None:
+    async def _listen_loop(self, websocket: web.WebSocketResponse) -> dict | None:
         instance = self.connections.get(websocket, None)
-        async for message in websocket:
-            try:
-                data = json.loads(message)
-                if instance == None:
+        while True:
+            async for message in websocket:
+                try:
+                    if instance == None:
+                        continue
+
+                    out_data = await self._route_message(instance, message.data)
+                    if out_data:
+                        await websocket.send_str(out_data.model_dump_json())
+
+                except json.JSONDecodeError:
                     continue
-
-                out_data = await self._route_message(instance, data)
-                if out_data:
-                    await websocket.send(out_data.model_dump_json())
-
-            except json.JSONDecodeError:
-                continue
     
-    async def _route_message(self, instance: ServerInstance, data: dict) -> ServerMessage | None:
+    async def _route_message(self, instance: ServerInstance, data: str) -> ServerMessage | None:
         message = MessageUtils.parse_client_message(data)
         logger.info(f"Command Received: {message} for Instance '{instance._attributed_id}'")
         if not message:
@@ -216,3 +221,10 @@ class WebsocketHandler:
     def make_instance_id(user_id: str) -> tuple[str, float]:
         time = asyncio.get_event_loop().time()
         return f"{user_id}-{time}", time
+    
+    async def _send_error(self, socket: web.WebSocketResponse, message: str):
+        error = SrvHandshakeError(
+            status=WebsocketStatus.DISCONNECTED,
+            message=message
+        )
+        await socket.send_str(error.model_dump_json())
