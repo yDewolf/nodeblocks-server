@@ -34,7 +34,11 @@ class UserWorkspace:
     
     def get_instance_path(self):
         pass
-    
+
+    def get_uploads_path(self):
+        return WorkspaceUtils.get_user_uploads_path(self.workspace_path)
+
+
     def save_instance(self, instance: ServerInstance):
         if instance != self.current_instance:
             logger.error(f"Saved instance should be the same as workspace's current instance - Instance Id: {instance._attributed_id} - Current Instance: {self.current_instance._attributed_id if self.current_instance else None}")

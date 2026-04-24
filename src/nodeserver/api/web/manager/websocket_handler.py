@@ -43,7 +43,7 @@ class WebsocketHandler:
 
     def _setup_routes(self):
         self._url_router = URLRouter({
-            Endpoint("/instance/{user_id}", ["token"]): self.instance_listen_route,
+            Endpoint("/ws/instance/{user_id}", ["token"]): self.instance_listen_route,
         })
 
     def _set_loop(self, loop: asyncio.AbstractEventLoop):
@@ -58,7 +58,8 @@ class WebsocketHandler:
             route_stuff = self._url_router.route_url(request.path)
             if route_stuff:
                 parameters, _, route_callable = route_stuff
-                await route_callable(parameters, {k: request.query.getall(k) for k in request.query.keys()}, websocket)
+                # FIXME: request.query.getall(k)[0]
+                await route_callable(parameters, {k: request.query.getall(k)[0] for k in request.query.keys()}, websocket)
             
             else:
                 await websocket.close(code=1003) #message="Invalid Route")
@@ -134,6 +135,8 @@ class WebsocketHandler:
                     session_instance = self.instance_manager.get_instance(token_session.workspace.instance_id)
                     instance = session_instance
                     has_content_to_sync = True
+            else:
+                token = None
 
         if not instance:
             instance, loaded_from_file = self._create_new_instance(session, user_id)
@@ -143,7 +146,7 @@ class WebsocketHandler:
         if has_content_to_sync:
             logger.info(f"User {user_id} reconnected to instance {instance._attributed_id}")
 
-        session = self.session_manager.start_session(session, instance._attributed_id)
+        session = self.session_manager.start_session(session, instance._attributed_id, token=token)
         session.workspace.assign_instance(instance)
         session.mark_connected()
 
