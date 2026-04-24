@@ -1,8 +1,8 @@
-
 import asyncio
 
+from nodeserver.api.base_server import NodeServer
 from nodeserver.api.instance.base_nodes import BaseNode
-from nodeserver.api.websocket_manager import WebsocketInstanceManager
+from nodeserver.api.websocket_manager import WebsocketManager
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, SlotData
@@ -101,5 +101,5 @@ my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
     ]
 ))
 
-manager = WebsocketInstanceManager(my_cool_types)
-asyncio.run(manager.run_server())
+server = NodeServer(my_cool_types)
+server.run_server()

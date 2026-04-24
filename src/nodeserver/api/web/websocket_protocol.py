@@ -31,7 +31,7 @@ class SceneActionTypes(str, Enum):
     UPDATE = "UPDATE"
 
 class EditorActionStatus(str, Enum):
-    SUCCESSFULL = "SUCCESSFULL",
-    UNSYNCED = "UNSYNCED",
+    SUCCESSFULL = "SUCCESSFULL"
+    UNSYNCED = "UNSYNCED"
     FAILED = "FAILED"
     
