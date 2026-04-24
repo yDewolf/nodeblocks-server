@@ -39,6 +39,9 @@ class SrvSyncState(BaseSocketModel):
     type: Literal[ServerMessages.SYNC_INSTANCE_STATE] = ServerMessages.SYNC_INSTANCE_STATE
     payload: SyncStatePayload
 
+class SrvSyncFiles(BaseSocketModel):
+    type: Literal[ServerMessages.SYNC_FILES] = ServerMessages.SYNC_FILES
+
 
 class SrvNodeOutput(BaseSocketModel):
     type: Literal[ServerMessages.NODE_OUTPUT] = ServerMessages.NODE_OUTPUT
@@ -51,7 +54,7 @@ HandshakeMessage = Annotated[
 ]
 
 ServerMessage = Annotated[
-    Union[HandshakeMessage, SrvSyncAction, SrvSyncScene, SrvSyncState, SrvNodeOutput],
+    Union[HandshakeMessage, SrvSyncAction, SrvSyncScene, SrvSyncState, SrvNodeOutput, SrvSyncFiles],
     Field(discriminator="type")
 ]
 
