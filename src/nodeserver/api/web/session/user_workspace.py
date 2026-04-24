@@ -10,6 +10,7 @@ from nodeserver.api.utils.env_variables import WORKSPACES_PATH
 logger = logging.getLogger("nds.workspace")
 
 INSTANCE_FOLDER = "instances"
+UPLOADS_FOLDER = "uploads"
 
 class UserWorkspace:
     user_id: str
@@ -46,7 +47,7 @@ class UserWorkspace:
             instance_path, node_state_path
         )
         
-    def get_instances(self) -> list[str]:
+    def get_saved_instances(self) -> list[str]:
         user_instances = WorkspaceUtils.get_user_instances(self.user_id)
         user_instances.sort(key=os.path.getmtime, reverse=True)
         return user_instances
@@ -58,11 +59,14 @@ class WorkspaceUtils:
         user_workspace = os.path.join(workspaces_path, workspace.user_id)
         if not os.path.exists(user_workspace):
             os.mkdir(user_workspace)
-            
-        user_instances = os.path.join(user_workspace, INSTANCE_FOLDER)
-        if not os.path.exists(user_instances):
-            os.mkdir(user_instances)
-        
+
+        WorkspaceUtils._make_folders(
+            user_workspace, [
+                INSTANCE_FOLDER,
+                UPLOADS_FOLDER
+            ]
+        )
+                
         workspace.workspace_path = user_workspace
         return user_workspace
             
@@ -122,13 +126,10 @@ class WorkspaceUtils:
 
         return instance_directories
 
-    # @staticmethod
-    # def get_user_recent_instance_state(user_id: str) -> Optional[tuple[str, Optional[InstanceState]]]:
-    #     user_instances = WorkspaceUtils.get_user_instances(user_id)
-    #     # Instance Path is the same as Instance Id
-    #     if len(user_instances) == 0: return
-
-    #     user_instances.sort(key=os.path.getmtime, reverse=True)
-    #     state_root = user_instances[0]
-    #     state = StateFileUtils.get_instance_state(state_root)
-    #     return state_root, state
+    @staticmethod
+    def _make_folders(root_path: str, subfolders: list[str]):
+        for folder in subfolders:
+            folder_path = os.path.join(root_path, folder)
+            if not os.path.exists(folder_path):
+                os.mkdir(folder_path)
+        

@@ -123,9 +123,10 @@ class WebsocketHandler:
     def _prepare_socket_session(self, user_id: str, token: Optional[str] = None) -> tuple[Optional[ServerInstance], Optional[UserSession], bool]:
         session: UserSession = self.session_manager.create_session(user_id, None)
         instance: Optional[ServerInstance] = None
-        is_reconnection: bool = False
+        has_content_to_sync: bool = False
         
         if token:
+            # Validate token payload and recover session if it exists
             payload = SessionUtils.validate_session_token(token)
             if payload:
                 token_session = self.session_manager.get_session(token)
@@ -134,19 +135,16 @@ class WebsocketHandler:
                     session = token_session
                     session_instance = self.instance_manager.get_instance(token_session.workspace.instance_id)
                     instance = session_instance
-
-                # FIXME: arrumar a forma como os estados são carregados
-                # else:
-                #     state_stuff = StateFileUtils.get_user_recent_instance_state(user_id)
-                #     if state_stuff: state_root, loaded_state = state_stuff
+                    has_content_to_sync = True
 
         if not instance:
+            # Create a new instance
             instance = self.server_instance_type(self.instance_manager._default_types)
             instance._attributed_id, instance._created_at = WebsocketHandler.make_instance_id(user_id)
             instance._user_id = user_id
             
-            # FIXME Load State (WIP):
-            state_paths = session.workspace.get_instances()
+            # Load previous instance state, if it exists
+            state_paths = session.workspace.get_saved_instances()
             if state_paths:
                 state_root = state_paths[0]
                 loaded_state = StateFileUtils.get_instance_state(state_root)
@@ -157,19 +155,19 @@ class WebsocketHandler:
                     instance.load_internal_state(
                         instance_path, node_state_path, loaded_state
                     )
+                    has_content_to_sync = True
 
             self.instance_manager.set_instance(instance._attributed_id, instance)
             logger.info(f"New Instance created for user {user_id}: {instance._attributed_id}")
         
-        if session:
-            is_reconnection = True
-            session.mark_connected()
+        if has_content_to_sync:
             logger.info(f"User {user_id} reconnected to instance {instance._attributed_id}")
 
         session = self.session_manager.start_session(session, instance._attributed_id)
         session.workspace.assign_instance(instance)
+        session.mark_connected()
 
-        return (instance, session, is_reconnection)
+        return (instance, session, has_content_to_sync)
 
     # Routes
     async def instance_listen_route(self, data: dict, query_data: dict, websocket: ServerConnection) -> dict | None:
