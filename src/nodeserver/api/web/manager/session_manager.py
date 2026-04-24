@@ -1,6 +1,5 @@
 import datetime
 import logging
-import os
 from typing import Optional
 
 from nodeserver.api.utils.env_variables import SESSION_GRACE_PERIOD
@@ -18,8 +17,8 @@ class SessionManager:
         
         self.sessions = {}
 
-    def start_session(self, session: UserSession, instance_id: str) -> UserSession:
-        session_token = SessionUtils.create_session_token(session.user_id, instance_id)
+    def start_session(self, session: UserSession, instance_id: str, token: Optional[str] = None) -> UserSession:
+        session_token: str = token if token else SessionUtils.create_session_token(session.user_id, instance_id)
         session.token = session_token
 
         self.sessions[session.token] = session

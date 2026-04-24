@@ -11,20 +11,18 @@ import logging
 logger = logging.getLogger("nds.websocket")
 
 class WebsocketManager:
-    loop: asyncio.AbstractEventLoop | None
+    loop: asyncio.AbstractEventLoop | None = None
     host: str
     port: int
 
     handler: WebsocketHandler
-    session_manager: SessionManager
     instance_manager: InstanceManager
 
     stop: asyncio.Future | None
 
-    def __init__(self, instance_manager: InstanceManager, host: str, port: int):
-        self.session_manager = SessionManager()
+    def __init__(self, instance_manager: InstanceManager, session_manager: SessionManager, host: str, port: int):
         self.instance_manager = instance_manager
-        self.handler = WebsocketHandler(self.instance_manager, self.session_manager, ServerInstance, BaseMessagerouter)
+        self.handler = WebsocketHandler(self.instance_manager, session_manager, ServerInstance, BaseMessagerouter)
         
         self.host = host
         self.port = port
@@ -37,14 +35,3 @@ class WebsocketManager:
     def set_loop(self, loop: asyncio.AbstractEventLoop):
         self.loop = loop
         self.handler.loop = self.loop
-
-
-    async def _clean_sessions_task(self):
-        while True:
-            await asyncio.sleep(3.0)
-
-            removed_sessions = self.session_manager._clean_inactive_sessions()
-            for session in removed_sessions:
-                if session.workspace.instance_id:
-                    self.instance_manager.remove_instance(session.workspace.instance_id)
-                    logger.info(f"Removing inactive Instance {session.workspace.instance_id}")

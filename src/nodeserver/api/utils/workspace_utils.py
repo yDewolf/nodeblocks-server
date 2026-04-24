@@ -63,6 +63,10 @@ class WorkspaceUtils:
     @staticmethod
     def get_node_states_path(instance_path: str) -> str:
         return os.path.join(instance_path, NODE_STATE_SUBFOLDER)
+    
+    @staticmethod
+    def get_user_uploads_path(workspace_path: str) -> str:
+        return os.path.join(workspace_path, UPLOADS_FOLDER)
 
 
     @staticmethod
