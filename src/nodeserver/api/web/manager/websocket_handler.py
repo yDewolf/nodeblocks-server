@@ -5,7 +5,7 @@ from typing import Optional
 from websockets.asyncio.server import ServerConnection
 from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.instance_state import InstanceState, StateFileUtils
-from nodeserver.api.utils.session_utils import UserSession, validate_session_token
+from nodeserver.api.web.session.user_session import SessionUtils, UserSession
 from nodeserver.api.utils.url_routing import Endpoint, URLRouter
 from nodeserver.api.internal.instance_manager import InstanceManager
 import websockets
@@ -15,6 +15,7 @@ import logging
 from nodeserver.api.web.manager.session_manager import SessionManager
 from nodeserver.api.web.message_router import BaseMessagerouter
 from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvHandshakeError, SrvHandshakeSuccess
+from nodeserver.api.web.session.user_workspace import WorkspaceUtils
 from nodeserver.api.web.websocket_messages import MessageUtils
 from nodeserver.api.web.websocket_protocol import ServerMessages, WebsocketStatus
 
@@ -78,13 +79,11 @@ class WebsocketHandler:
             session = self.session_manager.get_session_by_instance(instance_id)
             
             if session:
+                session.workspace.save_instance(instance)
                 session.mark_disconnected()
                 logger.info(f"Session '{instance_id}' disconnected. Entering grace period.")
             
             instance.stop_running()
-
-            user_instances: str = StateFileUtils.prepare_user_instance_path(instance._user_id)
-            instance.save_internal_state(user_instances)
     
 
     async def on_handshake(self, websocket: ServerConnection, user_id: str, token: Optional[str] = None):
@@ -110,6 +109,10 @@ class WebsocketHandler:
         self.connections[websocket] = instance
 
         type_data = instance.mirror_manager.type_reader.serialize()
+        if not session.token:
+            logger.error(f"Session doesn't have any token for some reason. User ID: {user_id}")
+            return
+        
         await websocket.send(SrvHandshakeSuccess(
             status=WebsocketStatus.CONNECTED,
             session=session.token,
@@ -118,28 +121,42 @@ class WebsocketHandler:
         ).model_dump_json())
 
     def _prepare_socket_session(self, user_id: str, token: Optional[str] = None) -> tuple[Optional[ServerInstance], Optional[UserSession], bool]:
-        session: Optional[UserSession] = None
+        session: UserSession = self.session_manager.create_session(user_id, None)
         instance: Optional[ServerInstance] = None
         is_reconnection: bool = False
         
-        loaded_state: Optional[InstanceState] = None
-        state_root: Optional[str] = None
         if token:
-            payload = validate_session_token(token)
+            payload = SessionUtils.validate_session_token(token)
             if payload:
-                session = self.session_manager.get_session(token)
-                if session:
-                    instance = self.instance_manager.get_instance(session.instance_id)
-                else:
-                    state_stuff = StateFileUtils.get_user_recent_instance_state(user_id)
-                    if state_stuff: state_root, loaded_state = state_stuff
+                token_session = self.session_manager.get_session(token)
+                
+                if token_session and token_session.workspace.instance_id:
+                    session = token_session
+                    session_instance = self.instance_manager.get_instance(token_session.workspace.instance_id)
+                    instance = session_instance
+
+                # FIXME: arrumar a forma como os estados são carregados
+                # else:
+                #     state_stuff = StateFileUtils.get_user_recent_instance_state(user_id)
+                #     if state_stuff: state_root, loaded_state = state_stuff
 
         if not instance:
             instance = self.server_instance_type(self.instance_manager._default_types)
             instance._attributed_id, instance._created_at = WebsocketHandler.make_instance_id(user_id)
             instance._user_id = user_id
-            if loaded_state and state_root:
-                instance.load_internal_state(state_root, loaded_state)
+            
+            # FIXME Load State (WIP):
+            state_paths = session.workspace.get_instances()
+            if state_paths:
+                state_root = state_paths[0]
+                loaded_state = StateFileUtils.get_instance_state(state_root)
+                
+                if loaded_state:
+                    instance_path = WorkspaceUtils.get_instance_path(state_root, instance._attributed_id)
+                    node_state_path = WorkspaceUtils.get_node_states_path(instance_path)
+                    instance.load_internal_state(
+                        instance_path, node_state_path, loaded_state
+                    )
 
             self.instance_manager.set_instance(instance._attributed_id, instance)
             logger.info(f"New Instance created for user {user_id}: {instance._attributed_id}")
@@ -149,8 +166,8 @@ class WebsocketHandler:
             session.mark_connected()
             logger.info(f"User {user_id} reconnected to instance {instance._attributed_id}")
 
-        if not session:
-            session = self.session_manager.start_session(user_id, instance._attributed_id)
+        session = self.session_manager.start_session(session, instance._attributed_id)
+        session.workspace.assign_instance(instance)
 
         return (instance, session, is_reconnection)
 
