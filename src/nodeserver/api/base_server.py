@@ -3,6 +3,7 @@ from asyncio.log import logger
 import logging
 
 from aiohttp import web
+import aiohttp_cors
 
 from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.web.manager.session_manager import SessionManager
@@ -36,9 +37,19 @@ class NodeServer:
         self._setup_routes()
 
     def _setup_routes(self):
-        self.app.router.add_get('/api/{user_id}/files', self.file_handler.list_files)
-        self.app.router.add_get('/api/{user_id}/file/delete', self.file_handler.delete_file)
-        self.app.router.add_get('/api/{user_id}/file/download', self.file_handler.download_file)
+        cors = aiohttp_cors.setup(self.app, defaults={
+            f"http://{self.host}:3000": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+            )
+        })
+        resource_files = cors.add(self.app.router.add_get('/api/{user_id}/files', self.file_handler.list_files))
+        cors.add(self.app.router.add_get('/api/{user_id}/file/delete', self.file_handler.delete_file), {
+            f"http://{self.host}:3000": aiohttp_cors.ResourceOptions(allow_credentials=True)
+        })
+        cors.add(self.app.router.add_get('/api/{user_id}/file/download', self.file_handler.download_file))
+        # cors.add(self.app.router.add_get('/ws/instance/{user_id}', self.handle_websocket))
         # self.app.router.add_post('/api/{user_id}/upload', self.file_handler.upload)
         
         self.app.router.add_get('/ws/instance/{user_id}', self.handle_websocket)

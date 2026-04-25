@@ -3,3 +3,5 @@ websockets
 pydantic
 pyjwt
 dotenv
+aiohttp
+aiohttp_cors
