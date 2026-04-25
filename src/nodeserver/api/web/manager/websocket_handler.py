@@ -1,6 +1,7 @@
 from typing import Optional
 from aiohttp import web
 import asyncio
+from multidict import MultiMapping
 import websockets
 import json
 import logging
@@ -59,7 +60,7 @@ class WebsocketHandler:
             if route_stuff:
                 parameters, _, route_callable = route_stuff
                 # FIXME: request.query.getall(k)[0]
-                await route_callable(parameters, {k: request.query.getall(k)[0] for k in request.query.keys()}, websocket)
+                await route_callable(parameters, request.query, websocket)
             
             else:
                 await websocket.close(code=1003) #message="Invalid Route")
@@ -178,7 +179,7 @@ class WebsocketHandler:
 
 
     # Routes
-    async def instance_listen_route(self, data: dict, query_data: dict, websocket: web.WebSocketResponse) -> dict | None:
+    async def instance_listen_route(self, data: dict, query_data: MultiMapping[str], websocket: web.WebSocketResponse) -> dict | None:
         user_id = data.get("user_id")
         if user_id == None:
             # FIXME: Raise some exception
