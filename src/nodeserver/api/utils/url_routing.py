@@ -4,6 +4,8 @@ from types import CoroutineType
 from typing import Any, Callable
 from urllib.parse import parse_qs, urlparse
 
+from multidict import MultiMapping
+
 class Endpoint:
     raw_url: str
     param_names: dict[str, int]
@@ -31,13 +33,13 @@ class Endpoint:
 
 
 class URLRouter:
-    routes: dict[Endpoint, Callable[[dict, dict, web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]]
+    routes: dict[Endpoint, Callable[[dict, MultiMapping[str], web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]]
 
-    def __init__(self, routes: dict[Endpoint, Callable[[dict, dict, web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]]) -> None:
+    def __init__(self, routes: dict[Endpoint, Callable[[dict, MultiMapping[str], web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]]) -> None:
         self.routes = routes
 
 
-    def route_url(self, url: str) -> tuple[dict, dict, Callable[[dict, dict, web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]] | None:
+    def route_url(self, url: str) -> tuple[dict, dict, Callable[[dict, MultiMapping[str], web.WebSocketResponse], CoroutineType[Any, Any, dict | None]]] | None:
         target_endpoint = None
         for endpoint in self.routes:
             if self.endpoint_matches_url(endpoint, url):
