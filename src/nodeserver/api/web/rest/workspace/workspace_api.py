@@ -30,7 +30,7 @@ class FileHandler:
             case FileRequestType.GET: result = self._list_files(request, user_session) 
             case FileRequestType.DELETE: result = self._delete_file(request, user_session)
             case FileRequestType.DOWNLOAD: result = self._download_file(request, user_session)
-            # case FileRequestType.UPLOAD: return await self._list_files(request, user_session)
+            case FileRequestType.UPLOAD: return await self._upload_file(request, user_session)
         
         if request_type != FileRequestType.GET:
             user_session.workspace.send_msg_as_instance(SrvSyncFiles())
@@ -89,6 +89,27 @@ class FileHandler:
         file_path = os.path.join(upload_path, os.path.basename(filename))
         
         return web.FileResponse(file_path)
+
+    async def _upload_file(self, request: web.Request, user_session: UserSession):
+        upload_path = user_session.workspace.get_uploads_path()
+        reader = await request.multipart()
+
+        field = await reader.next()
+        if field.name == "file": # type: ignore
+            filename = os.path.basename(field.filename) # type: ignore
+            file_path = os.path.join(upload_path, filename)
+
+            with open(file_path, "wb") as f:
+                while True:
+                    chunk = await field.read_chunk() # type: ignore
+                    if not chunk:
+                        break
+                    f.write(chunk)
+
+        user_session.workspace.send_msg_as_instance(SrvSyncFiles())
+        return web.json_response({"message": "Uploaded File Successfully", "filename": filename})
+
+        return web.Response(status=400, text="File field couldn't be found")
 
     
     def get_session_from_request(self, request: web.Request) -> tuple[Optional[UserSession], Optional[web.Response]]:
