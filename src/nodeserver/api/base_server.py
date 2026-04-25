@@ -49,7 +49,11 @@ class NodeServer:
             f"http://{self.host}:3000": aiohttp_cors.ResourceOptions(allow_credentials=True)
         })
         cors.add(self.app.router.add_get('/api/{user_id}/file/download', self.file_handler.download_file))
-        # cors.add(self.app.router.add_get('/ws/instance/{user_id}', self.handle_websocket))
+        cors.add(self.app.router.add_post('/api/{user_id}/file/upload', self.file_handler.upload_file),{
+            f"http://{self.host}:3000": aiohttp_cors.ResourceOptions(
+                allow_methods=("POST", "OPTIONS")
+            )
+        })
         # self.app.router.add_post('/api/{user_id}/upload', self.file_handler.upload)
         
         self.app.router.add_get('/ws/instance/{user_id}', self.handle_websocket)
