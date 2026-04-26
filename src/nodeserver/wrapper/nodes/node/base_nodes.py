@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional
+from typing import Any, Optional
 
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
@@ -44,7 +44,28 @@ class NodeMirror:
         return None
 
 
+class SlotOutput:
+    _version: int
+    _value: Any = None
+
+    def __init__(self) -> None:
+        self._version = 0
+        self._value = {}
+
+    @property
+    def value(self):
+        return self._value
+    
+    @value.setter
+    def value(self, new_value: dict):
+        if self._value != new_value:
+            self._value = new_value
+
+
 class SlotMirror:
+    _version: int
+    _output: SlotOutput
+
     slot_name: str
     parent_node: NodeMirror
 
@@ -54,6 +75,8 @@ class SlotMirror:
     connections: dict[SlotMirror, ConnectionMirror]
 
     def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, slot_data_type: BaseNodeType | None) -> None:
+        self._version = 0
+        self._output = SlotOutput()
         self.parent_node = parent_node
         self.slot_name = slot_name
 
@@ -76,9 +99,11 @@ class SlotMirror:
 
     def add_conection(self, connection: ConnectionMirror):
         self.connections[connection.get_other_slot(self)] = connection
+        self._version += 1
     
     def remove_connection(self, connection: ConnectionMirror):
         self.connections.pop(connection.get_other_slot(self))
+        self._version += 1
 
 
 class ConnectionMirror:

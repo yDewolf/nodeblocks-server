@@ -6,20 +6,32 @@ from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameter
 
 
 class NodeParameter:
+    _version: int
     type: BaseDataType
     _field_name: str
     
+    _value: Any
     _data_model: NodeParameterData
-    value: Any
 
     def __init__(self, field_data_model: NodeParameterData, field_name: str, value: Any):
+        self._version = 0
         self._field_name = field_name
         self._data_model = field_data_model
 
-        self.value = value
+        self._value = value
     
+    @property
+    def value(self):
+        return self._value
 
+    @value.setter
+    def value(self, new_value: Any):
+        if self._value != new_value:
+            self._value = new_value
+            self._version += 1
+    
 class NodeData:
+    _version: int = 0
     param_model: dict[str, NodeParameterData]
     parameters: dict[str, NodeParameter]
 
@@ -36,6 +48,15 @@ class NodeData:
 
     def get_parameter_value(self):
         pass
+
+    def set_parameter_value(self, param_name: str, new_value: Any):
+        parameter = self.parameters.get(param_name)
+        if not parameter:
+            return
+        
+        if parameter.value != new_value:
+            parameter.value = new_value
+            self._version += 1
 
     def parse_parameters(self, raw_parameters: dict[str, Any]):
         self.parameters = NodeData._parse_parameters(self.param_model, raw_parameters)
