@@ -4,7 +4,7 @@ from nodeserver.api.base_server import NodeServer
 from nodeserver.api.instance.base_nodes import BaseNode
 from nodeserver.api.websocket_manager import WebsocketManager
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
+from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, DataTypes, SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader, TypeReaderUtils
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
@@ -77,7 +77,7 @@ default_slots: dict[str, SlotData] = {
 }
 
 def my_parser(mirror: NodeMirror) -> BaseNode:
-    if mirror.type_name == "InputNode":
+    if mirror.type_name == "InputNode" or mirror.type_name == "FileInputNode":
         return MyInputNode(mirror)
     
     node = MyMathNode(mirror)
@@ -93,7 +93,8 @@ def my_parser(mirror: NodeMirror) -> BaseNode:
 my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
 my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
     my_cool_types, default_slots, my_parser, [
-        ConstructorModel.new("InputNode", NodeData({"value": NodeParameterData(type="float")}), {"out_0": SlotData(type="output", data_type="float")}),
+        ConstructorModel.new("FileInputNode", NodeData({"file": NodeParameterData(type=DataTypes.FILE.value)}), {"out_0": SlotData(type="output", data_type=DataTypes.FILE.value)}),
+        ConstructorModel.new("InputNode", NodeData({"value": NodeParameterData(type=DataTypes.FLOAT.value)}), {"out_0": SlotData(type="output", data_type=DataTypes.FLOAT.value)}),
         ConstructorModel.new("SumNode"),
         ConstructorModel.new("SubNode"),
         ConstructorModel.new("MulNode"),
