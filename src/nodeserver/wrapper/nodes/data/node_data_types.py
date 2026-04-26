@@ -6,6 +6,7 @@ class DataTypes(str, Enum):
     UINT = "uint"
     INT = "int"
     ARRAY = "array"
+    FILE = "file"
     CUSTOM = "custom"
     UNKNOWN = "unknown"
 
@@ -52,6 +53,7 @@ FLOAT_TYPE = BaseNodeType("float", DataTypes.FLOAT, [DataTypes.FLOAT])
 INT_TYPE = BaseNodeType("int" , DataTypes.INT, [DataTypes.INT])
 UINT_TYPE = BaseNodeType("uint" , DataTypes.UINT, [DataTypes.UINT])
 ARRAY_TYPE = BaseNodeType("array" , DataTypes.ARRAY, [DataTypes.ARRAY])
+FILE_TYPE = BaseNodeType("file" , DataTypes.FILE, [DataTypes.FILE])
 UNKNOWN_TYPE = BaseNodeType("unknown" , DataTypes.UNKNOWN, [DataTypes.UNKNOWN])
 
 INPUT_TYPE = BaseSlotType("input_slot", UNKNOWN_TYPE, SuperSlotTypes.INPUT, [SuperSlotTypes.OUTPUT])
@@ -65,6 +67,7 @@ class DataTypeUtils:
             case "int": return DataTypes.INT
             case "uint": return DataTypes.UINT
             case "array": return DataTypes.ARRAY
+            case "file": return DataTypes.FILE
             case "custom": return DataTypes.CUSTOM
             case _:
                 return DataTypes.UNKNOWN

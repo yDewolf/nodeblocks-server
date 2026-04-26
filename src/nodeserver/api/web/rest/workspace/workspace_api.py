@@ -109,8 +109,6 @@ class FileHandler:
         user_session.workspace.send_msg_as_instance(SrvSyncFiles())
         return web.json_response({"message": "Uploaded File Successfully", "filename": filename})
 
-        return web.Response(status=400, text="File field couldn't be found")
-
     
     def get_session_from_request(self, request: web.Request) -> tuple[Optional[UserSession], Optional[web.Response]]:
         token = request.query.get("token")
