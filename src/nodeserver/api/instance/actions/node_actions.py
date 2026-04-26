@@ -38,12 +38,8 @@ class NodeActionUtils:
 
             mirror._position = node_data.position
             for param_name in node_data.data:
-                parameter = mirror.data.parameters.get(param_name)
-                if not parameter:
-                    continue
-                
-                parameter.value = node_data.data.get(param_name)
-            
+                mirror.data.set_parameter_value(param_name, node_data.data.get(param_name))
+        
             if instance.mirror_manager.scene_reader.scene_data:
                 instance.mirror_manager.scene_reader.sync_node(mirror)
 

@@ -7,7 +7,7 @@ from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, DataTypes, SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader, TypeReaderUtils
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror, SlotOutput
 
 import logging
 import logging.config
@@ -35,7 +35,7 @@ class MyMathNode(BaseNode):
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)
 
-    def forward(self, input: dict[SlotMirror, dict[SlotMirror, dict]]):
+    def forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotOutput]]):
         input_values: list[float] = []
         for slot_type, slots in self._mirror.slots.items():
             if slot_type != SuperSlotTypes.INPUT: continue
@@ -45,7 +45,7 @@ class MyMathNode(BaseNode):
                 if not slot_outputs: continue
                 
                 for out_slot, output in slot_outputs.items():
-                    output_value = output.get("value")
+                    output_value = output.value
                     if not output_value: continue
 
                     input_values.append(output_value)
