@@ -1,5 +1,4 @@
 setuptools
-websockets
 pydantic
 pyjwt
 dotenv
