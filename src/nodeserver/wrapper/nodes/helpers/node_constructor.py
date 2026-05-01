@@ -3,7 +3,7 @@ from typing import Any, Callable
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import  UNKNOWN_TYPE, BaseSlotType, DataTypeUtils
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror, SlotOutput
 from nodeserver.api.instance.base_nodes import BaseNode
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import Vector2
 
@@ -19,10 +19,12 @@ class BaseMirrorConstructor:
     _slot_types: dict[str, BaseSlotType]
 
     _builder_func: Callable[[NodeMirror], BaseNode]
+    _slot_output_class: type[SlotOutput]
 
-    def __init__(self, type_name: str, builder_func: Callable[[NodeMirror], BaseNode] = _default_build_func) -> None:
+    def __init__(self, type_name: str, builder_func: Callable[[NodeMirror], BaseNode] = _default_build_func, slot_output_class: type[SlotOutput] = SlotOutput) -> None:
         self.type_name = type_name
         self._builder_func = builder_func
+        self._slot_output_class = slot_output_class
 
         self._data_model = NodeData({})
         self._slots = {}
@@ -58,15 +60,16 @@ class BaseMirrorConstructor:
             parent_node,
             slot_name,
             slot_type,
-            slot_data_type if slot_data_type != UNKNOWN_TYPE else None
+            slot_data_type if slot_data_type != UNKNOWN_TYPE else None,
+            slot_output_class=self._slot_output_class
         )
 
     def build_node(self, mirror: NodeMirror) -> BaseNode:
         return self._builder_func(mirror)
 
 class CustomMirrorConstructor(BaseMirrorConstructor):
-    def __init__(self, type_name: str, data: NodeData, slot_types: dict[str, BaseSlotType], slots: dict[str, SlotData], builder_func: Callable[[NodeMirror], BaseNode] = _default_build_func) -> None:
-        super().__init__(type_name, builder_func)
+    def __init__(self, type_name: str, data: NodeData, slot_types: dict[str, BaseSlotType], slots: dict[str, SlotData], builder_func: Callable[[NodeMirror], BaseNode] = _default_build_func, slot_output_class: type[SlotOutput] = SlotOutput) -> None:
+        super().__init__(type_name, builder_func, slot_output_class=slot_output_class)
 
         self._data_model = data
         self._slots = slots

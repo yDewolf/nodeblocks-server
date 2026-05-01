@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, Optional
 
 from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData

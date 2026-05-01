@@ -8,8 +8,6 @@ from nodeserver.api.internal.instance_state import InternalNodeState
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror, SlotOutput
 
-
-
 # TODO: Change node inputs to a NodeOutput class or NodeInputs class
 class BaseNode:
     _version: int = 0
@@ -48,7 +46,10 @@ class BaseNode:
                 # ERROR
                 continue
             
-            slot._output._value = data[key]
+            slot._output.value = data[key]
+            if self.bypass_cache:
+                slot._output._version += 1
+
             output_map[slot] = slot._output
 
         return output_map

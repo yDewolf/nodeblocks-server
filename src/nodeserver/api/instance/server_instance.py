@@ -71,9 +71,10 @@ class BaseServerRuntime:
 
                 node_inputs[slot] = connections_output
 
+        current_node.pre_forward(node_inputs) # Node might set bypass cache to True here
         context_version = current_node._version + current_node._mirror.data._version + input_versions + slot_versions
         last_context_version = self._node_execution_cache.get(current_node._mirror.uid)
-        if last_context_version == context_version:
+        if last_context_version == context_version and not current_node.bypass_cache:
             cached_outputs = {
                 slot: self._output_cache[slot]
                 for slot in current_node._mirror.slots.get(SuperSlotTypes.OUTPUT, [])
@@ -91,7 +92,8 @@ class BaseServerRuntime:
 
             output_data[slot] = slot_output
             self._output_cache[slot] = slot_output
-
+        
+        current_node.post_forward()
         self._node_execution_cache[current_node._mirror.uid] = context_version
         return (output_data, current_node, False)
 
@@ -253,7 +255,7 @@ class ServerInstance:
         result_data = {}
         if slot_results != None:
             for slot, result in slot_results.items():
-                result_data[slot.slot_name] = result._value
+                result_data[slot.slot_name] = result.value
         
         return result_data
 
