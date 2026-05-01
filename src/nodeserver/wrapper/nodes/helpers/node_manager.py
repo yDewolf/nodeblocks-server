@@ -1,4 +1,5 @@
 
+from typing import Optional
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
 
 
@@ -20,9 +21,9 @@ class NodeMirrorManager:
         # TODO: Check for duplicate ids and other
         self._nodes[node_mirror.uid] = node_mirror
 
-    def remove_node(self, uid: str) -> bool:
+    def remove_node(self, uid: str) -> Optional[NodeMirror]:
         if not self._nodes.__contains__(uid):
-            return False
+            return None
         
-        self._nodes.pop(uid)
-        return True
+        node = self._nodes.pop(uid)
+        return node

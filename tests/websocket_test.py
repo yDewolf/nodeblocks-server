@@ -92,7 +92,7 @@ def my_parser(mirror: NodeMirror) -> BaseNode:
 
 my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
 my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
-    my_cool_types, default_slots, my_parser, [
+    my_cool_types, default_slots, my_parser, SlotOutput, [
         ConstructorModel.new("FileInputNode", NodeData({"file": NodeFileParameter(extension_filter=["json"])}), {"out_0": SlotData(type="output", data_type=DataTypes.FILE)}),
         ConstructorModel.new("InputNode", NodeData({"value": NodeNumberParameter(type=DataTypes.FLOAT)}), {"out_0": SlotData(type="output", data_type=DataTypes.FLOAT)}),
         ConstructorModel.new("SumNode"),
