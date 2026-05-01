@@ -20,9 +20,9 @@ class WebsocketManager:
 
     stop: asyncio.Future | None
 
-    def __init__(self, instance_manager: InstanceManager, session_manager: SessionManager, host: str, port: int):
+    def __init__(self, instance_manager: InstanceManager, session_manager: SessionManager, server_intance_type: type[ServerInstance], host: str, port: int):
         self.instance_manager = instance_manager
-        self.handler = WebsocketHandler(self.instance_manager, session_manager, ServerInstance, BaseMessagerouter)
+        self.handler = WebsocketHandler(self.instance_manager, session_manager, server_intance_type, BaseMessagerouter)
         
         self.host = host
         self.port = port

@@ -5,6 +5,7 @@ import logging
 from aiohttp import web
 import aiohttp_cors
 
+from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.web.manager.session_manager import SessionManager
 from nodeserver.api.web.rest.workspace.workspace_api import FileHandler
@@ -22,7 +23,7 @@ class NodeServer:
     port: int
     app: web.Application
 
-    def __init__(self, default_types: TypeFileReader | None = None, host="localhost", port=3001) -> None:
+    def __init__(self, default_types: TypeFileReader | None = None, server_instance_type: type[ServerInstance] = ServerInstance, host="localhost", port=3001) -> None:
         self.app = web.Application()
         logging.basicConfig(level=logging.DEBUG)
         
@@ -33,7 +34,7 @@ class NodeServer:
         self.file_handler = FileHandler(self.session_manager)
 
         self.instance_manager = InstanceManager(default_types)
-        self.websocket_manager = WebsocketManager(self.instance_manager, self.session_manager, host, port)
+        self.websocket_manager = WebsocketManager(self.instance_manager, self.session_manager, server_instance_type, host, port)
         self._setup_routes()
 
     def _setup_routes(self):

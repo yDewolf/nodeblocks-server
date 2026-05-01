@@ -46,8 +46,12 @@ class NodeData:
     def map_parameters(self) -> dict[str, Any]:
         return {key: parameter.value for key, parameter in self.parameters.items()}
 
-    def get_parameter_value(self):
-        pass
+    def get_parameter_value(self, param_name: str) -> Optional[Any]:
+        parameter = self.parameters.get(param_name)
+        if not parameter:
+            return None
+        
+        return parameter.value
 
     def set_parameter_value(self, param_name: str, new_value: Any):
         parameter = self.parameters.get(param_name)

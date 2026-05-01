@@ -22,13 +22,20 @@ class BaseNode:
         if mirror != None:
             self._mirror = mirror
 
+    def pre_forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotOutput]]):
+        pass
+
     # TODO: Add a safety check before the actual forward
     # so the end developer can set what it needs as inputs
     # and just program what it does with the inputs (not to all the checks if the inputs exist)
-    def forward(self, inputs: dict[SlotMirror, dict[SlotMirror, SlotOutput]]) -> dict[SlotMirror, SlotOutput]:
+    def forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotOutput]]) -> dict[SlotMirror, SlotOutput]:
         output_data = {}
         return self.map_to_slots(output_data)
     
+    def post_forward(self):
+        pass
+
+
     def map_to_slots(self, data: dict[str, Any]) -> dict[SlotMirror, SlotOutput]:
         output_map: dict[SlotMirror, SlotOutput] = {}
         for key in data:

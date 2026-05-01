@@ -171,10 +171,7 @@ class ServerInstance:
         results = self._runtime.process_next(self._scene)
         if results != None and self._send_callback != None:
             slot_results, node, came_from_cache = results
-            result_data = {}
-            if slot_results != None:
-                for slot, result in slot_results.items():
-                    result_data[slot.slot_name] = result._value
+            result_data = self._prepare_to_send_output(node, slot_results)
             
             # if not came_from_cache:
             self._send_callback(SrvNodeOutput(
@@ -252,6 +249,13 @@ class ServerInstance:
     def set_send_callback(self, callback: Callable[[ServerMessage], None]):
         self._send_callback = callback
 
+    def _prepare_to_send_output(self, node: BaseNode, slot_results: dict[SlotMirror, SlotOutput] | None):
+        result_data = {}
+        if slot_results != None:
+            for slot, result in slot_results.items():
+                result_data[slot.slot_name] = result._value
+        
+        return result_data
 
     def start_running(self):
         self.state_controller.queue_state(InstanceStates.RUNNING)
