@@ -10,7 +10,8 @@ class InstanceProtocol(Protocol):
     
     _attributed_id: str
 
-    _send_callback: Callable[[ServerMessage], None] | None = None
+    def send_to_client(self, message: ServerMessage) -> None:
+        pass
 
 
 class WorkspaceProtocol(Protocol):

@@ -7,6 +7,7 @@ from nodeserver.api.instance.actions.node_actions import NodeActionUtils
 from nodeserver.api.instance.base_nodes import BaseNode, SlotOutput
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
+from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus
 from nodeserver.api.instance.node_scene import NodeScene
@@ -16,6 +17,7 @@ from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileRea
 from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.wrapper.nodes.node.node_utils import NodeUtils
+from nodeserver.wrapper.utils.uuid_utils import IDGenerator
 
 logger = logging.getLogger("nds.instances")
 
@@ -171,12 +173,12 @@ class ServerInstance:
             self.state_controller.has_step_permission = False
 
         results = self._runtime.process_next(self._scene)
-        if results != None and self._send_callback != None:
+        if results != None:
             slot_results, node, came_from_cache = results
             result_data = self._prepare_to_send_output(node, slot_results)
             
             # if not came_from_cache:
-            self._send_callback(SrvNodeOutput(
+            self.send_to_client(SrvNodeOutput(
                 node_id=node._mirror.uid,
                 value=result_data
             ))
@@ -228,8 +230,8 @@ class ServerInstance:
             except queue.Empty:
                 break
             
-        if self._send_callback and action_statuses != {}:
-            self._send_callback(SrvSyncAction(
+        if action_statuses != {}:
+            self.send_to_client(SrvSyncAction(
                 action_statuses={
                     uid: status for uid, status in action_statuses.items()
                 }
@@ -251,6 +253,10 @@ class ServerInstance:
     def set_send_callback(self, callback: Callable[[ServerMessage], None]):
         self._send_callback = callback
 
+    def send_to_client(self, message: ServerMessage):
+        if self._send_callback:
+            self._send_callback(message)
+
     def _prepare_to_send_output(self, node: BaseNode, slot_results: dict[SlotMirror, SlotOutput] | None):
         result_data = {}
         if slot_results != None:
@@ -258,6 +264,7 @@ class ServerInstance:
                 result_data[slot.slot_name] = result.value
         
         return result_data
+
 
     def start_running(self):
         self.state_controller.queue_state(InstanceStates.RUNNING)
@@ -293,15 +300,16 @@ class ServerInstance:
 
 
     def _state_changed(self):
-        if not self._send_callback:
-            return
-        
-        
-        self._send_callback(SrvSyncState(
+        self.send_to_client(SrvSyncState(
             payload=SyncStatePayload(
                 loop_state=self.state_controller.loop_state,
                 instance_state=self.state_controller.instance_state
             )
+        ))
+        # FIXME: Testing notifications:
+        self.send_to_client(ServerNotification.notify(
+            message="State changed!",
+            level=NotificationLevel.INFO
         ))
 
 
@@ -330,6 +338,10 @@ class ServerInstance:
         )
 
         StateFileUtils.save_instance_state(state_data, instance_path)
+        self.send_to_client(ServerNotification.notify(
+            message="Instance saved.",
+            level=NotificationLevel.INFO
+        ))
         return state_data
 
     def load_internal_state(self, instance_path: str, node_state_path: str, state: InstanceState):
@@ -339,4 +351,8 @@ class ServerInstance:
             node_state = state.internal_states.nodes.get(node._mirror.uid)
             if node_state:
                 node.load_state(node_state_path, node_state)
-    
+
+                self.send_to_client(ServerNotification.notify(
+                    message="Loaded Internal State!",
+                    level=NotificationLevel.INFO,
+                ))
