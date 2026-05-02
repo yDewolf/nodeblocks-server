@@ -27,7 +27,8 @@ class ServerNotification(BaseSocketModel):
     target: NotificationTarget = NotificationTarget.UNSPECIFIED
     level: NotificationLevel
 
-    message: str 
+    message: str
+    description: Optional[str] = None
     extra_data: Optional[dict[str, Any]] = None
     node_uid: Optional[str] = None
     slot_name: Optional[str] = None
@@ -35,32 +36,32 @@ class ServerNotification(BaseSocketModel):
     conn_uid: Optional[str] = None
 
     @classmethod 
-    def notify(cls, message: str, level: NotificationLevel, target: NotificationTarget = NotificationTarget.UNSPECIFIED, extra_data: Optional[dict[str, Any]] = None, **kwargs):
+    def notify(cls, message: str, level: NotificationLevel, target: NotificationTarget = NotificationTarget.UNSPECIFIED, extra_data: Optional[dict[str, Any]] = None, description: Optional[str] = None, **kwargs):
         return cls(uid=IDGenerator.generate_notification_uid(),
-            level=level, target=target, message=message, extra_data=extra_data, **kwargs
+            level=level, target=target, message=message, description=description, extra_data=extra_data, **kwargs
         )
 
     @classmethod 
-    def node_notify(cls, node_uid: str, message: str, level: NotificationLevel, extra_data: Optional[dict[str, Any]] = None):
-        return cls.notify(message, level, NotificationTarget.NODE, extra_data=extra_data, 
+    def node_notify(cls, node_uid: str, message: str, level: NotificationLevel, description: Optional[str] = None, extra_data: Optional[dict[str, Any]] = None):
+        return cls.notify(message, level, NotificationTarget.NODE, description=description, extra_data=extra_data, 
             node_uid=node_uid
         )
     
     @classmethod 
-    def slot_notify(cls, node_uid: str, slot_name: str, message: str, level: NotificationLevel, extra_data: Optional[dict[str, Any]] = None):
-        return cls.notify(message, level, NotificationTarget.SLOT, extra_data=extra_data, 
+    def slot_notify(cls, node_uid: str, slot_name: str, message: str, level: NotificationLevel, description: Optional[str] = None, extra_data: Optional[dict[str, Any]] = None):
+        return cls.notify(message, level, NotificationTarget.SLOT, description=description, extra_data=extra_data, 
             node_uid=node_uid, slot_name=slot_name
         )
     
     @classmethod 
-    def conn_notify(cls, conn_uid: str, message: str, level: NotificationLevel, extra_data: Optional[dict[str, Any]] = None):
-        return cls.notify(message, level, NotificationTarget.CONNECTION, extra_data=extra_data, 
+    def conn_notify(cls, conn_uid: str, message: str, level: NotificationLevel, description: Optional[str] = None, extra_data: Optional[dict[str, Any]] = None):
+        return cls.notify(message, level, NotificationTarget.CONNECTION, description=description, extra_data=extra_data, 
             conn_uid=conn_uid
         )
     
     @classmethod 
-    def param_notify(cls, node_uid: str, param_name: str, message: str, level: NotificationLevel, extra_data: Optional[dict[str, Any]] = None):
-        return cls.notify(message, level, NotificationTarget.PARAMETER, extra_data=extra_data, 
+    def param_notify(cls, node_uid: str, param_name: str, message: str, level: NotificationLevel, description: Optional[str] = None, extra_data: Optional[dict[str, Any]] = None):
+        return cls.notify(message, level, NotificationTarget.PARAMETER, description=description, extra_data=extra_data, 
             node_uid=node_uid, param_name=param_name
         )
 

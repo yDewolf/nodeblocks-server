@@ -69,6 +69,13 @@ class NodeActionUtils:
                     level=NotificationLevel.ERROR,
                     node_uid=node._mirror.uid
                 ))
+                continue
+
+            instance.send_to_client(ServerNotification.node_notify(
+                node._mirror.uid,
+                message=f"Added node of type {node._mirror.type_name}",
+                level=NotificationLevel.DEBUG
+            ))
 
         instance._scene.add_nodes(nodes)
         instance._scene.update_nodes()
