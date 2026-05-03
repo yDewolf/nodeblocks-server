@@ -4,7 +4,7 @@ from pydantic import TypeAdapter
 
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.api.web.requests.action_requests import ConnectionActionPayload, NodeActionPayload
-from nodeserver.api.web.requests.websocket_requests import BaseSocketModel
+from nodeserver.api.web.requests.base_requests import BaseSocketModel
 from nodeserver.api.web.websocket_protocol import ClientMessages
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 

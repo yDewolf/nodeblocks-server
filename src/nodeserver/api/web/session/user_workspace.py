@@ -36,10 +36,7 @@ class UserWorkspace:
         if not self.current_instance:
             return False
 
-        if not self.current_instance._send_callback:
-            return False
-        
-        self.current_instance._send_callback(data)
+        self.current_instance.send_to_client(data)
         return True
 
     

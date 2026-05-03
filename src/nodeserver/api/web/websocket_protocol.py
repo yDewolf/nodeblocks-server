@@ -13,6 +13,9 @@ class ServerMessages(str, Enum):
     SYNC_ACTION = "sync_action"
     SYNC_FILES = "sync_files"
 
+    NOTIFICATION = "notification"
+    SYNC_NOTIFICATIONS = "sync_notifications"
+
 class ClientMessages(str, Enum):
     LOAD_SCENE = "LOAD_SCENE"
     SYNC_CLIENT_SCENE = "SYNC_CLIENT_SCENE"
