@@ -2,7 +2,6 @@ from typing import Optional
 from aiohttp import web
 import asyncio
 from multidict import MultiMapping
-import websockets
 import json
 import logging
 
@@ -50,7 +49,7 @@ class WebsocketHandler:
     def _set_loop(self, loop: asyncio.AbstractEventLoop):
         self.loop = loop
 
-    def _process_request(self, connection, request: websockets.Request):
+    def _process_request(self, connection, request: web.Request):
         self._path_cache[connection] = request.path
         return None
 

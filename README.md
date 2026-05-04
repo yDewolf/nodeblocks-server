@@ -16,7 +16,6 @@ O requisito mínimo é o [python 3.13](https://www.python.org/downloads/release/
 
 ````
 # Como instalar usando pip:
-pip install -r requirements.txt
 pip install -e .
 ````
 

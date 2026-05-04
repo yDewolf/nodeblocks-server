@@ -1,6 +1,6 @@
-setuptools
-pydantic
-pyjwt
-dotenv
-aiohttp
-aiohttp_cors
+aiohttp==3.13.5
+aiohttp_cors==0.8.1
+multidict==6.7.1
+pydantic==2.13.3
+PyJWT==2.12.1
+python-dotenv==1.2.2

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "pydantic", "pyjwt", "dotenv", "aiohttp", "aiohttp_cors"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -8,3 +8,11 @@ where=["src"]
 [project]
 name = "nodeserver"
 version = "0.0.1"
+dependencies = [
+    "aiohttp>=3.13.5",
+    "aiohttp_cors>=0.8.1",
+    "multidict>=6.7.1",
+    "pydantic>=2.13.3",
+    "PyJWT>=2.12.1",
+    "python-dotenv>=1.2.2"
+]
