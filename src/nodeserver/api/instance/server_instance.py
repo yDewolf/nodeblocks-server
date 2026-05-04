@@ -9,7 +9,8 @@ from nodeserver.api.instance.instance_states import InstanceCommands, InstanceSt
 from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
-from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
+from nodeserver.api.web.requests.request_unions import AnyServerMessage
+from nodeserver.api.web.requests.websocket_requests import SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus
 from nodeserver.api.instance.node_scene import NodeScene
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
@@ -18,7 +19,6 @@ from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileRea
 from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.wrapper.nodes.node.node_utils import NodeUtils
-from nodeserver.wrapper.utils.uuid_utils import IDGenerator
 
 logger = logging.getLogger("nds.instances")
 
@@ -138,7 +138,7 @@ class ServerInstance:
     _created_at: float = 0
 
     _runtime: BaseServerRuntime
-    _send_callback: Callable[[ServerMessage], None] | None = None
+    _send_callback: Callable[[AnyServerMessage], None] | None = None
 
     state_controller: StateController
     action_controller: ActionController
@@ -258,10 +258,10 @@ class ServerInstance:
 
         return status
 
-    def set_send_callback(self, callback: Callable[[ServerMessage], None]):
+    def set_send_callback(self, callback: Callable[[AnyServerMessage], None]):
         self._send_callback = callback
 
-    def send_to_client(self, message: ServerMessage):
+    def send_to_client(self, message: AnyServerMessage):
         if self._send_callback:
             self._send_callback(message)
 

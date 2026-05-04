@@ -49,12 +49,10 @@ class MsgSimple(BaseSocketModel):
     type: Literal[ClientMessages.SYNC_CLIENT_SCENE]
 
 
-ClientCommand = Annotated[
+BaseClientCommands = Annotated[
     Union[
         MsgNodeAction, MsgConnectionAction, MsgInstanceState, 
         MsgLoopState, MsgLoadScene, MsgInstanceCommand, MsgSimple
     ],
     Field(discriminator="type")
 ]
-
-ClientCommandAdapter = TypeAdapter(ClientCommand)

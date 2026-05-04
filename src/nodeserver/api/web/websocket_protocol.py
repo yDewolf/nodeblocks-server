@@ -29,6 +29,9 @@ class ClientMessages(str, Enum):
 
     INSTANCE_COMMAND = "INSTANCE"
 
+    UPDATE_NOTIFICATION = "UPDATE_NOTIFICATION"
+    SYNC_NOTIFICATIONS = "SYNC_NOTIFICATIONS"
+
 class SceneActionTypes(str, Enum):
     ADD = "ADD"
     REMOVE = "REMOVE"

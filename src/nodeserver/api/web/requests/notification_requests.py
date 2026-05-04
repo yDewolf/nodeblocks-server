@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import Any, Literal, Optional
+from typing import Annotated, Any, Literal, Optional, Union
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from nodeserver.api.web.requests.base_requests import BaseSocketModel
-from nodeserver.api.web.websocket_protocol import ServerMessages
+from nodeserver.api.web.requests.client_requests import MsgSimple
+from nodeserver.api.web.websocket_protocol import ClientMessages, ServerMessages
 from nodeserver.wrapper.utils.uuid_utils import IDGenerator
 
 class NotificationLevel(str, Enum):
@@ -85,6 +86,35 @@ class ServerNotification(BaseSocketModel):
 
         return self
 
+class NotificationWithMeta(ServerNotification):
+    uid: str
+    read: bool
+    timestamp: int
+
+# Server:
+
 class ServerSyncNotifications(BaseSocketModel):
     type: Literal[ServerMessages.SYNC_NOTIFICATIONS] = ServerMessages.SYNC_NOTIFICATIONS
     notifications: list[ServerNotification]
+
+ServerNotificationMessages = Annotated[
+    Union[
+        ServerSyncNotifications, ServerNotification
+    ],
+    Field(discriminator="type")
+]
+
+# Client:
+class MsgUpdateNotification(BaseSocketModel):
+    type: Literal[ClientMessages.UPDATE_NOTIFICATION]
+    payload: NotificationWithMeta
+
+class ClientSyncNotifications(MsgSimple):
+    type: Literal[ClientMessages.SYNC_NOTIFICATIONS]
+
+ClientNotificationMessages = Annotated[
+    Union[
+        MsgUpdateNotification, ClientSyncNotifications
+    ],
+    Field(discriminator="type")
+]

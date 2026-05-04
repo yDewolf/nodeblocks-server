@@ -1,8 +1,8 @@
 from typing import Annotated, Any, Dict, Literal, Optional, Union
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import Field
 from nodeserver.api.instance.instance_states import InstanceStates, LoopStates
 from nodeserver.api.web.requests.base_requests import BaseSocketModel
-from nodeserver.api.web.requests.notification_requests import ServerNotification, ServerSyncNotifications
+from nodeserver.api.web.requests.notification_requests import ServerSyncNotifications
 from nodeserver.api.web.websocket_protocol import EditorActionStatus, ServerMessages, WebsocketStatus
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 
@@ -50,9 +50,10 @@ HandshakeMessage = Annotated[
     Field(discriminator="status")
 ]
 
-ServerMessage = Annotated[
-    Union[HandshakeMessage, ServerNotification, ServerSyncNotifications, SrvSyncAction, SrvSyncScene, SrvSyncState, SrvNodeOutput, SrvSyncFiles],
+BaseServerMessages = Annotated[
+    Union[
+        HandshakeMessage,
+        ServerSyncNotifications, SrvSyncAction, SrvSyncScene, SrvSyncState, SrvNodeOutput, SrvSyncFiles
+    ],
     Field(discriminator="type")
 ]
-
-ServerMessageAdapter = TypeAdapter(ServerMessage)

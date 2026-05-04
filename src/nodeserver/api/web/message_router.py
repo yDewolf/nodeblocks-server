@@ -3,7 +3,10 @@ import json
 import logging
 
 from nodeserver.api.instance.actions.action_controller import Action
-from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvSyncScene
+from nodeserver.api.web.requests.notification_requests import ClientSyncNotifications, MsgUpdateNotification, ServerSyncNotifications
+from nodeserver.api.web.requests.request_unions import AnyServerMessage
+from nodeserver.api.web.requests.websocket_requests import SrvSyncScene
+from nodeserver.api.web.session.user_session import UserSession
 from nodeserver.api.web.websocket_messages import ClientMessageWrapper
 from nodeserver.api.web.requests.client_requests import MsgConnectionAction, MsgInstanceCommand, MsgInstanceState, MsgLoadScene, MsgLoopState, MsgNodeAction, MsgSimple
 from nodeserver.api.web.websocket_protocol import ClientMessages
@@ -11,7 +14,7 @@ from nodeserver.api.instance.server_instance import ServerInstance
 
 COMMAND_LOGGER = logging.getLogger("nds.commands")
 class BaseMessagerouter:
-    def route_message(self, message: ClientMessageWrapper, instance: ServerInstance) -> ServerMessage | None:
+    def route_message(self, message: ClientMessageWrapper, instance: ServerInstance, session: UserSession) -> AnyServerMessage | None:
         COMMAND_LOGGER.info(f"Routing command: {message.msg.type}")
 
         if isinstance(message.msg, MsgSimple):
@@ -20,6 +23,13 @@ class BaseMessagerouter:
                 return SrvSyncScene(
                     payload=scene_data
                 )
+            
+            if message.msg.type == ClientMessages.SYNC_NOTIFICATIONS:
+                notification_data = session.workspace.notification_controller.get_unread_notifications()
+                if len(notification_data) > 0:
+                    return ServerSyncNotifications(
+                        notifications=notification_data
+                    )
 
         elif isinstance(message.msg, MsgInstanceState):
             instance.state_controller.queue_state(message.msg.payload.state)
@@ -50,5 +60,8 @@ class BaseMessagerouter:
 
         elif isinstance(message.msg, MsgLoadScene):
             instance.load_new_scene(message.msg.payload)
+
+        elif isinstance(message.msg, MsgUpdateNotification):
+            session.workspace.notification_controller.update_notification(message.msg.payload)
 
         return None
