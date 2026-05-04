@@ -2,6 +2,7 @@ from nodeserver.api.instance.actions.action_controller import Action
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.web.requests.action_requests import ConnectionActionAddUpdate, ConnectionActionRemove
 from nodeserver.api.web.requests.client_requests import MsgConnectionAction
+from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.api.web.websocket_protocol import EditorActionStatus
 
 class ConnActionUtils:
@@ -16,14 +17,20 @@ class ConnActionUtils:
             for conn_uid, conn_data in payload.action_data.items():
                 conn_data.uid = conn_uid
                 instance.mirror_manager.add_conn_mirror(conn_data)
-            
+
+                instance.send_to_client(ServerNotification.conn_notify(
+                    conn_uid=conn_uid,
+                    message="Added connection",
+                    level=NotificationLevel.DEBUG
+                ))
+
             instance._scene.update_nodes()
             return EditorActionStatus.SUCCESSFULL
 
         elif isinstance(payload, ConnectionActionRemove):
             if not payload.uids:
                 return EditorActionStatus.FAILED
-                
+            
             instance.mirror_manager.remove_conn_mirror(payload.uids)
             instance._scene.update_nodes()
             return EditorActionStatus.SUCCESSFULL

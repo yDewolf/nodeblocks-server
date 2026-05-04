@@ -7,7 +7,10 @@ from nodeserver.api.instance.actions.node_actions import NodeActionUtils
 from nodeserver.api.instance.base_nodes import BaseNode, SlotOutput
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
-from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
+from nodeserver.api.internal.internal_protocols import InstanceProtocol
+from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
+from nodeserver.api.web.requests.request_unions import AnyServerMessage
+from nodeserver.api.web.requests.websocket_requests import SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus
 from nodeserver.api.instance.node_scene import NodeScene
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
@@ -34,7 +37,7 @@ class BaseServerRuntime:
         self._node_execution_cache = {}
 
         
-    def process_next(self, node_scene: NodeScene) -> tuple[dict[SlotMirror, SlotOutput] | None, BaseNode, bool] | None:
+    def process_next(self, node_scene: NodeScene, instance_protocol: InstanceProtocol) -> tuple[dict[SlotMirror, SlotOutput] | None, BaseNode, bool] | None:
         if self._current_idx == None or not self._process_order:
             return None
         
@@ -82,20 +85,28 @@ class BaseServerRuntime:
             }
             return (cached_outputs, current_node, True)
 
-        node_result = current_node.forward(node_inputs)
-        output_data: dict[SlotMirror, SlotOutput] = {}
-        for slot in node_result:
-            if slot.type._super_type != SuperSlotTypes.OUTPUT:
-                logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {current_node}")
-            
-            slot_output = node_result[slot]
+        try:
+            node_result = current_node.forward(node_inputs)
+            output_data: dict[SlotMirror, SlotOutput] = {}
+            for slot in node_result:
+                if slot.type._super_type != SuperSlotTypes.OUTPUT:
+                    logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {current_node}")
+                
+                slot_output = node_result[slot]
 
-            output_data[slot] = slot_output
-            self._output_cache[slot] = slot_output
-        
-        current_node.post_forward()
-        self._node_execution_cache[current_node._mirror.uid] = context_version
-        return (output_data, current_node, False)
+                output_data[slot] = slot_output
+                self._output_cache[slot] = slot_output
+            
+            current_node.post_forward()
+            self._node_execution_cache[current_node._mirror.uid] = context_version
+            return (output_data, current_node, False)
+        except Exception as e:
+            instance_protocol.send_to_client(ServerNotification.node_notify(
+                node_uid=current_node._mirror.uid,
+                message="Something went wrong",
+                level=NotificationLevel.ERROR,
+                description=str(e)
+            ))
 
     def continue_process(self, scene: NodeScene):
         self.waiting_to_continue = False
@@ -127,7 +138,7 @@ class ServerInstance:
     _created_at: float = 0
 
     _runtime: BaseServerRuntime
-    _send_callback: Callable[[ServerMessage], None] | None = None
+    _send_callback: Callable[[AnyServerMessage], None] | None = None
 
     state_controller: StateController
     action_controller: ActionController
@@ -170,17 +181,16 @@ class ServerInstance:
 
             self.state_controller.has_step_permission = False
 
-        results = self._runtime.process_next(self._scene)
-        if results != None and self._send_callback != None:
+        results = self._runtime.process_next(self._scene, self)
+        if results != None:
             slot_results, node, came_from_cache = results
             result_data = self._prepare_to_send_output(node, slot_results)
             
             # if not came_from_cache:
-            self._send_callback(SrvNodeOutput(
+            self.send_to_client(SrvNodeOutput(
                 node_id=node._mirror.uid,
                 value=result_data
             ))
-            
         logger.info("DEBUG: Running server instance")
 
 
@@ -228,8 +238,8 @@ class ServerInstance:
             except queue.Empty:
                 break
             
-        if self._send_callback and action_statuses != {}:
-            self._send_callback(SrvSyncAction(
+        if action_statuses != {}:
+            self.send_to_client(SrvSyncAction(
                 action_statuses={
                     uid: status for uid, status in action_statuses.items()
                 }
@@ -248,8 +258,12 @@ class ServerInstance:
 
         return status
 
-    def set_send_callback(self, callback: Callable[[ServerMessage], None]):
+    def set_send_callback(self, callback: Callable[[AnyServerMessage], None]):
         self._send_callback = callback
+
+    def send_to_client(self, message: AnyServerMessage):
+        if self._send_callback:
+            self._send_callback(message)
 
     def _prepare_to_send_output(self, node: BaseNode, slot_results: dict[SlotMirror, SlotOutput] | None):
         result_data = {}
@@ -258,6 +272,7 @@ class ServerInstance:
                 result_data[slot.slot_name] = result.value
         
         return result_data
+
 
     def start_running(self):
         self.state_controller.queue_state(InstanceStates.RUNNING)
@@ -293,15 +308,16 @@ class ServerInstance:
 
 
     def _state_changed(self):
-        if not self._send_callback:
-            return
-        
-        
-        self._send_callback(SrvSyncState(
+        self.send_to_client(SrvSyncState(
             payload=SyncStatePayload(
                 loop_state=self.state_controller.loop_state,
                 instance_state=self.state_controller.instance_state
             )
+        ))
+        # FIXME: Testing notifications:
+        self.send_to_client(ServerNotification.notify(
+            message="State changed!",
+            level=NotificationLevel.DEBUG
         ))
 
 
@@ -330,6 +346,10 @@ class ServerInstance:
         )
 
         StateFileUtils.save_instance_state(state_data, instance_path)
+        self.send_to_client(ServerNotification.notify(
+            message="Instance saved.",
+            level=NotificationLevel.INFO
+        ))
         return state_data
 
     def load_internal_state(self, instance_path: str, node_state_path: str, state: InstanceState):
@@ -339,4 +359,8 @@ class ServerInstance:
             node_state = state.internal_states.nodes.get(node._mirror.uid)
             if node_state:
                 node.load_state(node_state_path, node_state)
-    
+
+                self.send_to_client(ServerNotification.notify(
+                    message="Loaded Internal State!",
+                    level=NotificationLevel.INFO,
+                ))

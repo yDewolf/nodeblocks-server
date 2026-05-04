@@ -6,6 +6,8 @@ from typing import Any, Optional
 
 from nodeserver.api.internal.instance_state import InternalNodeState
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
+from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
+from nodeserver.wrapper.nodes.helpers.node_manager import NodeMirrorManager
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror, SlotOutput
 
 # TODO: Change node inputs to a NodeOutput class or NodeInputs class
@@ -54,6 +56,9 @@ class BaseNode:
 
         return output_map
 
+    def self_validate(self, node_manager: NodeMirrorManager, conn_manager: ConnectionManager) -> bool:
+        return True
+
     # Override these on your Node class:
     # Your load state logic
     def load_state(self, root_state_path: str, state: InternalNodeState):
@@ -87,3 +92,4 @@ class BaseNode:
     def make_state_file_path(self, root_path: str, extension: str) -> tuple[str, str]:
         filename = f"{self._mirror.uid}.{extension}"
         return os.path.join(root_path, filename), filename
+    

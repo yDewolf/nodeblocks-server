@@ -1,9 +1,9 @@
 import json
 from typing import Optional
-from nodeserver.api.web.requests.client_requests import ClientCommand, ClientCommandAdapter
-from nodeserver.api.web.requests.websocket_requests import ServerMessage
 
-class SocketMessage[MessageType: ServerMessage | ClientCommand]:
+from nodeserver.api.web.requests.request_unions import AnyClientMessage, AnyServerMessage, ClientMessageAdapter
+
+class SocketMessage[MessageType: AnyServerMessage | AnyClientMessage]:
     msg: MessageType
     raw_message: dict
 
@@ -16,12 +16,12 @@ class SocketMessage[MessageType: ServerMessage | ClientCommand]:
         return f"{self.__class__.__name__}({self.msg.type})"
         # return f"{self.__class__.__name__}({self.message.type.value}, payload_keys={list(self.message.payload.keys() if self.payload else [])})"
 
-class ServerMessageWrapper(SocketMessage[ServerMessage]): 
-    def __init__(self, raw_message: dict, message_data: ServerMessage) -> None:
+class ServerMessageWrapper(SocketMessage[AnyServerMessage]): 
+    def __init__(self, raw_message: dict, message_data: AnyServerMessage) -> None:
         super().__init__(raw_message, message_data)
 
-class ClientMessageWrapper(SocketMessage[ClientCommand]):
-    def __init__(self, raw_message: dict, message_data: ClientCommand) -> None:
+class ClientMessageWrapper(SocketMessage[AnyClientMessage]):
+    def __init__(self, raw_message: dict, message_data: AnyClientMessage) -> None:
         super().__init__(raw_message, message_data)
 
 
@@ -29,7 +29,7 @@ class MessageUtils:
     @staticmethod
     def parse_client_message(message_str: str) -> Optional[ClientMessageWrapper]:
         try:
-            command = ClientCommandAdapter.validate_json(message_str)
+            command = ClientMessageAdapter.validate_json(message_str)
             message_dict = json.loads(message_str)
             return ClientMessageWrapper(message_dict, command) 
         

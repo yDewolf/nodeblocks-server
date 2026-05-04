@@ -7,13 +7,15 @@ import logging
 
 from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.instance_state import StateFileUtils
+from nodeserver.api.web.requests.notification_requests import ServerNotification
+from nodeserver.api.web.requests.request_unions import AnyServerMessage
+from nodeserver.api.web.requests.websocket_requests import SrvHandshakeError, SrvHandshakeSuccess
 from nodeserver.api.web.session.user_session import SessionUtils, UserSession
 from nodeserver.api.utils.url_routing import Endpoint, URLRouter
 from nodeserver.api.internal.instance_manager import InstanceManager
 
 from nodeserver.api.web.manager.session_manager import SessionManager
 from nodeserver.api.web.message_router import BaseMessagerouter
-from nodeserver.api.web.requests.websocket_requests import ServerMessage, SrvHandshakeError, SrvHandshakeSuccess
 from nodeserver.api.web.session.user_workspace import WorkspaceUtils
 from nodeserver.api.web.websocket_messages import MessageUtils
 from nodeserver.api.web.websocket_protocol import WebsocketStatus
@@ -95,8 +97,12 @@ class WebsocketHandler:
         if not instance or not session:
             return
 
-        def _thread_safe_send(data: ServerMessage) -> None:
+        def _thread_safe_send(data: AnyServerMessage) -> None:
             message = data.model_dump_json(by_alias=True)
+            # FIXME: This might not be fine
+            if isinstance(data, ServerNotification):
+                session.workspace.notification_controller.add_notification(data)
+
             if self.loop and self.loop.is_running():
                 asyncio.run_coroutine_threadsafe(
                     websocket.send_str(message), 
@@ -207,13 +213,15 @@ class WebsocketHandler:
                 except json.JSONDecodeError:
                     continue
     
-    async def _route_message(self, instance: ServerInstance, data: str) -> ServerMessage | None:
+    async def _route_message(self, instance: ServerInstance, data: str) -> AnyServerMessage | None:
         message = MessageUtils.parse_client_message(data)
+        session = self.session_manager.get_session_by_instance(instance._attributed_id)
+
         logger.info(f"Command Received: {message} for Instance '{instance._attributed_id}'")
-        if not message:
+        if not message or not session:
             return
         
-        output = self._router.route_message(message, instance)
+        output = self._router.route_message(message, instance, session)
         if output:
             logger.info(f"Sending route output to {instance} | output: {output.type}")
             logger.debug(f"Output Data: {output}")

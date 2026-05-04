@@ -1,7 +1,7 @@
 from typing import List, Dict, Union, Literal, Annotated
 from pydantic import Field, TypeAdapter
 
-from nodeserver.api.web.requests.websocket_requests import BaseSocketModel
+from nodeserver.api.web.requests.base_requests import BaseSocketModel
 from nodeserver.api.web.websocket_protocol import SceneActionTypes
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
 

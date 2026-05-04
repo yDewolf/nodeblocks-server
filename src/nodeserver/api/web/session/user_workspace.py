@@ -6,7 +6,8 @@ from typing import Optional
 from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.utils.workspace_utils import INSTANCE_FOLDER, UPLOADS_FOLDER, WorkspaceUtils
-from nodeserver.api.web.requests.websocket_requests import ServerMessage
+from nodeserver.api.web.requests.request_unions import AnyServerMessage
+from nodeserver.api.web.session.user_notifications import NotificationController
 
 logger = logging.getLogger("nds.workspace")
 
@@ -17,10 +18,13 @@ class UserWorkspace:
     
     instance_id: str | None = None
     current_instance: Optional[InstanceProtocol]
+
+    notification_controller: NotificationController
     
     def __init__(self, user_id: str) -> None:
         self.user_id = user_id
-    
+        self.notification_controller = NotificationController()
+
     @staticmethod
     def create(user_id: str) -> 'UserWorkspace':
         workspace = UserWorkspace(user_id)
@@ -31,15 +35,13 @@ class UserWorkspace:
     def assign_instance(self, instance: ServerInstance):
         self.instance_id = instance._attributed_id
         self.current_instance = instance
+        self.notification_controller.instance = self.current_instance
 
-    def send_msg_as_instance(self, data: ServerMessage) -> bool:
+    def send_msg_as_instance(self, data: AnyServerMessage) -> bool:
         if not self.current_instance:
             return False
 
-        if not self.current_instance._send_callback:
-            return False
-        
-        self.current_instance._send_callback(data)
+        self.current_instance.send_to_client(data)
         return True
 
     

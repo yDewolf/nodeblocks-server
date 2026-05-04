@@ -8,6 +8,10 @@ class IDGenerator:
     @staticmethod
     def generate_node_id() -> str:
         return str(uuid.uuid4())
+    
+    @staticmethod
+    def generate_notification_uid() -> str:
+        return str(uuid.uuid4().hex[:4])
 
     @staticmethod
     def generate_conn_id() -> str:

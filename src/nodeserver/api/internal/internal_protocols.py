@@ -1,7 +1,7 @@
-from typing import Callable, Protocol
+from typing import Protocol
 
 from nodeserver.api.instance.node_scene import NodeScene
-from nodeserver.api.web.requests.websocket_requests import ServerMessage
+from nodeserver.api.web.requests.request_unions import AnyServerMessage
 from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
 
 class InstanceProtocol(Protocol):
@@ -10,7 +10,8 @@ class InstanceProtocol(Protocol):
     
     _attributed_id: str
 
-    _send_callback: Callable[[ServerMessage], None] | None = None
+    def send_to_client(self, message: AnyServerMessage) -> None:
+        pass
 
 
 class WorkspaceProtocol(Protocol):
