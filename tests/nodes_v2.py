@@ -1,29 +1,21 @@
 
-from nodeserver.api.instance.base_nodes import BaseNode, NodeInput, NodeOutput, NodeSlot
+from nodeserver.api.instance.base_nodes import AutoTypeNode, BaseNode, NodeInput, NodeOutput, NodeSlot, SlotIO
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, DataTypes
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeNumberParameter, NodeParameterData
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror, SlotOutput
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 
 class NoInput(NodeInput):
     pass
 
-class TestOutput(NodeOutput):
-    out_0: float
-
-class TestInput(NodeInput):
-    in_0: int
-
-class TestNode(BaseNode[TestInput, TestOutput]):
+class TestNode(AutoTypeNode):
     class Slots:
-        in_0: NodeSlot[SlotOutput[None]]
-        out_0: NodeSlot[SlotOutput[float]]
+        in_0: NodeSlot[SlotIO[int, None]]
+        out_0: NodeSlot[SlotIO[None, float]]
 
-    _slots: Slots
-
-    def forwardV2(self, input: TestInput) -> TestOutput:
-        return TestOutput(
-            out_0=(input.in_0 + 2.0)
+    def forwardV2(self, input: "TestNode.InputModel") -> "TestNode.OutputModel":
+        return self.OutputModel(
+            out_0=(input.in_0 + 2)
         )
 
 class DataNodeOutput(NodeOutput):
@@ -31,7 +23,7 @@ class DataNodeOutput(NodeOutput):
 
 class InputDataNode(BaseNode[NoInput, DataNodeOutput]):
     class Slots:
-        out_0: NodeSlot[SlotOutput[int]]
+        out_0: NodeSlot[SlotIO[None, int]]
     
     _slots: Slots
 
@@ -56,8 +48,8 @@ input_mirror.add_slot(SlotMirror(input_mirror, "out_0", OUTPUT_TYPE, None))
 input_node = InputDataNode(input_mirror)
 
 _output = input_node.forwardV2(NoInput())
-_output_1 = node.forwardV2(TestInput(
-    in_0=_output.out_0
+_output_1 = node.forwardV2(node._parse_inputs(
+    {"in_0": _output.out_0}
 ))
 
 pass

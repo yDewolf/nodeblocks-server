@@ -4,7 +4,7 @@ from typing import Callable, Optional
 from nodeserver.api.instance.actions.action_controller import Action, ActionController
 from nodeserver.api.instance.actions.conn_actions import ConnActionUtils
 from nodeserver.api.instance.actions.node_actions import NodeActionUtils
-from nodeserver.api.instance.base_nodes import BaseNode, SlotOutput
+from nodeserver.api.instance.base_nodes import BaseNode, SlotIO
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
@@ -25,7 +25,7 @@ logger = logging.getLogger("nds.instances")
 class BaseServerRuntime:
     _current_idx: int | None = None
     _process_order: list[NodeMirror] | None = None
-    _output_cache: dict[SlotMirror, SlotOutput]
+    _output_cache: dict[SlotMirror, SlotIO]
     _node_execution_cache: dict[str, int]
 
     _previous_output: dict | None = None
@@ -37,7 +37,7 @@ class BaseServerRuntime:
         self._node_execution_cache = {}
 
         
-    def process_next(self, node_scene: NodeScene, instance_protocol: InstanceProtocol) -> tuple[dict[SlotMirror, SlotOutput] | None, BaseNode, bool] | None:
+    def process_next(self, node_scene: NodeScene, instance_protocol: InstanceProtocol) -> tuple[dict[SlotMirror, SlotIO] | None, BaseNode, bool] | None:
         if self._current_idx == None or not self._process_order:
             return None
         
@@ -55,7 +55,7 @@ class BaseServerRuntime:
         slot_versions = 0
         input_versions = 0
         # InputSlot -> dict[OutputSlot, output_value]
-        node_inputs: dict[SlotMirror, dict[SlotMirror, SlotOutput]] = {}
+        node_inputs: dict[SlotMirror, dict[SlotMirror, SlotIO]] = {}
         for slot_type in current_node._mirror.slots:
             if slot_type != SuperSlotTypes.INPUT:
                 continue
@@ -87,7 +87,7 @@ class BaseServerRuntime:
 
         try:
             node_result = current_node.forward(node_inputs)
-            output_data: dict[SlotMirror, SlotOutput] = {}
+            output_data: dict[SlotMirror, SlotIO] = {}
             for slot in node_result:
                 if slot.type._super_type != SuperSlotTypes.OUTPUT:
                     logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {current_node}")
@@ -265,7 +265,7 @@ class ServerInstance:
         if self._send_callback:
             self._send_callback(message)
 
-    def _prepare_to_send_output(self, node: BaseNode, slot_results: dict[SlotMirror, SlotOutput] | None):
+    def _prepare_to_send_output(self, node: BaseNode, slot_results: dict[SlotMirror, SlotIO] | None):
         result_data = {}
         if slot_results != None:
             for slot, result in slot_results.items():

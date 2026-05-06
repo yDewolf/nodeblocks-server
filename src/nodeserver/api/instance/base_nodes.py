@@ -5,23 +5,40 @@ import os
 import pathlib
 from typing import Any, Optional, Type, get_args, get_origin, get_type_hints
 
-from pydantic import BaseModel, typing
+from pydantic import BaseModel, create_model, typing
 
 from nodeserver.api.internal.instance_state import InternalNodeState
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.helpers.node_manager import NodeMirrorManager
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror, SlotOutput
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 
-class NodeSlot[outputType: SlotOutput]:
+class SlotIO[inputType: Any, valueType: Any]:
+    _version: int
+    _value: Optional[valueType] = None
+
+    def __init__(self) -> None:
+        self._version = 0
+
+    @property
+    def value(self):
+        return self._value
+    
+    @value.setter
+    def value(self, new_value: valueType):
+        if self._value != new_value:
+            self._value = new_value
+            self._version += 1
+
+class NodeSlot[outputType: SlotIO]:
     _output_class: Type[outputType]
     _version: int
     
     _output: outputType
     _mirror: SlotMirror
 
-    def __init__(self, mirror: Optional[SlotMirror] = None, output_cls: Type[outputType] = SlotOutput) -> None:
+    def __init__(self, mirror: Optional[SlotMirror] = None, output_cls: Type[outputType] = SlotIO) -> None:
         if mirror != None:
             self._mirror = mirror
         
@@ -67,12 +84,13 @@ class BaseNode[inputType: NodeInput, outputType: NodeOutput]:
             origin = get_origin(hint) or hint
             args = get_args(hint)
 
-            actual_output_type = args[0] if args else SlotOutput
+            actual_output_type = args[0] if args else SlotIO
             slot_instance = origin(mirror=slot_mirror, output_cls=actual_output_type)
             
             setattr(self._slots, attribute_name, slot_instance)
-    
-    def pre_forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotOutput]]):
+
+
+    def pre_forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotIO]]):
         pass
 
     @abstractmethod
@@ -82,31 +100,16 @@ class BaseNode[inputType: NodeInput, outputType: NodeOutput]:
     # TODO: Add a safety check before the actual forward
     # so the end developer can set what it needs as inputs
     # and just program what it does with the inputs (not to all the checks if the inputs exist)
-    def forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotOutput]]) -> dict[SlotMirror, SlotOutput]:
+    def forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotIO]]) -> dict[SlotMirror, SlotIO]:
         output_data = {}
         return self.map_to_slots(output_data)
     
     def post_forward(self):
         pass
 
-
-    def map_to_slots(self, data: dict[str, Any]) -> dict[SlotMirror, SlotOutput]:
-        output_map: dict[SlotMirror, SlotOutput] = {}
-        for key in data:
-            slot = self._mirror.get_slot(key)
-            if not slot:
-                # ERROR
-                continue
-            
-            if slot.type._super_type != SuperSlotTypes.OUTPUT:
-                # ERROR
-                continue
-            
-            slot._output.value = data[key]
-            if self.bypass_cache:
-                slot._output._version += 1
-
-            output_map[slot] = slot._output
+    # @DEPRECATED
+    def map_to_slots(self, data: dict[str, Any]) -> dict[SlotMirror, SlotIO]:
+        output_map: dict[SlotMirror, SlotIO] = {}
 
         return output_map
 
@@ -146,3 +149,43 @@ class BaseNode[inputType: NodeInput, outputType: NodeOutput]:
     def make_state_file_path(self, root_path: str, extension: str) -> tuple[str, str]:
         filename = f"{self._mirror.uid}.{extension}"
         return os.path.join(root_path, filename), filename
+
+# muito difícil implementar autocomplete usando isso aqui, mas é ok
+class AutoTypeNode(BaseNode[Any, Any]):
+    InputModel: Type[BaseModel]
+    OutputModel: Type[BaseModel]
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        
+        if not hasattr(cls, "Slots"):
+            return
+
+        input_fields = {}
+        output_fields = {}
+
+        hints = get_type_hints(cls.Slots, globalns=globals())
+        for name, hint in hints.items():
+            args = get_args(hint) # (SlotOutput[float],)
+            if not args: continue
+
+            inner_hint = args[0] # SlotOutput[float]
+            data_type_args = get_args(inner_hint) # (float,)
+            
+            input_type = data_type_args[0] if data_type_args else Any
+            output_type = data_type_args[1] if data_type_args else Any
+            if input_type is type(None) and output_type is type(None):
+                return Exception("Input Type and Output Type can't be None at the same time")
+            
+            if not output_type is type(None):
+                output_fields[name] = (output_type, None)
+                continue
+            if not input_type is type(None):
+                input_fields[name] = (input_type, None)
+                continue
+
+        cls.InputModel = create_model(f"{cls.__name__}Input", **input_fields)
+        cls.OutputModel = create_model(f"{cls.__name__}Output", **output_fields)
+
+    def _parse_inputs(self, raw_data: dict):
+        return self.InputModel(**raw_data)
