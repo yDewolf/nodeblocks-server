@@ -42,22 +42,28 @@ class NodeMirror:
                     return slot
         
         return None
+    
+    def all_slots(self) -> list[SlotMirror]:
+        every_slot: list[SlotMirror] = []
+        for slot_type in self.slots:
+            every_slot += self.slots[slot_type]
+        
+        return every_slot
 
 
-class SlotOutput:
+class SlotOutput[valueType: Any]:
     _version: int
-    _value: Any = None
+    _value: Optional[valueType] = None
 
     def __init__(self) -> None:
         self._version = 0
-        self._value = {}
 
     @property
     def value(self):
         return self._value
     
     @value.setter
-    def value(self, new_value: Any):
+    def value(self, new_value: valueType):
         if self._value != new_value:
             self._value = new_value
             self._version += 1
