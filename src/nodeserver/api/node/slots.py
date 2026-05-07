@@ -1,5 +1,5 @@
 
-from typing import Any, Optional, Type, TypeVar, get_args, get_origin
+from typing import Any, Generic, Optional, Type, TypeVar, get_args, get_origin
 
 from nodeserver.wrapper.nodes.node.base_nodes import SlotMirror
 
@@ -31,14 +31,15 @@ class SlotIO[inputType: Any, valueType: Any]:
     def get_type(self) -> type[Any]:
         return self._raw_io_type
 
-class NodeSlot[outputType: SlotIO]:
-    _output_class: Type[outputType]
+T_SlotIO = TypeVar("T_SlotIO", bound=SlotIO, default=SlotIO)
+class NodeSlot(Generic[T_SlotIO]):
+    _output_class: Type[T_SlotIO]
     _version: int
     
-    _output: outputType
+    _output: T_SlotIO
     _mirror: SlotMirror
 
-    def __init__(self, mirror: Optional[SlotMirror] = None, output_cls: Type[outputType] = SlotIO, raw_io_type: Type[Any] = Type) -> None:
+    def __init__(self, mirror: Optional[SlotMirror] = None, output_cls: Type[T_SlotIO] = SlotIO, raw_io_type: Type[Any] = Type) -> None:
         if mirror != None:
             self._mirror = mirror
         
