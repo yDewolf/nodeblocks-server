@@ -35,6 +35,7 @@ class NodeUtils:
             _slot_definitions[name] = {
                 "class": slot_class,
                 "io": io_type,
+                "raw_io_type": raw_type,
                 "args": extra_args
             }
             

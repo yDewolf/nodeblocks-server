@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from nodeserver.api.internal.instance_state import InternalNodeState
 from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.slots import NodeSlot, SlotConfig, SlotIO
+from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.wrapper.nodes.helpers.node_manager import NodeMirrorManager
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
@@ -24,7 +25,6 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
         pass
 
     _slots: Slots
-    slots: dict[str, NodeSlot]
 
     def __init__(self, mirror: NodeMirror | None = None):
         self._slots = self.Slots()
@@ -49,7 +49,10 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
             setattr(self._slots, attribute_name, slot_instance)
 
     def slot(self, name: str) -> NodeSlot:
-        slot = self.slots.get(name)
+        slot = getattr(self._slots, name)
+        if not isinstance(slot, NodeSlot):
+            raise Exception(f"Tried to access an attribute ({name} in {self.__class__}) that is not a NodeSlot")
+        
         if slot == None:
             raise Exception(f"Slot with name '{name}' doesn't exist for node ({self.__class__})")
         
@@ -57,7 +60,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
 
 
     @abstractmethod
-    def pre_forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotIO]]):
+    def pre_forward(self, input: inputType):
         pass
 
     @abstractmethod
@@ -105,10 +108,55 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
             state_data=None
         )
 
+    def get_execution_hash(self, output_cache: dict[SlotMirror, SlotIO]) -> int:
+        input_versions = 0
+        slots_version = 0
+        for slot in self._mirror.slots.get(SuperSlotTypes.INPUT, []):
+            slots_version += slot._version
+            for conn in slot.connections:
+                cached = output_cache.get(conn)
+                if cached: input_versions += cached._version
+        
+        return (self._version + self._mirror.data._version + input_versions + slots_version)
+
+    def resolve_inputs(self, output_cache: dict) -> dict:
+        raw_inputs = {}
+        for slot in self._mirror.slots.get(SuperSlotTypes.INPUT, []):
+            values = [output_cache[conn].value for conn in slot.connections if conn in output_cache]
+            if not values: raw_inputs[slot.slot_name] = None
+
+            real_slot = self.slot(slot.slot_name)
+            # FIXME: help me
+            input_type: Type[Any] = real_slot._output.get_type()
+            origin = get_origin(input_type) or input_type
+            try:
+                is_collection = issubclass(origin, (list, tuple))
+            except TypeError:
+                print("oi")
+                is_collection = False
+
+            if is_collection:
+                raw_inputs[slot.slot_name] = values[:real_slot._output._max_inputs]
+                if len(values) > real_slot._output._max_inputs:
+                    # FIXME: Trocar isso aqui por um logger
+                    print(f"WARNING: Shrinking node inputs for slot {slot}")
+                
+                continue
+
+            raw_inputs[slot.slot_name] = values[0]
+        
+        return raw_inputs
+
+
+class NoInput(BaseModel):
+    pass
+
+class NoOutput(BaseModel):
+    pass
 
 class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, outputType]):
-    InputModel: Type[BaseModel] = BaseModel
-    OutputModel: Type[BaseModel] = BaseModel
+    InputModel: Type[BaseModel] = NoInput
+    OutputModel: Type[BaseModel] = NoOutput
     _slot_definitions: dict[str, Any]
 
     def __init_subclass__(cls, **kwargs):
@@ -129,9 +177,11 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
 
             instance = spec["class"](
                 mirror=slot_mirror, 
-                output_cls=spec["io"], 
+                output_cls=spec["io"],
+                raw_io_type=spec["raw_io_type"],
                 **spec["args"]
             )
+
             setattr(self._slots, name, instance)
     
     def _parse_inputs(self, raw_input_data: dict) -> BaseModel:

@@ -1,13 +1,16 @@
 import logging
 import queue
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
+
+from pydantic import BaseModel
 from nodeserver.api.instance.actions.action_controller import Action, ActionController
 from nodeserver.api.instance.actions.conn_actions import ConnActionUtils
 from nodeserver.api.instance.actions.node_actions import NodeActionUtils
-from nodeserver.api.instance.base_nodes import BaseNode, SlotIO
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
+from nodeserver.api.node.nodes import BaseNode
+from nodeserver.api.node.slots import SlotIO
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.api.web.requests.request_unions import AnyServerMessage
 from nodeserver.api.web.requests.websocket_requests import SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
@@ -37,69 +40,30 @@ class BaseServerRuntime:
         self._node_execution_cache = {}
 
         
-    def process_next(self, node_scene: NodeScene, instance_protocol: InstanceProtocol) -> tuple[dict[SlotMirror, SlotIO] | None, BaseNode, bool] | None:
-        if self._current_idx == None or not self._process_order:
-            return None
-        
-        if self._current_idx >= len(self._process_order):
-            self.waiting_to_continue = True
-            return None
-        
-        current_node = node_scene.get_node(self._process_order[self._current_idx].uid)
-        if current_node == None:
-            return None
-        
+    def process_next(self, node_scene: NodeScene, instance_protocol: InstanceProtocol) -> Optional[tuple[dict[SlotMirror, SlotIO] | None, BaseNode, bool]]:
+        current_node = self._get_current_node(node_scene)
+        if not current_node or self._current_idx == None: return
         self._current_idx += 1
         
-        # Caching
-        slot_versions = 0
-        input_versions = 0
-        # InputSlot -> dict[OutputSlot, output_value]
-        node_inputs: dict[SlotMirror, dict[SlotMirror, SlotIO]] = {}
-        for slot_type in current_node._mirror.slots:
-            if slot_type != SuperSlotTypes.INPUT:
-                continue
-            
-            for slot in current_node._mirror.slots[slot_type]:
-                connections_output = {}
-                slot_versions += slot._version
-                for connected_slot in slot.connections:
-                    cached_data = self._output_cache.get(connected_slot)
-                    if not cached_data:
-                        logger.error(f"Slot {connected_slot} doesn't have a cached output.")
-                        return
-                    
-                    connections_output[connected_slot] = cached_data
-                    input_versions += cached_data._version
+        current_hash = current_node.get_execution_hash(self._output_cache)
+        last_hash = self._node_execution_cache.get(current_node._mirror.uid)
 
-                node_inputs[slot] = connections_output
-
-        current_node.pre_forward(node_inputs) # Node might set bypass cache to True here
-        context_version = current_node._version + current_node._mirror.data._version + input_versions + slot_versions
-        last_context_version = self._node_execution_cache.get(current_node._mirror.uid)
-        if last_context_version == context_version and not current_node.bypass_cache:
-            cached_outputs = {
-                slot: self._output_cache[slot]
-                for slot in current_node._mirror.slots.get(SuperSlotTypes.OUTPUT, [])
-                if slot in self._output_cache
-            }
-            return (cached_outputs, current_node, True)
+        if current_hash == last_hash and not current_node.bypass_cache:
+            return (self._get_cached_outputs(current_node), current_node, True)
 
         try:
-            node_result = current_node.forward(node_inputs)
-            output_data: dict[SlotMirror, SlotIO] = {}
-            for slot in node_result:
-                if slot.type._super_type != SuperSlotTypes.OUTPUT:
-                    logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {current_node}")
-                
-                slot_output = node_result[slot]
-
-                output_data[slot] = slot_output
-                self._output_cache[slot] = slot_output
+            raw_node_inputs = current_node.resolve_inputs(self._output_cache)
+            node_inputs = current_node._parse_inputs(raw_node_inputs)
+            current_node.pre_forward(node_inputs) # Node might set bypass cache to True here
             
+            node_output: BaseModel = current_node.forward(node_inputs)
+            output_model: dict = node_output.model_dump()
+            output_data = self._update_outputs(current_node, output_model)
+
             current_node.post_forward()
-            self._node_execution_cache[current_node._mirror.uid] = context_version
+            self._node_execution_cache[current_node._mirror.uid] = current_hash
             return (output_data, current_node, False)
+
         except Exception as e:
             instance_protocol.send_to_client(ServerNotification.node_notify(
                 node_uid=current_node._mirror.uid,
@@ -129,7 +93,41 @@ class BaseServerRuntime:
     def reset_cache(self):
         self._node_execution_cache.clear()
         self._output_cache.clear()
+
+    def _get_current_node(self, scene: NodeScene) -> Optional[BaseNode]:
+        if self._current_idx == None or not self._process_order:
+            return None
+        
+        if self._current_idx >= len(self._process_order):
+            self.waiting_to_continue = True
+            return None
+        
+        current_node = scene.get_node(self._process_order[self._current_idx].uid)
+        if current_node == None:
+            return None
     
+        return current_node
+
+    def _update_outputs(self, node: BaseNode, outputs: dict) -> dict[SlotMirror, SlotIO]:
+        output_data: dict[SlotMirror, SlotIO] = {}
+        for slot_name in outputs:
+            slot = node.slot(slot_name)
+            if slot._mirror.type._super_type != SuperSlotTypes.OUTPUT:
+                logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {node}")
+            
+            slot._output.value = outputs[slot_name]
+            output_data[slot._mirror] = slot._output
+            self._output_cache[slot._mirror] = slot._output
+
+        return output_data
+
+    def _get_cached_outputs(self, node: BaseNode) -> dict[SlotMirror, SlotIO]:
+        return {
+            slot: self._output_cache[slot]
+            for slot in node._mirror.slots.get(SuperSlotTypes.OUTPUT, [])
+            if slot in self._output_cache
+        }
+
 
 INSTANCE_VERSION: str = "0.3.1" # TODO: Use Version Manager
 class ServerInstance:

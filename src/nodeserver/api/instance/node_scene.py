@@ -1,4 +1,4 @@
-from nodeserver.api.instance.base_nodes import BaseNode
+from nodeserver.api.node.nodes import BaseNode
 from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
 

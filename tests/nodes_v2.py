@@ -3,21 +3,20 @@ from typing import Annotated
 
 from pydantic import BaseModel
 
-from nodeserver.api.instance.base_nodes import NodeInput, NodeOutput, NodeSlot, SlotIO
 from nodeserver.api.node.nodes import BaseNode
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, DataTypes
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeNumberParameter, NodeParameterData
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 
-class NoInput(NodeInput):
+class NoInput(BaseModel):
     pass
 
 class MyCustomInputs(BaseModel):
     in_0: float
     # value_b: Annotated[int, Input(min_val=0)]
 
-class MyCustomOutputs(NodeOutput):
+class MyCustomOutputs(BaseModel):
     result: float
 
 class MyMathNode(BaseNode[MyCustomInputs, MyCustomOutputs]):
@@ -29,7 +28,7 @@ class MyMathNode(BaseNode[MyCustomInputs, MyCustomOutputs]):
             result=input_data.in_0 + 2.0
         )
 
-class DataNodeOutput(NodeOutput):
+class DataNodeOutput(BaseModel):
     out_0: int
 
 class InputDataNode(BaseNode[NoInput, DataNodeOutput]):

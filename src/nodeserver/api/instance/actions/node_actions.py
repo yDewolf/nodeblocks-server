@@ -1,6 +1,6 @@
 from nodeserver.api.instance.actions.action_controller import Action
-from nodeserver.api.instance.base_nodes import BaseNode
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
+from nodeserver.api.node.nodes import BaseNode
 from nodeserver.api.web.requests.action_requests import NodeActionAddUpdate, NodeActionRemove
 from nodeserver.api.web.requests.client_requests import MsgNodeAction
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
