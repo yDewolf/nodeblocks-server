@@ -119,9 +119,9 @@ class BaseServerRuntime:
             if slot._mirror.type._super_type != SuperSlotTypes.OUTPUT:
                 logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {node}")
             
-            slot._output.value = outputs[slot_name]
-            output_data[slot._mirror] = slot._output
-            self._output_cache[slot._mirror] = slot._output
+            slot._io.value = outputs[slot_name]
+            output_data[slot._mirror] = slot._io
+            self._output_cache[slot._mirror] = slot._io
 
         return output_data
 

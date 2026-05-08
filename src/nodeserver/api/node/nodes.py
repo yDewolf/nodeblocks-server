@@ -175,17 +175,9 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
             if not values: raw_inputs[slot.slot_name] = None
 
             real_slot = self.slot(slot.slot_name)
-            # FIXME: help me
-            input_type: Type[Any] = real_slot._output.get_type()
-            origin = get_origin(input_type) or input_type
-            try:
-                is_collection = issubclass(origin, (list, tuple))
-            except TypeError:
-                is_collection = False
-
-            if is_collection:
-                raw_inputs[slot.slot_name] = values[:real_slot._output._max_inputs]
-                if len(values) > real_slot._output._max_inputs:
+            if real_slot._io.is_collection():
+                raw_inputs[slot.slot_name] = values[:real_slot._io._max_inputs]
+                if len(values) > real_slot._io._max_inputs:
                     logger.warning(f"WARNING: Shrinking node inputs for slot {slot}")
                 
                 continue
@@ -229,19 +221,19 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     @classmethod
     def _add_slot_types(cls, key: str, slot_instance: NodeSlot, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
         # FIXME: Improve DataTypes so it can make new DataTypes and pass it with the scene
-        raw_type = slot_instance._output.get_type()
+        raw_type = slot_instance._io.get_type()
 
-        data_type = slot_instance._output._datatype_override
+        data_type = slot_instance._io._datatype_override
         if not data_type:
             data_type = DataTypeUtils._match_data_type_str(raw_type.__name__)
         
-        super_slot_name = f"{slot_instance.__class__.__name__}:{raw_type.__name__}:{"input" if slot_instance._output._is_input else "output"}"
+        super_slot_name = f"{slot_instance.__class__.__name__}:{raw_type.__name__}:{"input" if slot_instance._io._is_input else "output"}"
         if not super_types.__contains__(super_slot_name):
             super_types[super_slot_name] = BaseSlotType(
                 type_name=super_slot_name, 
-                super_type=SuperSlotTypes.INPUT if slot_instance._output._is_input else SuperSlotTypes.OUTPUT,
+                super_type=SuperSlotTypes.INPUT if slot_instance._io._is_input else SuperSlotTypes.OUTPUT,
                 data_type=data_type,
-                type_whitelist=[SuperSlotTypes.OUTPUT if slot_instance._output._is_input else SuperSlotTypes.INPUT], # type: ignore
+                type_whitelist=[SuperSlotTypes.OUTPUT if slot_instance._io._is_input else SuperSlotTypes.INPUT], # type: ignore
                 name_whitelist=[super_slot_name]
             )
         
@@ -293,10 +285,10 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
             **spec["args"]
         )
 
-        instance._output._max_inputs = spec["max_inputs"]
-        instance._output._raw_io_type = spec["raw_type"]
+        instance._io._max_inputs = spec["max_inputs"]
+        instance._io._raw_io_type = spec["raw_type"]
         datatype_override = spec.get("datatype_override")
-        instance._output._datatype_override = datatype_override
+        instance._io._datatype_override = datatype_override
         if datatype_override and instance.has_mirror():
             instance._mirror.data_type = datatype_override
 

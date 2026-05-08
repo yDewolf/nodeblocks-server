@@ -122,7 +122,7 @@ my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
 
 test = MyMathNode()
 slot = test.slot("in_1")
-slot._output.get_type()
+slot._io.get_type()
 
 test1 = TestNode()
 slot1 = test1.slot("slot_0")
