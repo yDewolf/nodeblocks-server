@@ -7,7 +7,7 @@ from nodeserver.api.node.node_exceptions import NoOutputException
 from nodeserver.api.node.node_parameters import FileParam, Param
 from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.nodes import BaseNode
-from nodeserver.api.node.slots import Input, Output
+from nodeserver.api.node.slots import Input, InputSlotIO, NodeSlot, Output
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import FILE_TYPE, INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, DataTypes, SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeFileParameter, NodeNumberParameter, SlotData
@@ -88,6 +88,10 @@ class SubNode(MyMathNode): operation = 1
 class MulNode(MyMathNode): operation = 2
 class DivNode(MyMathNode): operation = 3
 
+class TestNode(BaseNode):
+    class Slots:
+        slot_0: NodeSlot[InputSlotIO[list[float]]]
+
 NODE_REGISTRY: dict[str, type[BaseNode]] = {
     "MyInputNode": MyInputNode,
     "FileInputNode": FileInputNode,
@@ -95,6 +99,7 @@ NODE_REGISTRY: dict[str, type[BaseNode]] = {
     "SubNode": SubNode,
     "MulNode": MulNode,
     "DivNode": DivNode,
+    "TestNode": TestNode
 }
 node_constructors: list[ConstructorModel] = []
 slot_types = {}
@@ -114,6 +119,13 @@ my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
 my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
     my_cool_types, {}, auto_parser, node_constructors
 ))
+
+test = MyMathNode()
+slot = test.slot("in_1")
+slot._output.get_type()
+
+# test1 = TestNode()
+# slot1 = test1.slot("slot_0")
 
 server = NodeServer(my_cool_types)
 server.run_server()

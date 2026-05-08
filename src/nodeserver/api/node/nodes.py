@@ -230,10 +230,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     @classmethod
     def _add_slot_types(cls, key: str, slot_instance: NodeSlot, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
         # FIXME: Improve DataTypes so it can make new DataTypes and pass it with the scene
-        raw_type = slot_instance._output._raw_io_type
-        type_arguments = get_args(slot_instance._output._raw_io_type)
-        if type_arguments:
-            raw_type = type_arguments[0]
+        raw_type = slot_instance._output.get_type()
 
         data_type = slot_instance._output._datatype_override
         if not data_type:
@@ -271,15 +268,23 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
             pass
         
         cls._slot_definitions = {}
-        NodeUtils.process_model(cls.InputModel, default_is_input=True, generatedSlots=GeneratedSlots, _slot_definitions=cls._slot_definitions)
-        NodeUtils.process_model(cls.OutputModel, default_is_input=False, generatedSlots=GeneratedSlots, _slot_definitions=cls._slot_definitions)
+        # if cls.InputModel is NoInput and cls.OutputModel is NoOutput:
+        #     hints = get_type_hints(cls.Slots)
+        #     if hints:
+        #         for name, hint in hints.items():
+        #             GeneratedSlots.__annotations__[name] = hint
+        
+        NodeUtils.process_model(cls.InputModel, default_is_input=True, slots_class=GeneratedSlots, _slot_definitions=cls._slot_definitions)
+        NodeUtils.process_model(cls.OutputModel, default_is_input=False, slots_class=GeneratedSlots, _slot_definitions=cls._slot_definitions)
         
         cls.Slots = GeneratedSlots # type: ignore
     
     def _build_slots(self):
         for name, spec in self._slot_definitions.items():
-            slot_mirror = self._mirror.get_slot(name)
-            if not slot_mirror: continue
+            slot_mirror: Optional[SlotMirror] = None
+            if self.has_mirror():
+                slot_mirror = self._mirror.get_slot(name)
+                if not slot_mirror: continue
 
             instance: NodeSlot = self._build_slot_instance(spec, slot_mirror)
 

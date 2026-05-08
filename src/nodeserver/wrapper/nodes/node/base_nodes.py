@@ -69,6 +69,9 @@ class _ParsedNode:
     @abstractmethod
     def save_state(self, root_state_path: str) -> Any:
         pass
+    
+    def has_mirror(self) -> bool:
+        return hasattr(self, "_mirror")
 
 class SlotMirror:
     _version: int

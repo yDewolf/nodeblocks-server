@@ -14,7 +14,7 @@ class NodeUtils:
         return os.path.join(root_path, filename), filename
 
     @staticmethod
-    def process_model(model: Type[BaseModel], default_is_input: bool, generatedSlots: Type, _slot_definitions: dict[str, Any]):
+    def process_model(model: Type[BaseModel], default_is_input: bool, slots_class: Type, _slot_definitions: dict[str, Any]):
         for name, field in model.model_fields.items():
             slot_class = NodeSlot
             max_inputs: int = 1
@@ -43,5 +43,5 @@ class NodeUtils:
                 "datatype_override": datatype_override
             }
             
-            generatedSlots.__annotations__[name] = slot_class[io_generic] # type: ignore
+            slots_class.__annotations__[name] = slot_class[io_generic] # type: ignore
     

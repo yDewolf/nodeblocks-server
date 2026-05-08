@@ -1,5 +1,5 @@
 
-from typing import Any, Generic, Optional, Type, TypeVar
+from typing import Any, Generic, Optional, Type, TypeVar, get_args
 from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType
 from nodeserver.wrapper.nodes.node.base_nodes import SlotMirror
 
@@ -11,6 +11,7 @@ class _SlotIO[inputType: Any, valueType: Any]:
     _datatype_override: Optional[BaseNodeType] = None
     _raw_io_type: Type[Any] = Type
     _is_input: bool = False
+    _type_args: Optional[tuple[Any, ...]] = None
 
     def __init__(self, value: Optional[valueType] = None, max_inputs: int = 1, raw_io_type: Type[Any] = Type) -> None:
         self._max_inputs = max_inputs
@@ -31,6 +32,10 @@ class _SlotIO[inputType: Any, valueType: Any]:
 
     # FIXME:
     def get_type(self) -> type[Any]:
+        self._type_args = get_args(self._raw_io_type) if not self._type_args else self._type_args
+        if self._type_args:
+            return self._type_args[0]
+        
         return self._raw_io_type
 
 class InputSlotIO[inputType: Any](_SlotIO[inputType, None]):
