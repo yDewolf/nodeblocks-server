@@ -13,7 +13,6 @@ class InstanceProtocol(Protocol):
     def send_to_client(self, message: AnyServerMessage) -> None:
         pass
 
-
 class WorkspaceProtocol(Protocol):
     user_id: str
     workspace_path: str

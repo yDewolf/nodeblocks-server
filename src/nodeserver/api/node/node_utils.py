@@ -1,9 +1,10 @@
 import os
+import types
 from typing import Annotated, Any, Type, get_args, get_origin
 
 from pydantic import BaseModel
 
-from nodeserver.api.node.slots import NodeSlot, SlotConfig, SlotIO
+from nodeserver.api.node.slots import InputSlotIO, NodeSlot, OutputSlotIO, SlotConfig, _SlotIO
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
 
 class NodeUtils:
@@ -16,27 +17,27 @@ class NodeUtils:
     def process_model(model: Type[BaseModel], default_is_input: bool, generatedSlots: Type, _slot_definitions: dict[str, Any]):
         for name, field in model.model_fields.items():
             slot_class = NodeSlot
+            max_inputs: int = 1
             is_input = default_is_input
             extra_args = {}
 
-            if get_origin(field.annotation) is Annotated:
-                metadata = get_args(field.annotation)
-                for meta in metadata:
-                    if isinstance(meta, SlotConfig):
-                        if meta.slot_class: slot_class = meta.slot_class
-                        is_input = meta.is_input
-                        extra_args = meta.extra_kwargs
-            
-            raw_type = field.annotation
-            if get_origin(raw_type) is Annotated:
-                raw_type = get_args(raw_type)[0]
+            for meta in field.metadata:
+                if isinstance(meta, SlotConfig):
+                    if meta.slot_class: slot_class = meta.slot_class
+                    is_input = meta.is_input
+                    extra_args = meta.extra_kwargs
+                    max_inputs = meta.max_inputs
 
-            io_type = SlotIO[raw_type, None] if is_input else SlotIO[None, raw_type]
+            raw_type = field.annotation
+
+            io_generic = InputSlotIO[raw_type] if is_input else OutputSlotIO[raw_type]
             _slot_definitions[name] = {
                 "class": slot_class,
-                "io": io_type,
-                "raw_io_type": raw_type,
-                "args": extra_args
+                "io": io_generic,
+                "args": extra_args,
+                "max_inputs": max_inputs,
+                "raw_type": raw_type
             }
             
-            generatedSlots.__annotations__[name] = slot_class[io_type]
+            generatedSlots.__annotations__[name] = slot_class[io_generic] # type: ignore
+    

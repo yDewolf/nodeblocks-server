@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import abstractmethod
 from typing import Any, Optional
 
 from nodeserver.wrapper.nodes.data.node_data import NodeData
@@ -51,6 +52,20 @@ class NodeMirror:
         return every_slot
 
 
+class _ParsedNode:
+    _mirror: NodeMirror
+
+    def __init__(self, mirror: Optional[NodeMirror] = None) -> None:
+        if mirror:
+            self._mirror = mirror
+
+    @abstractmethod
+    def load_state(self, root_state_path: str, state: Any):
+        pass
+    
+    @abstractmethod
+    def save_state(self, root_state_path: str) -> Any:
+        pass
 
 class SlotMirror:
     _version: int
@@ -76,8 +91,8 @@ class SlotMirror:
         if slot == self:
             return False
         
-        if not DataTypeUtils.is_type_compatible_with(self.data_type, slot.data_type):
-            return False
+        # if not DataTypeUtils.is_type_compatible_with(self.data_type, slot.data_type):
+        #     return False
 
         if not DataTypeUtils.is_type_compatible_with(self.type, slot.type):
             return False

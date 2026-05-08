@@ -3,12 +3,13 @@ from typing import Any, Generic, Optional, Type, TypeVar, get_args, get_origin
 
 from nodeserver.wrapper.nodes.node.base_nodes import SlotMirror
 
-class SlotIO[inputType: Any, valueType: Any]:
+class _SlotIO[inputType: Any, valueType: Any]:
     _max_inputs: int = 1
     _version: int
     _value: Optional[valueType] = None
 
-    _raw_io_type: Type[Any]
+    _raw_io_type: Type[Any] = Type
+    _is_input: bool = False
 
     def __init__(self, value: Optional[valueType] = None, max_inputs: int = 1, raw_io_type: Type[Any] = Type) -> None:
         self._max_inputs = max_inputs
@@ -31,7 +32,13 @@ class SlotIO[inputType: Any, valueType: Any]:
     def get_type(self) -> type[Any]:
         return self._raw_io_type
 
-T_SlotIO = TypeVar("T_SlotIO", bound=SlotIO, default=SlotIO)
+class InputSlotIO[inputType: Any](_SlotIO[inputType, None]):
+    _is_input = True
+
+class OutputSlotIO[outputType: Any](_SlotIO[None, outputType]):
+    _is_input = False
+
+T_SlotIO = TypeVar("T_SlotIO", bound=_SlotIO, default=_SlotIO)
 class NodeSlot(Generic[T_SlotIO]):
     _output_class: Type[T_SlotIO]
     _version: int
@@ -39,7 +46,7 @@ class NodeSlot(Generic[T_SlotIO]):
     _output: T_SlotIO
     _mirror: SlotMirror
 
-    def __init__(self, mirror: Optional[SlotMirror] = None, output_cls: Type[T_SlotIO] = SlotIO, raw_io_type: Type[Any] = Type) -> None:
+    def __init__(self, mirror: Optional[SlotMirror] = None, output_cls: Type[T_SlotIO] = _SlotIO, raw_io_type: Type[Any] = Type) -> None:
         if mirror != None:
             self._mirror = mirror
         
@@ -52,10 +59,12 @@ class NodeSlot(Generic[T_SlotIO]):
         return self._output
 
 class SlotConfig:
-    def __init__(self, slot_class: Optional[Type[NodeSlot]] = None, is_input: bool = True, **kwargs):
+    def __init__(self, slot_class: Optional[Type[NodeSlot]] = None, is_input: bool = False, max_inputs: int = 1, **kwargs):
         self.slot_class = slot_class
         self.is_input = is_input
         self.extra_kwargs = kwargs
+
+        self.max_inputs = max_inputs if self.is_input else 0
 
 def Input(slot_cls: Optional[Type[NodeSlot]] = None, max_inputs: int = 1, **kwargs):
     return SlotConfig(slot_class=slot_cls, is_input=True, max_inputs=max_inputs, **kwargs)

@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from nodeserver.api.base_server import NodeServer
 from nodeserver.api.node.node_exceptions import NoOutputException
+from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.nodes import BaseNode
 from nodeserver.api.node.slots import Input
 from nodeserver.wrapper.nodes.data.node_data import NodeData
@@ -38,6 +39,9 @@ class MyInputNode(BaseNode):
             out_0=parameter.value
         )
 
+class FileInputNode(MyInputNode):
+    pass
+
 
 class _MathNodeInput(BaseModel):
     in_0: float
@@ -65,42 +69,59 @@ class MyMathNode(BaseNode):
         return _MathNodeOutput(
             out_0=result
         )
+class SumNode(MyMathNode): operation = 0
+class SubNode(MyMathNode): operation = 1
+class MulNode(MyMathNode): operation = 2
+class DivNode(MyMathNode): operation = 3
 
+# slot_types: dict[str, BaseSlotType] = {
+#     "input": INPUT_TYPE,
+#     "output": OUTPUT_TYPE
+# }
+# default_slots: dict[str, SlotData] = {
+#     "in_0": SlotData(type="input", data_type=DataTypes.FLOAT),
+#     "in_1": SlotData(type="input", data_type=DataTypes.FLOAT),
+#     "out_0": SlotData(type="output", data_type=DataTypes.FLOAT),
+# }
 
-slot_types: dict[str, BaseSlotType] = {
-    "input": INPUT_TYPE,
-    "output": OUTPUT_TYPE
-}
-default_slots: dict[str, SlotData] = {
-    "in_0": SlotData(type="input", data_type=DataTypes.FLOAT),
-    "in_1": SlotData(type="input", data_type=DataTypes.FLOAT),
-    "out_0": SlotData(type="output", data_type=DataTypes.FLOAT),
-}
-
-def my_parser(mirror: NodeMirror) -> BaseNode:
-    if mirror.type_name == "InputNode" or mirror.type_name == "FileInputNode":
-        return MyInputNode(mirror)
+# def my_parser(mirror: NodeMirror) -> BaseNode:
+#     if mirror.type_name == "InputNode" or mirror.type_name == "FileInputNode":
+#         return MyInputNode(mirror)
     
-    node = MyMathNode(mirror)
-    match mirror.type_name:
-        case "SumNode": node.operation = 0
-        case "SubNode": node.operation = 1
-        case "MulNode": node.operation = 2
-        case "DivNode": node.operation = 3 
+#     node = MyMathNode(mirror)
+#     match mirror.type_name:
+#         case "SumNode": node.operation = 0
+#         case "SubNode": node.operation = 1
+#         case "MulNode": node.operation = 2
+#         case "DivNode": node.operation = 3 
 
-    return node
+#     return node
 
+NODE_REGISTRY: dict[str, type[BaseNode]] = {
+    "MyInputNode": MyInputNode,
+    "FileInputNode": FileInputNode,
+    "SumNode": SumNode,
+    "SubNode": SubNode,
+    "MulNode": MulNode,
+    "DivNode": DivNode,
+}
+node_constructors: list[ConstructorModel] = []
+slot_types = {}
+for node_type in NODE_REGISTRY:
+    super_slot_types, constructor = NODE_REGISTRY[node_type].generate_types(slot_types)
+    node_constructors.append(constructor)
+    slot_types = super_slot_types
+
+def auto_parser(mirror: NodeMirror) -> BaseNode:
+    node_class = NODE_REGISTRY.get(mirror.type_name, None)
+    if not node_class:
+        raise Exception(f"Couldn't parse node with type {mirror.type_name}")
+
+    return node_class(mirror)
 
 my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
 my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
-    my_cool_types, default_slots, my_parser, [
-        ConstructorModel.new("FileInputNode", NodeData({"file": NodeFileParameter(extension_filter=["json"])}), {"out_0": SlotData(type="output", data_type=DataTypes.FILE)}),
-        ConstructorModel.new("InputNode", NodeData({"value": NodeNumberParameter(type=DataTypes.FLOAT)}), {"out_0": SlotData(type="output", data_type=DataTypes.FLOAT)}),
-        ConstructorModel.new("SumNode"),
-        ConstructorModel.new("SubNode"),
-        ConstructorModel.new("MulNode"),
-        ConstructorModel.new("DivNode"),
-    ]
+    my_cool_types, {}, auto_parser, node_constructors
 ))
 
 server = NodeServer(my_cool_types)

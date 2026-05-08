@@ -1,17 +1,15 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import json
-from typing import Callable, Optional
+from typing import Callable
 
-from nodeserver.api.node.nodes import BaseNode
-from nodeserver.api.node.slots import SlotIO
 from nodeserver.wrapper.nodes.data.custom_data_types import CustomSlotType
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeTypeData, SlotData, SlotTypeData, TypeFile
 from nodeserver.wrapper.nodes.helpers.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
+from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
 class TypeFileReader:
     _node_types_version: int = -1
@@ -160,22 +158,20 @@ class ConstructorModel:
     node_data: NodeData | None
 
     slots: dict[str, SlotData] | None
-    parser: Callable[[NodeMirror], BaseNode] | None
-    slot_output_class: Optional[type[SlotIO]] = None
+    parser: Callable[[NodeMirror], _ParsedNode] | None
 
     @staticmethod
-    def new(type_name: str, node_data: NodeData | None = None, slots: dict[str, SlotData] | None = None, parser: Callable[[NodeMirror], BaseNode] | None = None, slot_output_class: Optional[type[SlotIO]] = None) -> 'ConstructorModel':
+    def new(type_name: str, node_data: NodeData | None = None, slots: dict[str, SlotData] | None = None, parser: Callable[[NodeMirror], _ParsedNode] | None = None) -> 'ConstructorModel':
         return ConstructorModel(
             type_name=type_name,
             node_data=node_data,
             slots=slots,
             parser=parser,
-            slot_output_class=slot_output_class
         )
 
 class TypeReaderUtils:
     @staticmethod
-    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], BaseNode], models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
+    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], _ParsedNode], models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
         constructors: list[BaseMirrorConstructor] = []
         for model in models:
             constructor = CustomMirrorConstructor(

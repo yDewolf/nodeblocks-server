@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import json
+import logging
 import os
 import pathlib
 from typing import Annotated, Any, Optional, Type, get_args, get_origin, get_type_hints
@@ -8,15 +9,19 @@ from pydantic import BaseModel
 
 from nodeserver.api.internal.instance_state import InternalNodeState
 from nodeserver.api.node.node_utils import NodeUtils
-from nodeserver.api.node.slots import NodeSlot, SlotConfig, SlotIO
-from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
+from nodeserver.api.node.slots import Input, NodeSlot, SlotConfig, _SlotIO
+from nodeserver.wrapper.nodes.data.node_data import NodeData
+from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
+from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel
 from nodeserver.wrapper.nodes.helpers.node_manager import NodeMirrorManager
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
 
-class _Node[inputType: BaseModel, outputType: BaseModel]:
+logger = logging.getLogger("nds.nodes")
+
+class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     _version: int = 0
-    _mirror: NodeMirror
 
     dirty: bool = True
     bypass_cache: bool = False
@@ -27,12 +32,14 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
     _slots: Slots
 
     def __init__(self, mirror: NodeMirror | None = None):
+        super().__init__(mirror)
+
         self._slots = self.Slots()
-        if mirror != None:
-            self._mirror = mirror
-            self._build_slots()
+        self._build_slots()
 
     def _build_slots(self):
+        if not self._mirror: return
+
         hints = get_type_hints(self.Slots, globalns=globals())
         self._slots = self.Slots()
         for attribute_name, hint in hints.items():
@@ -40,13 +47,17 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
             if not slot_mirror:
                 continue
             
-            origin = get_origin(hint) or hint
-            args = get_args(hint)
-
-            actual_output_type = args[0] if args else SlotIO
-            slot_instance = origin(mirror=slot_mirror, output_cls=actual_output_type)
-            
+            slot_instance = self._build_slot_instance(hint, slot_mirror)
             setattr(self._slots, attribute_name, slot_instance)
+
+    @staticmethod
+    def _build_slot_instance(hint: type[NodeSlot], slot_mirror: Optional[SlotMirror]):
+        origin = get_origin(hint) or hint
+        args = get_args(hint)
+
+        actual_io = args[0] if args else _SlotIO
+        return origin(mirror=slot_mirror, output_cls=actual_io)
+
 
     def slot(self, name: str) -> NodeSlot:
         slot = getattr(self._slots, name)
@@ -108,7 +119,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
             state_data=None
         )
 
-    def get_execution_hash(self, output_cache: dict[SlotMirror, SlotIO]) -> int:
+    def get_execution_hash(self, output_cache: dict[SlotMirror, _SlotIO]) -> int:
         input_versions = 0
         slots_version = 0
         for slot in self._mirror.slots.get(SuperSlotTypes.INPUT, []):
@@ -118,6 +129,10 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
                 if cached: input_versions += cached._version
         
         return (self._version + self._mirror.data._version + input_versions + slots_version)
+
+    @abstractmethod
+    def _parse_inputs(self, raw_inputs: dict):
+        pass
 
     def resolve_inputs(self, output_cache: dict) -> dict:
         raw_inputs = {}
@@ -132,14 +147,12 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
             try:
                 is_collection = issubclass(origin, (list, tuple))
             except TypeError:
-                print("oi")
                 is_collection = False
 
             if is_collection:
                 raw_inputs[slot.slot_name] = values[:real_slot._output._max_inputs]
                 if len(values) > real_slot._output._max_inputs:
-                    # FIXME: Trocar isso aqui por um logger
-                    print(f"WARNING: Shrinking node inputs for slot {slot}")
+                    logger.warning(f"WARNING: Shrinking node inputs for slot {slot}")
                 
                 continue
 
@@ -147,6 +160,48 @@ class _Node[inputType: BaseModel, outputType: BaseModel]:
         
         return raw_inputs
 
+    @classmethod
+    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
+        super_types: dict[str, BaseSlotType] = super_slot_types
+        slot_types: dict[str, SlotData] = {}
+        
+        slot_hints = get_type_hints(cls.Slots, globalns=globals())
+        for attribute_name, hint in slot_hints.items():
+            slot_instance = cls._build_slot_instance(hint, None)
+            cls._add_slot_types(attribute_name, slot_instance, super_types, slot_types)
+            
+        constructor: ConstructorModel = ConstructorModel(
+            type_name=str(cls.__name__),
+            node_data=NodeData({}), # TODO: implement parameter typesafety
+            slots=slot_types,
+            parser=None,
+        )
+
+        return (super_types, constructor)
+
+    @classmethod
+    def _add_slot_types(cls, key: str, slot_instance: NodeSlot, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
+        # FIXME: Improve DataTypes so it can make new DataTypes and pass it with the scene
+        raw_type = slot_instance._output._raw_io_type
+        type_arguments = get_args(slot_instance._output._raw_io_type)
+        if type_arguments:
+            raw_type = type_arguments[0]
+
+        data_type = DataTypeUtils._match_data_type_str(raw_type.__name__)
+        super_slot_name = f"{slot_instance.__class__.__name__}:{raw_type.__name__}:{"input" if slot_instance._output._is_input else "output"}"
+        if not super_types.__contains__(super_slot_name):
+            super_types[super_slot_name] = BaseSlotType(
+                type_name=super_slot_name, 
+                super_type=SuperSlotTypes.INPUT if slot_instance._output._is_input else SuperSlotTypes.OUTPUT,
+                data_type=data_type,
+                type_whitelist=[data_type._super_type], # type: ignore
+                name_whitelist=[super_slot_name]
+            )
+        
+        slot_types[key] = SlotData(
+            type=super_slot_name,
+            data_type=DataTypeUtils._match_super_type(raw_type.__name__)
+        )
 
 class NoInput(BaseModel):
     pass
@@ -175,15 +230,48 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
             slot_mirror = self._mirror.get_slot(name)
             if not slot_mirror: continue
 
-            instance = spec["class"](
+            instance: NodeSlot = spec["class"](
                 mirror=slot_mirror, 
                 output_cls=spec["io"],
-                raw_io_type=spec["raw_io_type"],
                 **spec["args"]
             )
 
+            instance._output._max_inputs = spec["max_inputs"]
+            instance._output._raw_io_type = spec["raw_type"]
+
             setattr(self._slots, name, instance)
     
+    @classmethod
+    def _build_slot_instance(cls, spec: dict, slot_mirror: Optional[SlotMirror]):
+        instance: NodeSlot = spec["class"](
+            mirror=slot_mirror, 
+            output_cls=spec["io"],
+            **spec["args"]
+        )
+
+        instance._output._max_inputs = spec["max_inputs"]
+        instance._output._raw_io_type = spec["raw_type"]
+
+        return instance
+
+    @classmethod
+    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
+        super_types: dict[str, BaseSlotType] = super_slot_types
+        slot_types: dict[str, SlotData] = {}
+        
+        for name, spec in cls._slot_definitions.items():
+            slot_instance = cls._build_slot_instance(spec, None)
+            cls._add_slot_types(name, slot_instance, super_types, slot_types)
+            
+        constructor: ConstructorModel = ConstructorModel(
+            type_name=str(cls.__name__),
+            node_data=NodeData({}), # TODO: implement parameter typesafety
+            slots=slot_types,
+            parser=None,
+        )
+
+        return (super_types, constructor)
+
     def _parse_inputs(self, raw_input_data: dict) -> BaseModel:
         return self.InputModel(**raw_input_data)
 

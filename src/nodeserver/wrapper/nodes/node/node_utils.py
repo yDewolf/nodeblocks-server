@@ -1,12 +1,11 @@
 from collections import deque
 
-from nodeserver.api.node.nodes import BaseNode
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
+from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
 class NodeUtils:
     @staticmethod
-    def get_node_execution_order(nodes: list[BaseNode]) -> list[NodeMirror]:
+    def get_node_execution_order(nodes: list[_ParsedNode]) -> list[NodeMirror]:
         execution_order = NodeUtils._get_node_execution_order([node._mirror for node in nodes])
         return execution_order
 
