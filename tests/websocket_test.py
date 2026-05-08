@@ -124,8 +124,9 @@ test = MyMathNode()
 slot = test.slot("in_1")
 slot._output.get_type()
 
-# test1 = TestNode()
-# slot1 = test1.slot("slot_0")
+test1 = TestNode()
+slot1 = test1.slot("slot_0")
+
 
 server = NodeServer(my_cool_types)
 server.run_server()

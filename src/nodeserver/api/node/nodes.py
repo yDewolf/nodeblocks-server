@@ -27,8 +27,9 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     dirty: bool = True
     bypass_cache: bool = False
     
-    class Slots:
-        pass
+    class _Slots: pass
+    # Parsed Slots
+    class Slots(_Slots): pass
 
     _slots: Slots
 
@@ -66,14 +67,12 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
 
     def _build_slots(self):
-        if not self._mirror: return
-
-        hints = get_type_hints(self.Slots, globalns=globals())
-        self._slots = self.Slots()
+        hints = get_type_hints(self._Slots, globalns=globals())
+        self._slots = self._Slots()
         for attribute_name, hint in hints.items():
-            slot_mirror = self._mirror.get_slot(attribute_name)
-            if not slot_mirror:
-                continue
+            slot_mirror: Optional[SlotMirror] = None
+            if self.has_mirror():
+                slot_mirror = self._mirror.get_slot(attribute_name)
             
             slot_instance = self._build_slot_instance(hint, slot_mirror)
             setattr(self._slots, attribute_name, slot_instance)
@@ -268,30 +267,26 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
             pass
         
         cls._slot_definitions = {}
-        # if cls.InputModel is NoInput and cls.OutputModel is NoOutput:
-        #     hints = get_type_hints(cls.Slots)
-        #     if hints:
-        #         for name, hint in hints.items():
-        #             GeneratedSlots.__annotations__[name] = hint
-        
         NodeUtils.process_model(cls.InputModel, default_is_input=True, slots_class=GeneratedSlots, _slot_definitions=cls._slot_definitions)
         NodeUtils.process_model(cls.OutputModel, default_is_input=False, slots_class=GeneratedSlots, _slot_definitions=cls._slot_definitions)
         
+        cls._Slots = cls.Slots
         cls.Slots = GeneratedSlots # type: ignore
     
     def _build_slots(self):
+        super()._build_slots()
         for name, spec in self._slot_definitions.items():
             slot_mirror: Optional[SlotMirror] = None
             if self.has_mirror():
                 slot_mirror = self._mirror.get_slot(name)
                 if not slot_mirror: continue
 
-            instance: NodeSlot = self._build_slot_instance(spec, slot_mirror)
+            instance: NodeSlot = self._build_slot_instance_from_spec(spec, slot_mirror)
 
             setattr(self._slots, name, instance)
     
     @classmethod
-    def _build_slot_instance(cls, spec: dict, slot_mirror: Optional[SlotMirror]):
+    def _build_slot_instance_from_spec(cls, spec: dict, slot_mirror: Optional[SlotMirror]):
         instance: NodeSlot = spec["class"](
             mirror=slot_mirror, 
             output_cls=spec["io"],
@@ -310,7 +305,7 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
     @classmethod
     def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
         for name, spec in cls._slot_definitions.items():
-            slot_instance = cls._build_slot_instance(spec, None)
+            slot_instance = cls._build_slot_instance_from_spec(spec, None)
             cls._add_slot_types(name, slot_instance, super_types, slot_types)
 
     def _parse_inputs(self, raw_input_data: dict) -> BaseModel:
