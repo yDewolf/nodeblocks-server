@@ -1,6 +1,3 @@
-
-from typing import Annotated
-
 from pydantic import BaseModel
 
 from nodeserver.api.node.nodes import BaseNode

@@ -9,8 +9,6 @@ from nodeserver.api.instance.actions.node_actions import NodeActionUtils
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
-from nodeserver.api.node.nodes import _Node
-from nodeserver.api.node.slots import _SlotIO
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.api.web.requests.request_unions import AnyServerMessage
 from nodeserver.api.web.requests.websocket_requests import SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
@@ -22,6 +20,8 @@ from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileRea
 from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.wrapper.nodes.node.node_utils import NodeUtils
+from nodeserver.api.node.abstract._nodes import _Node
+from nodeserver.api.node.abstract._slots import _SlotIO
 
 logger = logging.getLogger("nds.instances")
 
