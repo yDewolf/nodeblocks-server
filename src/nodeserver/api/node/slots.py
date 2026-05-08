@@ -1,6 +1,6 @@
 
-from typing import Any, Generic, Optional, Type, TypeVar, get_args, get_origin
-
+from typing import Any, Generic, Optional, Type, TypeVar
+from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType
 from nodeserver.wrapper.nodes.node.base_nodes import SlotMirror
 
 class _SlotIO[inputType: Any, valueType: Any]:
@@ -8,6 +8,7 @@ class _SlotIO[inputType: Any, valueType: Any]:
     _version: int
     _value: Optional[valueType] = None
 
+    _datatype_override: Optional[BaseNodeType] = None
     _raw_io_type: Type[Any] = Type
     _is_input: bool = False
 
@@ -53,21 +54,24 @@ class NodeSlot(Generic[T_SlotIO]):
         self._output_class = output_cls
         self._output = self._output_class(raw_io_type=raw_io_type)
 
+    def has_mirror(self) -> bool:
+        return hasattr(self, "_mirror")
 
     def make_output_from_value(self, value: Any):
         self._output.value = value
         return self._output
 
 class SlotConfig:
-    def __init__(self, slot_class: Optional[Type[NodeSlot]] = None, is_input: bool = False, max_inputs: int = 1, **kwargs):
+    def __init__(self, slot_class: Optional[Type[NodeSlot]] = None, is_input: bool = False, max_inputs: int = 1, datatype_override: Optional[BaseNodeType] = None, **kwargs):
         self.slot_class = slot_class
         self.is_input = is_input
         self.extra_kwargs = kwargs
+        self.datatype_override = datatype_override
 
         self.max_inputs = max_inputs if self.is_input else 0
 
-def Input(slot_cls: Optional[Type[NodeSlot]] = None, max_inputs: int = 1, **kwargs):
-    return SlotConfig(slot_class=slot_cls, is_input=True, max_inputs=max_inputs, **kwargs)
+def Input(slot_cls: Optional[Type[NodeSlot]] = None, max_inputs: int = 1, datatype_override: Optional[BaseNodeType] = None, **kwargs):
+    return SlotConfig(slot_class=slot_cls, is_input=True, datatype_override=datatype_override, max_inputs=max_inputs, **kwargs)
 
-def Output(slot_cls: Optional[Type[NodeSlot]] = None, **kwargs):
-    return SlotConfig(slot_class=slot_cls, is_input=False, **kwargs)
+def Output(slot_cls: Optional[Type[NodeSlot]] = None, datatype_override: Optional[BaseNodeType] = None, **kwargs):
+    return SlotConfig(slot_class=slot_cls, is_input=False, datatype_override=datatype_override, **kwargs)

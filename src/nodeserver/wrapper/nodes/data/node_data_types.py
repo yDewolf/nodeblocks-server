@@ -87,6 +87,7 @@ class DataTypeUtils:
             case "int": return INT_TYPE
             case "uint": return UINT_TYPE
             case "array": return ARRAY_TYPE
+            case "file": return FILE_TYPE
             case _:
                 return UNKNOWN_TYPE
 

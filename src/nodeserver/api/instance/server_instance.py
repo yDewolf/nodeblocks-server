@@ -45,9 +45,10 @@ class BaseServerRuntime:
         if not current_node or self._current_idx == None: return
         self._current_idx += 1
         
+        current_node._ensure_parameters_updated()
+
         current_hash = current_node.get_execution_hash(self._output_cache)
         last_hash = self._node_execution_cache.get(current_node._mirror.uid)
-
         if current_hash == last_hash and not current_node.bypass_cache:
             return (self._get_cached_outputs(current_node), current_node, True)
 

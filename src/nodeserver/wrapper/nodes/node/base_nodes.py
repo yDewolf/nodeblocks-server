@@ -51,6 +51,9 @@ class NodeMirror:
         
         return every_slot
 
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}({self.uid})"
+
 
 class _ParsedNode:
     _mirror: NodeMirror

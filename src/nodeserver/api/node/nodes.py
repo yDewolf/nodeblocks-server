@@ -8,12 +8,13 @@ from typing import Annotated, Any, Optional, Type, get_args, get_origin, get_typ
 from pydantic import BaseModel
 
 from nodeserver.api.internal.instance_state import InternalNodeState
+from nodeserver.api.node.node_parameters import ParamConfig
 from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.slots import Input, NodeSlot, SlotConfig, _SlotIO
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
-from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, NodeParameterDataAdapter, SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel
 from nodeserver.wrapper.nodes.helpers.node_manager import NodeMirrorManager
 from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
@@ -31,11 +32,38 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
     _slots: Slots
 
+    class Parameters(BaseModel):
+        pass
+
+    _parameters: Parameters
+    _params_spec: dict[str, dict]
+
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)
-
+        self._parameters = self.Parameters()
         self._slots = self.Slots()
         self._build_slots()
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._params_spec = {}
+        if not hasattr(cls, "Parameters") or not cls.Parameters is not BaseModel:
+            return
+        
+        for name, field in cls.Parameters.model_fields.items():
+            param_info = {
+                "type": DataTypeUtils._match_super_type(field.annotation.__name__ if field.annotation else ""),
+                "default": field.default,
+                "label": name.replace("_", " ").title(),
+                # "widget": "number"
+            }
+
+            for meta in field.metadata:
+                if isinstance(meta, ParamConfig):
+                    param_info.update(meta.dump())
+            
+            cls._params_spec[name] = param_info
+
 
     def _build_slots(self):
         if not self._mirror: return
@@ -58,7 +86,6 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         actual_io = args[0] if args else _SlotIO
         return origin(mirror=slot_mirror, output_cls=actual_io)
 
-
     def slot(self, name: str) -> NodeSlot:
         slot = getattr(self._slots, name)
         if not isinstance(slot, NodeSlot):
@@ -69,6 +96,17 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         
         return slot
 
+
+    def _ensure_parameters_updated(self):
+        for name, param in self._mirror.data.parameters.items():
+            if not hasattr(param, name):
+                raise Exception(f"Parameter {name} from node {self._mirror} doesn't exist in instance {self}")
+
+            setattr(self._parameters, name, param.value)
+
+    @abstractmethod
+    def _parse_inputs(self, raw_inputs: dict):
+        pass
 
     @abstractmethod
     def pre_forward(self, input: inputType):
@@ -119,6 +157,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
             state_data=None
         )
 
+
     def get_execution_hash(self, output_cache: dict[SlotMirror, _SlotIO]) -> int:
         input_versions = 0
         slots_version = 0
@@ -129,10 +168,6 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
                 if cached: input_versions += cached._version
         
         return (self._version + self._mirror.data._version + input_versions + slots_version)
-
-    @abstractmethod
-    def _parse_inputs(self, raw_inputs: dict):
-        pass
 
     def resolve_inputs(self, output_cache: dict) -> dict:
         raw_inputs = {}
@@ -160,24 +195,37 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         
         return raw_inputs
 
+
     @classmethod
     def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
         super_types: dict[str, BaseSlotType] = super_slot_types
         slot_types: dict[str, SlotData] = {}
         
-        slot_hints = get_type_hints(cls.Slots, globalns=globals())
-        for attribute_name, hint in slot_hints.items():
-            slot_instance = cls._build_slot_instance(hint, None)
-            cls._add_slot_types(attribute_name, slot_instance, super_types, slot_types)
-            
+        cls._add_cls_slot_types(super_types, slot_types)
+        constructor = cls._generate_constructor(slot_types)
+        return (super_types, constructor)
+
+    @classmethod
+    def _generate_constructor(cls, slot_types: dict[str, SlotData]) -> ConstructorModel:
+        param_data: dict[str, NodeParameterData] = {}
+        for param_name, spec in cls._params_spec.items():
+            param_data[param_name] = NodeParameterDataAdapter.validate_python(spec)
+
         constructor: ConstructorModel = ConstructorModel(
             type_name=str(cls.__name__),
-            node_data=NodeData({}), # TODO: implement parameter typesafety
+            node_data=NodeData(param_data),
             slots=slot_types,
             parser=None,
         )
 
-        return (super_types, constructor)
+        return constructor
+
+    @classmethod
+    def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
+        slot_hints = get_type_hints(cls.Slots, globalns=globals())
+        for attribute_name, hint in slot_hints.items():
+            slot_instance = cls._build_slot_instance(hint, None)
+            cls._add_slot_types(attribute_name, slot_instance, super_types, slot_types)
 
     @classmethod
     def _add_slot_types(cls, key: str, slot_instance: NodeSlot, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
@@ -187,14 +235,17 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         if type_arguments:
             raw_type = type_arguments[0]
 
-        data_type = DataTypeUtils._match_data_type_str(raw_type.__name__)
+        data_type = slot_instance._output._datatype_override
+        if not data_type:
+            data_type = DataTypeUtils._match_data_type_str(raw_type.__name__)
+        
         super_slot_name = f"{slot_instance.__class__.__name__}:{raw_type.__name__}:{"input" if slot_instance._output._is_input else "output"}"
         if not super_types.__contains__(super_slot_name):
             super_types[super_slot_name] = BaseSlotType(
                 type_name=super_slot_name, 
                 super_type=SuperSlotTypes.INPUT if slot_instance._output._is_input else SuperSlotTypes.OUTPUT,
                 data_type=data_type,
-                type_whitelist=[data_type._super_type], # type: ignore
+                type_whitelist=[SuperSlotTypes.OUTPUT if slot_instance._output._is_input else SuperSlotTypes.INPUT], # type: ignore
                 name_whitelist=[super_slot_name]
             )
         
@@ -230,14 +281,7 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
             slot_mirror = self._mirror.get_slot(name)
             if not slot_mirror: continue
 
-            instance: NodeSlot = spec["class"](
-                mirror=slot_mirror, 
-                output_cls=spec["io"],
-                **spec["args"]
-            )
-
-            instance._output._max_inputs = spec["max_inputs"]
-            instance._output._raw_io_type = spec["raw_type"]
+            instance: NodeSlot = self._build_slot_instance(spec, slot_mirror)
 
             setattr(self._slots, name, instance)
     
@@ -251,26 +295,18 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
 
         instance._output._max_inputs = spec["max_inputs"]
         instance._output._raw_io_type = spec["raw_type"]
+        datatype_override = spec.get("datatype_override")
+        instance._output._datatype_override = datatype_override
+        if datatype_override and instance.has_mirror():
+            instance._mirror.data_type = datatype_override
 
         return instance
 
     @classmethod
-    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
-        super_types: dict[str, BaseSlotType] = super_slot_types
-        slot_types: dict[str, SlotData] = {}
-        
+    def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
         for name, spec in cls._slot_definitions.items():
             slot_instance = cls._build_slot_instance(spec, None)
             cls._add_slot_types(name, slot_instance, super_types, slot_types)
-            
-        constructor: ConstructorModel = ConstructorModel(
-            type_name=str(cls.__name__),
-            node_data=NodeData({}), # TODO: implement parameter typesafety
-            slots=slot_types,
-            parser=None,
-        )
-
-        return (super_types, constructor)
 
     def _parse_inputs(self, raw_input_data: dict) -> BaseModel:
         return self.InputModel(**raw_input_data)

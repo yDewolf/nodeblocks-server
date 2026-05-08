@@ -4,11 +4,12 @@ from pydantic import BaseModel
 
 from nodeserver.api.base_server import NodeServer
 from nodeserver.api.node.node_exceptions import NoOutputException
+from nodeserver.api.node.node_parameters import FileParam, Param
 from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.nodes import BaseNode
-from nodeserver.api.node.slots import Input
+from nodeserver.api.node.slots import Input, Output
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, DataTypes, SuperSlotTypes
+from nodeserver.wrapper.nodes.data.node_data_types import FILE_TYPE, INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, DataTypes, SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeFileParameter, NodeNumberParameter, SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader, TypeReaderUtils
 
@@ -25,22 +26,35 @@ class _InputNodeOutput(BaseModel):
 
 class MyInputNode(BaseNode):
     OutputModel = _InputNodeOutput
+    class Parameters(BaseModel):
+        value: Annotated[float, Param(
+            label="Value",
+        )] = 0.0
+    _parameters: Parameters
 
     def forward(self, input: BaseModel) -> _InputNodeOutput:
-        parameter = self._mirror.data.parameters.get("value")
-        if parameter == None:
+        value = self._parameters.value
+        if value == None:
             # raise NoOutputException()
             return _InputNodeOutput(out_0=None)
         
-        if type(parameter.value) != float and type(parameter.value) != int:
+        if type(value) != float and type(value) != int:
             return _InputNodeOutput(out_0=None)
         
         return _InputNodeOutput(
-            out_0=parameter.value
+            out_0=value
         )
 
+class _FileInput_Out(BaseModel):
+    out_0: Annotated[Optional[str], Output(datatype_override=FILE_TYPE)]
 class FileInputNode(MyInputNode):
-    pass
+    OutputModel = _FileInput_Out
+    class Parameters(BaseModel):
+        file_path: Annotated[str, FileParam(
+            label="Path",
+            extension_filter=[".json"],
+        )] = ""
+    _parameters: Parameters
 
 
 class _MathNodeInput(BaseModel):
@@ -73,29 +87,6 @@ class SumNode(MyMathNode): operation = 0
 class SubNode(MyMathNode): operation = 1
 class MulNode(MyMathNode): operation = 2
 class DivNode(MyMathNode): operation = 3
-
-# slot_types: dict[str, BaseSlotType] = {
-#     "input": INPUT_TYPE,
-#     "output": OUTPUT_TYPE
-# }
-# default_slots: dict[str, SlotData] = {
-#     "in_0": SlotData(type="input", data_type=DataTypes.FLOAT),
-#     "in_1": SlotData(type="input", data_type=DataTypes.FLOAT),
-#     "out_0": SlotData(type="output", data_type=DataTypes.FLOAT),
-# }
-
-# def my_parser(mirror: NodeMirror) -> BaseNode:
-#     if mirror.type_name == "InputNode" or mirror.type_name == "FileInputNode":
-#         return MyInputNode(mirror)
-    
-#     node = MyMathNode(mirror)
-#     match mirror.type_name:
-#         case "SumNode": node.operation = 0
-#         case "SubNode": node.operation = 1
-#         case "MulNode": node.operation = 2
-#         case "DivNode": node.operation = 3 
-
-#     return node
 
 NODE_REGISTRY: dict[str, type[BaseNode]] = {
     "MyInputNode": MyInputNode,
