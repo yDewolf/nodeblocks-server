@@ -15,48 +15,145 @@ from nodeserver.wrapper.nodes.node.node_utils import NodeMirrorUtils
 
 logger = logging.getLogger("nds.instances")
 
-# TODO
-class RuntimeContext:
-    pass
-
-class InstanceRuntime:
-    _current_idx: int | None = None
-    _process_order: list[NodeMirror] | None = None
+class _ReadonlyContext:
+    _scene: Optional[NodeScene] = None
+    _current_idx: int
+    _process_order: list[NodeMirror]
     _output_cache: dict[SlotMirror, _SlotIO]
+
     _node_execution_cache: dict[str, int]
 
-    _previous_output: dict | None = None
-    waiting_to_continue: bool
+    _processed_nodes: list[_Node]
+    @property
+    def processed_nodes(self) -> list[_Node]:
+        return self._processed_nodes
+
+    def __init__(
+            self, 
+            scene: Optional[NodeScene], 
+            current_idx: int = 0, 
+            output_cache: dict[SlotMirror, _SlotIO] = {}, 
+            execution_cache: dict[str, int] = {}, 
+            process_order: list[NodeMirror] = [], 
+            processed_nodes: list[_Node] = []
+    ) -> None:
+        self._scene = scene
+        
+        self._current_idx = current_idx
+        self._output_cache = output_cache
+        self._node_execution_cache = execution_cache
+        self._process_order = process_order
+        self._processed_nodes = processed_nodes
     
+    def _get_current_node(self, scene: NodeScene) -> Optional[_Node]:
+        if self._current_idx == None or not self._process_order:
+            return None
+        
+        if self._current_idx >= len(self._process_order):
+            self.waiting_to_continue = True
+            return None
+        
+        current_node = scene.get_node(self._process_order[self._current_idx].uid)
+        if not isinstance(current_node, _Node):
+            raise Exception(f"Node {current_node} doesn't extend {_Node}")
+        
+        if current_node == None:
+            return None
+    
+        return current_node
+
+    def _get_cached_outputs(self, node: _Node) -> dict[SlotMirror, _SlotIO]:
+        return {
+            slot: self._output_cache[slot]
+            for slot in node._mirror.slots.get(SuperSlotTypes.OUTPUT, [])
+            if slot in self._output_cache
+        }
+
+    def readonly(self):
+        return self
+
+class ContextAwareInput(BaseModel):
+    class Config:
+        arbitrary_types_allowed=True
+
+    context: Optional[_ReadonlyContext] = None
+
+# TODO
+class RuntimeContext(_ReadonlyContext):
+    def __init__(self, scene: NodeScene) -> None:
+        super().__init__(
+            scene,
+            process_order=NodeMirrorUtils.get_node_execution_order(scene.nodes)
+        )
+
+    def _reset_cache(self):
+        self._node_execution_cache.clear()
+        self._output_cache.clear()
+    
+    def _add_to_processed(self, node: _Node):
+        if self._processed_nodes.__contains__(node):
+            raise Exception(f"Node was already processed {node._mirror.uid}")
+        
+        self._processed_nodes.append(node)
+
+    def _update_outputs(self, node: _Node, outputs: dict) -> dict[SlotMirror, _SlotIO]:
+        output_data: dict[SlotMirror, _SlotIO] = {}
+        for slot_name in outputs:
+            slot = node.slot(slot_name)
+            if slot._mirror.type._super_type != SuperSlotTypes.OUTPUT:
+                logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {node}")
+            
+            slot._io.value = outputs[slot_name]
+            output_data[slot._mirror] = slot._io
+            self._output_cache[slot._mirror] = slot._io
+
+        self._add_to_processed(node)
+        return output_data
+
+    def readonly(self):
+        return _ReadonlyContext(
+            scene=self._scene,
+            current_idx=self._current_idx,
+            output_cache=self._output_cache,
+            execution_cache=self._node_execution_cache,
+            process_order=self._process_order,
+            processed_nodes=self.processed_nodes
+        )
+
+class InstanceRuntime:
+    context: Optional[RuntimeContext] = None
+    waiting_to_continue: bool
     def __init__(self):
         self.waiting_to_continue = False
-        self._output_cache = {}
-        self._node_execution_cache = {}
-
         
     def process_next(self, node_scene: NodeScene, instance_protocol: InstanceProtocol) -> Optional[tuple[dict[SlotMirror, _SlotIO] | None, _Node, bool]]:
-        current_node = self._get_current_node(node_scene)
-        if not current_node or self._current_idx == None: return
-        self._current_idx += 1
+        if not self.context: return
+
+        current_node = self.context._get_current_node(node_scene)
+        if not current_node or self.context._current_idx == None: return
+        self.context._current_idx += 1
         
         current_node._ensure_parameters_updated()
 
-        current_hash = current_node.get_execution_hash(self._output_cache)
-        last_hash = self._node_execution_cache.get(current_node._mirror.uid)
+        current_hash = current_node.get_execution_hash(self.context._output_cache)
+        last_hash = self.context._node_execution_cache.get(current_node._mirror.uid)
         if current_hash == last_hash and not current_node.bypass_cache:
-            return (self._get_cached_outputs(current_node), current_node, True)
+            return (self.context._get_cached_outputs(current_node), current_node, True)
 
         try:
-            raw_node_inputs = current_node.resolve_inputs(self._output_cache)
-            node_inputs = current_node._parse_inputs(raw_node_inputs)
+            raw_node_inputs = current_node.resolve_inputs(self.context._output_cache)
+            node_inputs: BaseModel = current_node._parse_inputs(raw_node_inputs)
+            if type(node_inputs) is ContextAwareInput:
+                node_inputs.context = self.context.readonly()
+            
             current_node.pre_forward(node_inputs) # Node might set bypass cache to True here
             
             node_output: BaseModel = current_node.forward(node_inputs)
             output_model: dict = node_output.model_dump()
-            output_data = self._update_outputs(current_node, output_model)
+            output_data = self.context._update_outputs(current_node, output_model)
 
             current_node.post_forward()
-            self._node_execution_cache[current_node._mirror.uid] = current_hash
+            self.context._node_execution_cache[current_node._mirror.uid] = current_hash
             return (output_data, current_node, False)
 
         except Exception as e:
@@ -75,53 +172,7 @@ class InstanceRuntime:
     def validate_scene(self, node_scene: NodeScene):
         pass
 
-
     def on_scene_changed(self, new_scene: NodeScene):
-        self._process_order = NodeMirrorUtils.get_node_execution_order(new_scene.nodes)
-        
-        # self._output_cache = {}
-        self._current_idx = 0
-        self._previous_output = None
-        if len(self._process_order) == 0:
-            self._current_idx = None
-
-    def reset_cache(self):
-        self._node_execution_cache.clear()
-        self._output_cache.clear()
-
-    def _get_current_node(self, scene: NodeScene) -> Optional[_Node]:
-        if self._current_idx == None or not self._process_order:
-            return None
-        
-        if self._current_idx >= len(self._process_order):
-            self.waiting_to_continue = True
-            return None
-        
-        current_node = scene.get_node(self._process_order[self._current_idx].uid)
-        if not isinstance(current_node, _Node):
-            raise Exception(f"Node {current_node} doesn't extend {_Node}")
-        
-        if current_node == None:
-            return None
-    
-        return current_node
-
-    def _update_outputs(self, node: _Node, outputs: dict) -> dict[SlotMirror, _SlotIO]:
-        output_data: dict[SlotMirror, _SlotIO] = {}
-        for slot_name in outputs:
-            slot = node.slot(slot_name)
-            if slot._mirror.type._super_type != SuperSlotTypes.OUTPUT:
-                logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {node}")
-            
-            slot._io.value = outputs[slot_name]
-            output_data[slot._mirror] = slot._io
-            self._output_cache[slot._mirror] = slot._io
-
-        return output_data
-
-    def _get_cached_outputs(self, node: _Node) -> dict[SlotMirror, _SlotIO]:
-        return {
-            slot: self._output_cache[slot]
-            for slot in node._mirror.slots.get(SuperSlotTypes.OUTPUT, [])
-            if slot in self._output_cache
-        }
+        self.context = RuntimeContext(
+            scene=new_scene,
+        )

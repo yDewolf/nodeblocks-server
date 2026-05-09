@@ -105,7 +105,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
             setattr(self._parameters, name, param.value)
 
     @abstractmethod
-    def _parse_inputs(self, raw_inputs: dict):
+    def _parse_inputs(self, raw_inputs: dict) -> BaseModel:
         pass
 
     @abstractmethod

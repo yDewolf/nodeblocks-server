@@ -76,16 +76,18 @@ class ServerInstance:
 
             self.state_controller.has_step_permission = False
 
-        results = self._runtime.process_next(self._scene, self)
-        if results != None:
-            slot_results, node, came_from_cache = results
-            result_data = self._prepare_to_send_output(node, slot_results)
+        if self._runtime.context:
+            results = self._runtime.process_next(self._scene, self)
             
-            # if not came_from_cache:
-            self.send_to_client(SrvNodeOutput(
-                node_id=node._mirror.uid,
-                value=result_data
-            ))
+            if results != None:
+                slot_results, node, came_from_cache = results
+                result_data = self._prepare_to_send_output(node, slot_results)
+                
+                # if not came_from_cache:
+                self.send_to_client(SrvNodeOutput(
+                    node_id=node._mirror.uid,
+                    value=result_data
+                ))
         logger.info("DEBUG: Running server instance")
 
 

@@ -4,7 +4,7 @@ from typing import Any, Optional, Type
 
 from pydantic import BaseModel
 
-from nodeserver.api.instance.instance_runtime import RuntimeContext
+from nodeserver.api.instance.instance_runtime import _ReadonlyContext, RuntimeContext
 from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
 from nodeserver.api.node.abstract._nodes import _Node
@@ -22,8 +22,6 @@ class NoOutput(BaseModel):
     pass
 
 # TODO:
-class ContextAwareInput(BaseModel):
-    context: RuntimeContext
 
 class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, outputType]):
     InputModel: Type[BaseModel] = NoInput
