@@ -124,15 +124,14 @@ class MirrorSceneManager:
 
             node = self.node_manager.remove_node(uid)
             if node:
-                conns_to_remove: list[ConnectionMirror] = []
+                conns_to_remove: list[str] = []
                 for slot_type, slots in node.slots.items():
                     for slot in slots:
                         for connected_slot in slot.connections:
                             conn = self.connection_manager.are_connected(slot, connected_slot)
-                            if conn: conns_to_remove.append(conn)
+                            if conn: conns_to_remove.append(conn.uid)
                 
-                for conn in conns_to_remove:
-                    self.connection_manager.disconnect_nodes(conn)
+                self.remove_conn_mirror(conns_to_remove, update_scene_data=update_scene_data)
 
             results.append(node != None)
         
