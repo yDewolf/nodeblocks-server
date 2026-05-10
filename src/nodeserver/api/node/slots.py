@@ -33,16 +33,28 @@ class NodeSlot(Generic[T_SlotIO]):
         return self._io
 
 class SlotConfig:
-    def __init__(self, slot_class: Optional[Type[NodeSlot]] = None, is_input: bool = False, max_inputs: int = 1, datatype_override: Optional[BaseNodeType] = None, **kwargs):
+    def __init__(
+        self, 
+        slot_class: Optional[Type[NodeSlot]] = None,
+        input_io: Optional[Type[_SlotIO[Any, None]]] = None,
+        output_io: Optional[Type[_SlotIO[None, Any]]] = None,
+        is_input: bool = False, 
+        max_inputs: int = 1, 
+        datatype_override: Optional[BaseNodeType] = None,
+        **kwargs
+    ):
         self.slot_class = slot_class
+        self.input_io = input_io
+        self.output_io = output_io
+
         self.is_input = is_input
         self.extra_kwargs = kwargs
         self.datatype_override = datatype_override
 
         self.max_inputs = max_inputs if self.is_input else 0
 
-def Input(slot_cls: Optional[Type[NodeSlot]] = None, max_inputs: int = 1, datatype_override: Optional[BaseNodeType] = None, **kwargs):
-    return SlotConfig(slot_class=slot_cls, is_input=True, datatype_override=datatype_override, max_inputs=max_inputs, **kwargs)
+def Input(max_inputs: int = 1, datatype_override: Optional[BaseNodeType] = None, **kwargs):
+    return SlotConfig(slot_class=NodeSlot, input_io=InputSlotIO, output_io=OutputSlotIO, is_input=True, datatype_override=datatype_override, max_inputs=max_inputs, **kwargs)
 
-def Output(slot_cls: Optional[Type[NodeSlot]] = None, datatype_override: Optional[BaseNodeType] = None, **kwargs):
-    return SlotConfig(slot_class=slot_cls, is_input=False, datatype_override=datatype_override, **kwargs)
+def Output(datatype_override: Optional[BaseNodeType] = None, **kwargs):
+    return SlotConfig(slot_class=NodeSlot, input_io=InputSlotIO, output_io=OutputSlotIO, is_input=False, datatype_override=datatype_override, **kwargs)

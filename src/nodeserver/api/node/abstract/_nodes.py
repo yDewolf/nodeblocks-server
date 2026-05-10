@@ -99,7 +99,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
     def _ensure_parameters_updated(self):
         for name, param in self._mirror.data.parameters.items():
-            if not hasattr(param, name):
+            if not hasattr(self._parameters, name):
                 raise Exception(f"Parameter {name} from node {self._mirror} doesn't exist in instance {self}")
 
             setattr(self._parameters, name, param.value)
@@ -189,22 +189,25 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
 
     @classmethod
-    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
+    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}, type_name: Optional[str] = None) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
+        if type_name == None:
+            type_name = cls.__name__
+        
         super_types: dict[str, BaseSlotType] = super_slot_types
         slot_types: dict[str, SlotData] = {}
         
         cls._add_cls_slot_types(super_types, slot_types)
-        constructor = cls._generate_constructor(slot_types)
+        constructor = cls._generate_constructor(slot_types, type_name)
         return (super_types, constructor)
 
     @classmethod
-    def _generate_constructor(cls, slot_types: dict[str, SlotData]) -> ConstructorModel:
+    def _generate_constructor(cls, slot_types: dict[str, SlotData], type_name: str) -> ConstructorModel:
         param_data: dict[str, NodeParameterData] = {}
         for param_name, spec in cls._params_spec.items():
             param_data[param_name] = NodeParameterDataAdapter.validate_python(spec)
 
         constructor: ConstructorModel = ConstructorModel(
-            type_name=str(cls.__name__),
+            type_name=str(type_name),
             node_data=NodeData(param_data),
             slots=slot_types,
             parser=None,

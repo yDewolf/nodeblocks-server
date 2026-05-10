@@ -21,11 +21,14 @@ class NoInput(BaseModel):
 class NoOutput(BaseModel):
     pass
 
+class NoParameters(BaseModel):
+    pass
 # TODO:
 
 class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, outputType]):
     InputModel: Type[BaseModel] = NoInput
     OutputModel: Type[BaseModel] = NoOutput
+    _parameters: NoParameters
     _slot_definitions: dict[str, Any]
 
     def __init_subclass__(cls, **kwargs):
@@ -79,5 +82,5 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
         return self.InputModel(**raw_input_data)
 
     @abstractmethod
-    def forward(self, input_data: inputType) -> outputType:
+    def forward(self, input: inputType) -> outputType:
         pass

@@ -35,7 +35,7 @@ class _ReadonlyContext:
             output_cache: dict[SlotMirror, _SlotIO] = {}, 
             execution_cache: dict[str, int] = {}, 
             process_order: list[NodeMirror] = [], 
-            processed_nodes: list[_Node] = []
+            processed_nodes: list[_Node] = [],
     ) -> None:
         self._scene = scene
         
@@ -49,8 +49,7 @@ class _ReadonlyContext:
         if self._current_idx == None or not self._process_order:
             return None
         
-        if self._current_idx >= len(self._process_order):
-            self.waiting_to_continue = True
+        if self.finished_loop():
             return None
         
         current_node = scene.get_node(self._process_order[self._current_idx].uid)
@@ -69,6 +68,9 @@ class _ReadonlyContext:
             if slot in self._output_cache
         }
 
+    def finished_loop(self) -> bool:
+        return self._current_idx >= len(self._process_order)
+
     def readonly(self):
         return self
 
@@ -78,7 +80,6 @@ class ContextAwareInput(BaseModel):
 
     context: Optional[_ReadonlyContext] = None
 
-# TODO
 class RuntimeContext(_ReadonlyContext):
     def __init__(self, scene: NodeScene) -> None:
         super().__init__(
@@ -89,6 +90,7 @@ class RuntimeContext(_ReadonlyContext):
     def _reset_cache(self):
         self._node_execution_cache.clear()
         self._output_cache.clear()
+        self._processed_nodes.clear()
     
     def _add_to_processed(self, node: _Node):
         if self._processed_nodes.__contains__(node):
@@ -128,9 +130,13 @@ class InstanceRuntime:
         
     def process_next(self, node_scene: NodeScene, instance_protocol: InstanceProtocol) -> Optional[tuple[dict[SlotMirror, _SlotIO] | None, _Node, bool]]:
         if not self.context: return
+        if self.context.finished_loop():
+            self.waiting_to_continue = True
+            return
 
         current_node = self.context._get_current_node(node_scene)
-        if not current_node or self.context._current_idx == None: return
+        if not current_node or self.context._current_idx == None: 
+            return
         self.context._current_idx += 1
         
         current_node._ensure_parameters_updated()
@@ -157,6 +163,7 @@ class InstanceRuntime:
             return (output_data, current_node, False)
 
         except Exception as e:
+            logger.error(e)
             instance_protocol.send_to_client(ServerNotification.node_notify(
                 node_uid=current_node._mirror.uid,
                 message="Something went wrong",
@@ -176,3 +183,4 @@ class InstanceRuntime:
         self.context = RuntimeContext(
             scene=new_scene,
         )
+        self.context._reset_cache()

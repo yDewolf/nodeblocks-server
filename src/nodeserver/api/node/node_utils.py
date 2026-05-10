@@ -17,6 +17,9 @@ class NodeUtils:
     def process_model(model: Type[BaseModel], default_is_input: bool, slots_class: Type, _slot_definitions: dict[str, Any]):
         for name, field in model.model_fields.items():
             slot_class = NodeSlot
+            input_io = InputSlotIO
+            output_io = OutputSlotIO
+
             max_inputs: int = 1
             datatype_override: Optional[BaseNodeType] = None
             is_input = default_is_input
@@ -25,6 +28,9 @@ class NodeUtils:
             for meta in field.metadata:
                 if isinstance(meta, SlotConfig):
                     if meta.slot_class: slot_class = meta.slot_class
+                    if meta.input_io: input_io = meta.input_io
+                    if meta.output_io: output_io = meta.output_io
+
                     is_input = meta.is_input
                     extra_args = meta.extra_kwargs
                     max_inputs = meta.max_inputs
@@ -33,7 +39,7 @@ class NodeUtils:
 
             raw_type = field.annotation
 
-            io_generic = InputSlotIO[raw_type] if is_input else OutputSlotIO[raw_type]
+            io_generic = input_io[raw_type] if is_input else output_io[raw_type]
             _slot_definitions[name] = {
                 "class": slot_class,
                 "io": io_generic,
