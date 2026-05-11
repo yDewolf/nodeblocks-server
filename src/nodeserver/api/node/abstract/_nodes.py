@@ -219,6 +219,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
         slot_hints = get_type_hints(cls.Slots, globalns=globals())
         for attribute_name, hint in slot_hints.items():
+            if attribute_name.startswith("_"): continue
             slot_instance = cls._build_slot_instance(hint, None)
             cls._add_slot_types(attribute_name, slot_instance, super_types, slot_types)
 

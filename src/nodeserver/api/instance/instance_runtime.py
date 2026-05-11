@@ -78,7 +78,7 @@ class ContextAwareInput(BaseModel):
     class Config:
         arbitrary_types_allowed=True
 
-    context: Optional[_ReadonlyContext] = None
+    _context: Optional[_ReadonlyContext] = None
 
 class RuntimeContext(_ReadonlyContext):
     def __init__(self, scene: NodeScene) -> None:
@@ -88,8 +88,8 @@ class RuntimeContext(_ReadonlyContext):
         )
 
     def _reset_cache(self):
-        self._node_execution_cache.clear()
-        self._output_cache.clear()
+        # self._node_execution_cache.clear()
+        # self._output_cache.clear()
         self._processed_nodes.clear()
     
     def _add_to_processed(self, node: _Node):
@@ -149,8 +149,8 @@ class InstanceRuntime:
         try:
             raw_node_inputs = current_node.resolve_inputs(self.context._output_cache)
             node_inputs: BaseModel = current_node._parse_inputs(raw_node_inputs)
-            if type(node_inputs) is ContextAwareInput:
-                node_inputs.context = self.context.readonly()
+            if isinstance(node_inputs, ContextAwareInput):
+                node_inputs._context = self.context.readonly()
             
             current_node.pre_forward(node_inputs) # Node might set bypass cache to True here
             
