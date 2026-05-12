@@ -239,7 +239,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
                 super_type=SuperSlotTypes.INPUT if slot_instance._io._is_input else SuperSlotTypes.OUTPUT,
                 data_type=data_type,
                 type_whitelist=[SuperSlotTypes.OUTPUT if slot_instance._io._is_input else SuperSlotTypes.INPUT], # type: ignore
-                name_whitelist=[super_slot_name]
+                # name_whitelist=[super_slot_name]
             )
         
         slot_types[key] = SlotData(
