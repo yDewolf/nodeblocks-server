@@ -3,20 +3,16 @@ from typing import Annotated, Optional
 from pydantic import BaseModel
 
 from nodeserver.api.base_server import NodeServer
-from nodeserver.api.node.node_exceptions import NoOutputException
 from nodeserver.api.node.node_parameters import FileParam, Param
-from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.nodes import BaseNode
 from nodeserver.api.node.slots import Input, InputSlotIO, NodeSlot, Output
-from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import FILE_TYPE, INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, DataTypes, SuperSlotTypes
-from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeFileParameter, NodeNumberParameter, SlotData
-from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader, TypeReaderUtils
+from nodeserver.wrapper.nodes.data.node_data_types import FILE_TYPE
 
 import logging
 import logging.config
 
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.wrapper.utils.type_reader_utils import TypeReaderUtils
 
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("root")
@@ -101,32 +97,7 @@ NODE_REGISTRY: dict[str, type[BaseNode]] = {
     "DivNode": DivNode,
     "TestNode": TestNode
 }
-node_constructors: list[ConstructorModel] = []
-slot_types = {}
-for node_type in NODE_REGISTRY:
-    super_slot_types, constructor = NODE_REGISTRY[node_type].generate_types(slot_types)
-    node_constructors.append(constructor)
-    slot_types = super_slot_types
 
-def auto_parser(mirror: NodeMirror) -> BaseNode:
-    node_class = NODE_REGISTRY.get(mirror.type_name, None)
-    if not node_class:
-        raise Exception(f"Couldn't parse node with type {mirror.type_name}")
-
-    return node_class(mirror)
-
-my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
-my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
-    my_cool_types, {}, auto_parser, node_constructors
-))
-
-test = MyMathNode()
-slot = test.slot("in_1")
-slot._io.get_type()
-
-test1 = TestNode()
-slot1 = test1.slot("slot_0")
-
-
+my_cool_types = TypeReaderUtils.make_types_from_registry(0, "MyCoolTypes", NODE_REGISTRY)
 server = NodeServer(my_cool_types)
 server.run_server()

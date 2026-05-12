@@ -168,19 +168,3 @@ class ConstructorModel:
             slots=slots,
             parser=parser,
         )
-
-class TypeReaderUtils:
-    @staticmethod
-    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], _ParsedNode], models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
-        constructors: list[BaseMirrorConstructor] = []
-        for model in models:
-            constructor = CustomMirrorConstructor(
-                type_name=model.type_name,
-                data=model.node_data if model.node_data else NodeData({}),
-                slot_types=base_types.slot_types,
-                slots=model.slots if model.slots else default_slots,
-                builder_func=model.parser if model.parser else default_builder,
-            )
-            constructors.append(constructor)
-
-        return constructors
