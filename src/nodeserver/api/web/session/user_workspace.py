@@ -5,7 +5,8 @@ import logging
 import os
 from typing import Optional
 from nodeserver.api.instance.server_instance import ServerInstance
-from nodeserver.api.utils.workspace_utils import INSTANCE_FOLDER, UPLOADS_FOLDER, WorkspaceUtils
+from nodeserver.api.utils.env_variables import INSTANCE_AUTOSAVE_INTERVAL
+from nodeserver.api.utils.workspace_utils import WorkspaceUtils
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.api.web.requests.request_unions import AnyServerMessage
 from nodeserver.api.web.session.user_notifications import NotificationController
@@ -22,7 +23,7 @@ class UserWorkspace:
 
     notification_controller: NotificationController
     
-    _autosave_interval: datetime.timedelta = datetime.timedelta(minutes=3)
+    _autosave_interval: datetime.timedelta = datetime.timedelta(minutes=INSTANCE_AUTOSAVE_INTERVAL)
     _last_autosave: Optional[datetime.datetime] = None
 
     @property
@@ -77,6 +78,7 @@ class UserWorkspace:
         ))
 
         self.save_instance(self.current_instance)
+        self._last_autosave = datetime.datetime.now(datetime.timezone.utc)
 
     def check_autosave(self) -> bool:
         if not self.last_autosave:
