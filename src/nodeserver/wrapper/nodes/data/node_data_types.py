@@ -35,7 +35,7 @@ class BaseDataType[group: DataGroup, superType: (DataTypes, SuperSlotTypes)]:
         self._type_whitelist = type_whitelist
         self._name_whitelist = name_whitelist
 
-class BaseNodeType(BaseDataType[DataGroup.SLOT, DataTypes]):
+class BaseNodeType(BaseDataType[DataGroup.NODE, DataTypes]):
     def __init__(self, type_name: str, super_type: DataTypes, type_whitelist: list[DataTypes], name_whitelist: list[str] = []):
         super().__init__(type_name, super_type, type_whitelist, name_whitelist)
     
@@ -48,7 +48,7 @@ class BaseSlotType(BaseDataType[DataGroup.SLOT, SuperSlotTypes]):
         super().__init__(type_name, super_type, type_whitelist, name_whitelist)
 
 
-
+# FIXME: Refatorar esse BaseNodeType para virar algo como um ParameterType ou algo do tipo
 FLOAT_TYPE = BaseNodeType("float", DataTypes.FLOAT, [DataTypes.FLOAT])
 INT_TYPE = BaseNodeType("int" , DataTypes.INT, [DataTypes.INT])
 UINT_TYPE = BaseNodeType("uint" , DataTypes.UINT, [DataTypes.UINT])
@@ -87,6 +87,7 @@ class DataTypeUtils:
             case "int": return INT_TYPE
             case "uint": return UINT_TYPE
             case "array": return ARRAY_TYPE
+            case "file": return FILE_TYPE
             case _:
                 return UNKNOWN_TYPE
 

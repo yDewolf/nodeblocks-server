@@ -1,8 +1,6 @@
 import logging
 
-from nodeserver.api.instance.base_nodes import BaseNode
-from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType
+from nodeserver.api.node.nodes import BaseNode
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.wrapper.utils.uuid_utils import IDGenerator
 from test_data import TYPE_FILE_JSON

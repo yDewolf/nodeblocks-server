@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import datetime
 import logging
 import os
 from typing import Optional
 from nodeserver.api.instance.server_instance import ServerInstance
-from nodeserver.api.internal.internal_protocols import InstanceProtocol
-from nodeserver.api.utils.workspace_utils import INSTANCE_FOLDER, UPLOADS_FOLDER, WorkspaceUtils
+from nodeserver.api.utils.env_variables import INSTANCE_AUTOSAVE_INTERVAL
+from nodeserver.api.utils.workspace_utils import WorkspaceUtils
+from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.api.web.requests.request_unions import AnyServerMessage
 from nodeserver.api.web.session.user_notifications import NotificationController
 
@@ -17,10 +19,20 @@ class UserWorkspace:
     file_paths: list[str]
     
     instance_id: str | None = None
-    current_instance: Optional[InstanceProtocol]
+    current_instance: Optional[ServerInstance]
 
     notification_controller: NotificationController
     
+    _autosave_interval: datetime.timedelta = datetime.timedelta(minutes=INSTANCE_AUTOSAVE_INTERVAL)
+    _last_autosave: Optional[datetime.datetime] = None
+
+    @property
+    def last_autosave(self): return self._last_autosave
+
+    @property
+    def autosave_interval(self): return self._autosave_interval
+
+
     def __init__(self, user_id: str) -> None:
         self.user_id = user_id
         self.notification_controller = NotificationController()
@@ -51,6 +63,31 @@ class UserWorkspace:
     def get_uploads_path(self):
         return WorkspaceUtils.get_user_uploads_path(self.workspace_path)
 
+
+    # Autosaves if it should autosave
+    def do_autosave(self):
+        if not self.check_autosave():
+            return
+        
+        if not self.current_instance:
+            return
+        
+        self.send_msg_as_instance(ServerNotification.notify(
+            message="Saving instance...",
+            level=NotificationLevel.WARNING
+        ))
+
+        self.save_instance(self.current_instance)
+        self._last_autosave = datetime.datetime.now(datetime.timezone.utc)
+
+    def check_autosave(self) -> bool:
+        if not self.last_autosave:
+            return True
+        
+        if self.last_autosave + self.autosave_interval < datetime.datetime.now(datetime.timezone.utc):
+            return True
+        
+        return False
 
     def save_instance(self, instance: ServerInstance):
         if instance != self.current_instance:

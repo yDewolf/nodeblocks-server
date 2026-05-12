@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import abstractmethod
 from typing import Any, Optional
 
 from nodeserver.wrapper.nodes.data.node_data import NodeData
@@ -42,30 +43,38 @@ class NodeMirror:
                     return slot
         
         return None
-
-
-class SlotOutput:
-    _version: int
-    _value: Any = None
-
-    def __init__(self) -> None:
-        self._version = 0
-        self._value = {}
-
-    @property
-    def value(self):
-        return self._value
     
-    @value.setter
-    def value(self, new_value: Any):
-        if self._value != new_value:
-            self._value = new_value
-            self._version += 1
+    def all_slots(self) -> list[SlotMirror]:
+        every_slot: list[SlotMirror] = []
+        for slot_type in self.slots:
+            every_slot += self.slots[slot_type]
+        
+        return every_slot
 
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}({self.uid})"
+
+
+class _ParsedNode:
+    _mirror: NodeMirror
+
+    def __init__(self, mirror: Optional[NodeMirror] = None) -> None:
+        if mirror:
+            self._mirror = mirror
+
+    @abstractmethod
+    def load_state(self, root_state_path: str, state: Any):
+        pass
+    
+    @abstractmethod
+    def save_state(self, root_state_path: str) -> Any:
+        pass
+    
+    def has_mirror(self) -> bool:
+        return hasattr(self, "_mirror")
 
 class SlotMirror:
     _version: int
-    _output: SlotOutput
 
     slot_name: str
     parent_node: NodeMirror
@@ -75,9 +84,8 @@ class SlotMirror:
 
     connections: dict[SlotMirror, ConnectionMirror]
 
-    def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, slot_data_type: BaseNodeType | None, slot_output_class: type[SlotOutput] = SlotOutput) -> None:
+    def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, slot_data_type: BaseNodeType | None) -> None:
         self._version = 0
-        self._output = slot_output_class()
         self.parent_node = parent_node
         self.slot_name = slot_name
 
@@ -89,8 +97,8 @@ class SlotMirror:
         if slot == self:
             return False
         
-        if not DataTypeUtils.is_type_compatible_with(self.data_type, slot.data_type):
-            return False
+        # if not DataTypeUtils.is_type_compatible_with(self.data_type, slot.data_type):
+        #     return False
 
         if not DataTypeUtils.is_type_compatible_with(self.type, slot.type):
             return False

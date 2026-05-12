@@ -1,6 +1,5 @@
-from nodeserver.api.instance.base_nodes import BaseNode
 from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
+from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
 import logging
 logger = logging.getLogger("nds.mirrors")
@@ -9,24 +8,24 @@ logger = logging.getLogger("nds.mirrors")
 # Controla que nodes devem ser adicionados, atualizados, etc.
 # Usa um Builder customizado para converter um NodeMirror em um BaseNode
 class NodeScene:
-    nodes: list[BaseNode] # Instâncias dos Mirrors
+    nodes: list[_ParsedNode] # Instâncias dos Mirrors
     mirror_manager: MirrorSceneManager
     # connections: list[NodeConnection]
     
-    def __init__(self, nodes: list[BaseNode], mirror_manager: MirrorSceneManager) -> None:
+    def __init__(self, nodes: list[_ParsedNode], mirror_manager: MirrorSceneManager) -> None:
         self.nodes = nodes
         self.mirror_manager = mirror_manager
 
     
     # TODO: Scene Updates
-    def get_node(self, node_uid: str) -> BaseNode | None:
+    def get_node(self, node_uid: str) -> _ParsedNode | None:
         for node in self.nodes:
             if node._mirror.uid == node_uid:
                 return node
             
         return None
     
-    def add_nodes(self, nodes: list[BaseNode]):
+    def add_nodes(self, nodes: list[_ParsedNode]):
         for node in nodes:
             if self.nodes.__contains__(node):
                 continue
@@ -34,7 +33,7 @@ class NodeScene:
             self.nodes.append(node)
 
 
-    def build_node(self, mirror: NodeMirror) -> BaseNode | None:
+    def build_node(self, mirror: NodeMirror) -> _ParsedNode | None:
         constructor = self.mirror_manager.type_reader.node_constructors.get(mirror.type_name)
         if not constructor:
             return None

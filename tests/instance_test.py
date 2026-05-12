@@ -1,7 +1,6 @@
 import json
 import logging
 
-from nodeserver.api.instance.base_nodes import BaseNode
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.instance.server_instance import ServerInstance

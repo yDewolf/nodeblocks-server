@@ -66,7 +66,7 @@ class NodeServer:
     async def handle_websocket(self, request):
         if not self.websocket_manager.loop:
             self.websocket_manager.set_loop(asyncio.get_running_loop())
-            asyncio.create_task(self._clean_sessions_task()) # FIXME: move this somewhere else
+            asyncio.create_task(self._session_clock_task()) # FIXME: move this somewhere else
         
         ws = web.WebSocketResponse()
         await ws.prepare(request)
@@ -75,13 +75,15 @@ class NodeServer:
         return ws
 
     
-    async def _clean_sessions_task(self):
+    async def _session_clock_task(self):
         while True:
             await asyncio.sleep(3.0)
+
+            for id, session in self.session_manager.sessions.items():
+                session.workspace.do_autosave()
 
             removed_sessions = self.session_manager._clean_inactive_sessions()
             for session in removed_sessions:
                 if session.workspace.instance_id:
                     self.instance_manager.remove_instance(session.workspace.instance_id)
                     logger.info(f"Removing inactive Instance {session.workspace.instance_id}")
-    

@@ -82,6 +82,8 @@ class InstanceRunner:
                 # except Exception as e:
                 #     MANAGER_LOGGER.error("Some Instance fumbled", e)
         
+            self._sleep_event.wait(0.01)
+
 
         MANAGER_LOGGER.info(f"Runner {self.id} stopped")
 

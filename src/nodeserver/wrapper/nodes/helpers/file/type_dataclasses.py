@@ -1,5 +1,5 @@
 from typing import Annotated, Literal, Optional, Dict, List, Union, Any
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from nodeserver.wrapper.nodes.data.node_data_types import DataTypes
 
@@ -44,6 +44,8 @@ NodeParameterData = Annotated[
     Union[NodeNumberParameter, NodeFileParameter, BaseNodeParameter],
     Field(discriminator="type")
 ]
+
+NodeParameterDataAdapter = TypeAdapter(NodeParameterData)
 
 class NodeTypeData(DataModel):
     parameters: Dict[str, NodeParameterData] = Field(default_factory=dict)

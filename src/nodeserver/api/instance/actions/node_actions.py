@@ -1,6 +1,6 @@
 from nodeserver.api.instance.actions.action_controller import Action
-from nodeserver.api.instance.base_nodes import BaseNode
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
+from nodeserver.api.node.nodes import BaseNode
 from nodeserver.api.web.requests.action_requests import NodeActionAddUpdate, NodeActionRemove
 from nodeserver.api.web.requests.client_requests import MsgNodeAction
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
@@ -57,8 +57,7 @@ class NodeActionUtils:
                 return EditorActionStatus.FAILED
             
             node = instance._scene.build_node(mirror)
-            if node:
-                nodes.append(node)
+            if node: nodes.append(node) # type: ignore
 
         # FIXME
         for node in nodes:
@@ -77,6 +76,6 @@ class NodeActionUtils:
                 level=NotificationLevel.DEBUG
             ))
 
-        instance._scene.add_nodes(nodes)
+        instance._scene.add_nodes(nodes) # type: ignore
         instance._scene.update_nodes()
         return EditorActionStatus.SUCCESSFULL

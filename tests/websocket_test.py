@@ -1,103 +1,132 @@
+from typing import Annotated, Optional
+
+from pydantic import BaseModel
+
 from nodeserver.api.base_server import NodeServer
-from nodeserver.api.instance.base_nodes import BaseNode
+from nodeserver.api.node.node_exceptions import NoOutputException
+from nodeserver.api.node.node_parameters import FileParam, Param
+from nodeserver.api.node.node_utils import NodeUtils
+from nodeserver.api.node.nodes import BaseNode
+from nodeserver.api.node.slots import Input, InputSlotIO, NodeSlot, Output
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, DataTypes, SuperSlotTypes
-from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import BaseNodeParameter, NodeFileParameter, NodeNumberParameter, NodeParameterData, SlotData
+from nodeserver.wrapper.nodes.data.node_data_types import FILE_TYPE, INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, DataTypes, SuperSlotTypes
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeFileParameter, NodeNumberParameter, SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader, TypeReaderUtils
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror, SlotOutput
 
 import logging
 import logging.config
 
+from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
+
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("root")
 
-class MyInputNode(BaseNode):
-    def forward(self, input: dict[SlotMirror, dict[SlotMirror, dict]]):
-        parameter = self._mirror.data.parameters.get("value")
-        if parameter == None:
-            return {}
-        
-        if type(parameter.value) != float and type(parameter.value) != int:
-            return {}
-        
-        output_data = {
-            "out_0": parameter.value
-        }
-        return self.map_to_slots(output_data)
+class _InputNodeOutput(BaseModel):
+    out_0: Optional[float]
 
+class MyInputNode(BaseNode):
+    OutputModel = _InputNodeOutput
+    class Parameters(BaseModel):
+        value: Annotated[float, Param(
+            label="Value",
+        )] = 0.0
+    _parameters: Parameters
+
+    def forward(self, input: BaseModel) -> _InputNodeOutput:
+        value = self._parameters.value
+        if value == None:
+            # raise NoOutputException()
+            return _InputNodeOutput(out_0=None)
+        
+        if type(value) != float and type(value) != int:
+            return _InputNodeOutput(out_0=None)
+        
+        return _InputNodeOutput(
+            out_0=value
+        )
+
+class _FileInput_Out(BaseModel):
+    out_0: Annotated[Optional[str], Output(datatype_override=FILE_TYPE)]
+class FileInputNode(MyInputNode):
+    OutputModel = _FileInput_Out
+    class Parameters(BaseModel):
+        file_path: Annotated[str, FileParam(
+            label="Path",
+            extension_filter=[".json"],
+        )] = ""
+    _parameters: Parameters
+
+
+class _MathNodeInput(BaseModel):
+    in_0: float
+    in_1: Annotated[list[float], Input(max_inputs=3)]
+class _MathNodeOutput(BaseModel):
+    out_0: float
 
 class MyMathNode(BaseNode):
+    InputModel = _MathNodeInput
+    OutputModel = _MathNodeOutput
+
     operation: int = -1
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)
 
-    def forward(self, input: dict[SlotMirror, dict[SlotMirror, SlotOutput]]):
-        input_values: list[float] = []
-        for slot_type, slots in self._mirror.slots.items():
-            if slot_type != SuperSlotTypes.INPUT: continue
-
-            for slot in slots:
-                slot_outputs = input.get(slot)
-                if not slot_outputs: continue
-                
-                for out_slot, output in slot_outputs.items():
-                    output_value = output.value
-                    if not output_value: continue
-
-                    input_values.append(output_value)
-        
-        if len(input_values) < 2:
-            return input_values
-        
+    def forward(self, input: _MathNodeInput) -> _MathNodeOutput:
         result = 0
         match self.operation:
-            case 0: result = sum(input_values)
-            case 1: result = input_values[0] - input_values[1]
-            case 2: result = input_values[0] * input_values[1]
-            case 3: result = input_values[0] / input_values[1]
+            case 0: result = input.in_0 + sum(input.in_1)
+            case 1: result = input.in_0 - sum(input.in_1)
+            case 2: result = input.in_0 * sum(input.in_1)
+            case 3: result = input.in_0 / sum(input.in_1)
         
-        logger.info(f"Operation {self.operation} resulted in {result} with inputs {input_values}")
-        return self.map_to_slots({
-            "out_0": result
-        })
+        logger.info(f"Operation {self.operation} resulted in {result} with inputs {input}")
+        return _MathNodeOutput(
+            out_0=result
+        )
+class SumNode(MyMathNode): operation = 0
+class SubNode(MyMathNode): operation = 1
+class MulNode(MyMathNode): operation = 2
+class DivNode(MyMathNode): operation = 3
 
+class TestNode(BaseNode):
+    class Slots:
+        slot_0: NodeSlot[InputSlotIO[list[float]]]
 
-slot_types: dict[str, BaseSlotType] = {
-    "input": INPUT_TYPE,
-    "output": OUTPUT_TYPE
+NODE_REGISTRY: dict[str, type[BaseNode]] = {
+    "MyInputNode": MyInputNode,
+    "FileInputNode": FileInputNode,
+    "SumNode": SumNode,
+    "SubNode": SubNode,
+    "MulNode": MulNode,
+    "DivNode": DivNode,
+    "TestNode": TestNode
 }
-default_slots: dict[str, SlotData] = {
-    "in_0": SlotData(type="input", data_type=DataTypes.FLOAT),
-    "in_1": SlotData(type="input", data_type=DataTypes.FLOAT),
-    "out_0": SlotData(type="output", data_type=DataTypes.FLOAT),
-}
+node_constructors: list[ConstructorModel] = []
+slot_types = {}
+for node_type in NODE_REGISTRY:
+    super_slot_types, constructor = NODE_REGISTRY[node_type].generate_types(slot_types)
+    node_constructors.append(constructor)
+    slot_types = super_slot_types
 
-def my_parser(mirror: NodeMirror) -> BaseNode:
-    if mirror.type_name == "InputNode" or mirror.type_name == "FileInputNode":
-        return MyInputNode(mirror)
-    
-    node = MyMathNode(mirror)
-    match mirror.type_name:
-        case "SumNode": node.operation = 0
-        case "SubNode": node.operation = 1
-        case "MulNode": node.operation = 2
-        case "DivNode": node.operation = 3 
+def auto_parser(mirror: NodeMirror) -> BaseNode:
+    node_class = NODE_REGISTRY.get(mirror.type_name, None)
+    if not node_class:
+        raise Exception(f"Couldn't parse node with type {mirror.type_name}")
 
-    return node
-
+    return node_class(mirror)
 
 my_cool_types = TypeFileReader.new(0, "MyCoolTypes", slot_types, [])
 my_cool_types.set_new_constructors(TypeReaderUtils.make_constructors(
-    my_cool_types, default_slots, my_parser, SlotOutput, [
-        ConstructorModel.new("FileInputNode", NodeData({"file": NodeFileParameter(extension_filter=["json"])}), {"out_0": SlotData(type="output", data_type=DataTypes.FILE)}),
-        ConstructorModel.new("InputNode", NodeData({"value": NodeNumberParameter(type=DataTypes.FLOAT)}), {"out_0": SlotData(type="output", data_type=DataTypes.FLOAT)}),
-        ConstructorModel.new("SumNode"),
-        ConstructorModel.new("SubNode"),
-        ConstructorModel.new("MulNode"),
-        ConstructorModel.new("DivNode"),
-    ]
+    my_cool_types, {}, auto_parser, node_constructors
 ))
+
+test = MyMathNode()
+slot = test.slot("in_1")
+slot._io.get_type()
+
+test1 = TestNode()
+slot1 = test1.slot("slot_0")
+
 
 server = NodeServer(my_cool_types)
 server.run_server()
