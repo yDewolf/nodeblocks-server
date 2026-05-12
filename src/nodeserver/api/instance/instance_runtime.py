@@ -8,6 +8,7 @@ from nodeserver.api.instance.node_scene import NodeScene
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.node.abstract._nodes import _Node
 from nodeserver.api.node.abstract._slots import _SlotIO
+from nodeserver.api.node.node_exceptions import ConnRecursionException
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
@@ -87,9 +88,21 @@ class RuntimeContext(_ReadonlyContext):
             process_order=NodeMirrorUtils.get_node_execution_order(scene.nodes)
         )
 
+    def update_scene(self, scene: NodeScene):
+        self._scene = scene
+        new_process_order = NodeMirrorUtils.get_node_execution_order(scene.nodes)
+        if new_process_order != self._process_order:
+            self._reset_cache()
+            self._process_order = new_process_order
+            self._current_idx = 0
+    
+    def loop(self):
+        self._current_idx = 0
+        self._processed_nodes.clear()
+
     def _reset_cache(self):
-        # self._node_execution_cache.clear()
-        # self._output_cache.clear()
+        self._node_execution_cache.clear()
+        self._output_cache.clear()
         self._processed_nodes.clear()
     
     def _add_to_processed(self, node: _Node):
@@ -147,7 +160,7 @@ class InstanceRuntime:
             return (self.context._get_cached_outputs(current_node), current_node, True)
 
         try:
-            raw_node_inputs = current_node.resolve_inputs(self.context._output_cache)
+            raw_node_inputs = current_node.resolve_inputs(self.context._output_cache, instance_protocol)
             node_inputs: BaseModel = current_node._parse_inputs(raw_node_inputs)
             if isinstance(node_inputs, ContextAwareInput):
                 node_inputs._context = self.context.readonly()
@@ -171,16 +184,28 @@ class InstanceRuntime:
                 description=str(e)
             ))
 
-    def continue_process(self, scene: NodeScene):
+    def continue_process(self, scene: NodeScene, instance_protocol: InstanceProtocol):
         self.waiting_to_continue = False
-        self.on_scene_changed(scene)
+        if self.context:
+            self.on_scene_update(scene, instance_protocol)
+            self.context.loop()
 
     
     def validate_scene(self, node_scene: NodeScene):
         pass
 
-    def on_scene_changed(self, new_scene: NodeScene):
-        self.context = RuntimeContext(
-            scene=new_scene,
-        )
-        self.context._reset_cache()
+    def on_scene_update(self, scene: NodeScene, instance_protocol: InstanceProtocol):
+        try:
+            if not self.context:
+                self.context = RuntimeContext(
+                    scene=scene,
+                )
+            self.context.update_scene(scene)
+        except ConnRecursionException as e:
+            logger.error(f"Recursion error for nodes {e.problematic_nodes}")
+            for mirror in e.problematic_nodes:
+                instance_protocol.send_to_client(ServerNotification.node_notify(
+                    node_uid=mirror.uid,
+                    message="Node is causing recursion",
+                    level=NotificationLevel.ERROR
+                ))

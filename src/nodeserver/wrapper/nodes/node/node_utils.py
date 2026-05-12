@@ -1,5 +1,6 @@
 from collections import deque
 
+from nodeserver.api.node.node_exceptions import ConnRecursionException
 from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
@@ -39,8 +40,10 @@ class NodeMirrorUtils:
                 if in_degree[dependent_node] == 0:
                     queue.append(dependent_node)
 
+        # Recursion Error
         if len(execution_order) != len(nodes):
-            # Recursion Error
-            return []
+            processed_uids = {node.uid for node in execution_order}
+            problematic_nodes = [node for node in nodes if node.uid not in processed_uids]
+            raise ConnRecursionException(problematic_nodes)
 
         return execution_order

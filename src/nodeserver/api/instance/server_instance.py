@@ -64,7 +64,7 @@ class ServerInstance:
         if self._runtime.waiting_to_continue:
             match self.state_controller.loop_state:
                 case LoopStates.AUTO_LOOP:
-                    self._runtime.continue_process(self._scene)
+                    self._runtime.continue_process(self._scene, self)
                 
                 case _:
                     # Any other will wait for resume commands
@@ -113,14 +113,14 @@ class ServerInstance:
                     return
                 
                 if self._runtime.waiting_to_continue:
-                    self._runtime.continue_process(self._scene)
+                    self._runtime.continue_process(self._scene, self)
 
             case InstanceCommands.STEP:
                 if self.state_controller.loop_state != LoopStates.WAIT_STEP:
                     return
                 
                 if self._runtime.waiting_to_continue:
-                    self._runtime.continue_process(self._scene)
+                    self._runtime.continue_process(self._scene, self)
                 
                 self.state_controller.has_step_permission = True
 
@@ -141,7 +141,7 @@ class ServerInstance:
                     uid: status for uid, status in action_statuses.items()
                 }
             ))
-            self._scene_changed()
+            self._on_scene_update()
         
         return action_statuses
 
@@ -191,8 +191,8 @@ class ServerInstance:
         return False
 
 
-    def _scene_changed(self):
-        self._runtime.on_scene_changed(self._scene) # FIXME
+    def _on_scene_update(self):
+        self._runtime.on_scene_update(self._scene, self) # FIXME
 
     def load_types(self, json_data: dict):
         self.mirror_manager.load_types(json_data)
@@ -201,7 +201,7 @@ class ServerInstance:
     def load_new_scene(self, json_data: dict| SceneData):
         self.mirror_manager.load_new_scene(json_data)
         self._scene.update_nodes()
-        self._scene_changed()
+        self._on_scene_update()
 
 
     def _state_changed(self):

@@ -8,10 +8,12 @@ from typing import Optional, get_args, get_origin, get_type_hints
 from pydantic import BaseModel
 
 from nodeserver.api.internal.instance_state import InternalNodeState
+from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.node.abstract._slots import _SlotIO
 from nodeserver.api.node.node_parameters import ParamConfig
 from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.slots import NodeSlot
+from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
@@ -169,7 +171,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         
         return (self._version + self._mirror.data._version + input_versions + slots_version)
 
-    def resolve_inputs(self, output_cache: dict) -> dict:
+    def resolve_inputs(self, output_cache: dict, instance_protocol: InstanceProtocol) -> dict:
         raw_inputs = {}
         for slot in self._mirror.slots.get(SuperSlotTypes.INPUT, []):
             values = [output_cache[conn].value for conn in slot.connections if conn in output_cache]
@@ -180,7 +182,14 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
                 raw_inputs[slot.slot_name] = values[:real_slot._io._max_inputs]
                 if len(values) > real_slot._io._max_inputs:
                     logger.warning(f"WARNING: Shrinking node inputs for slot {slot}")
-                
+                    instance_protocol.send_to_client(ServerNotification.slot_notify(
+                        node_uid=self._mirror.uid,
+                        slot_name=slot.slot_name,
+                        message="Inputs will be shrunk",
+                        level=NotificationLevel.WARNING,
+                        description=f"{slot.slot_name} won't receive all its inputs since it has a max input count of {real_slot._io._max_inputs}"
+                    ))
+
                 continue
 
             raw_inputs[slot.slot_name] = values[0]
