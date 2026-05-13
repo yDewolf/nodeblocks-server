@@ -35,8 +35,8 @@ class TypeReaderUtils:
     def set_types_from_registry(types: TypeFileReader, node_registry: dict[str, type[BaseNode]]):
         node_constructors: list[ConstructorModel] = []
         slot_types = {}
-        for node_type in node_registry:
-            super_slot_types, constructor = node_registry[node_type].generate_types(slot_types)
+        for type_name, node_type in node_registry.items():
+            super_slot_types, constructor = node_type.generate_types(slot_types, type_name)
             node_constructors.append(constructor)
             slot_types = super_slot_types
 
