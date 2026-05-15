@@ -46,7 +46,7 @@ class NodeSceneData(BaseModel):
     type: str = ""
     position: Vector2
     data: Dict[str, Any] = Field(default_factory=dict)
-    metadata: NodeMetadata
+    metadata: Optional[NodeMetadata] = None
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)
