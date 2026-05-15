@@ -1,4 +1,5 @@
 
+from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
 from nodeserver.wrapper.nodes.helpers.file.node_scene_reader import SceneFileReader
@@ -74,23 +75,24 @@ class MirrorSceneManager:
         return self.scene_reader.scene_data != None
 
 
-    def add_node_mirror(self, node_data: NodeSceneData, node_name: str, update_scene_data: bool = True) -> NodeMirror | None:
-        constructor = self.type_reader.get_constructor(node_data.type)
-        if node_data.uid == None or not constructor:
+    def add_node_mirror(self, scene_data: NodeSceneData, node_name: str, update_scene_data: bool = True) -> NodeMirror | None:
+        constructor = self.type_reader.get_constructor(scene_data.type)
+        if scene_data.uid == None or not constructor:
             return None
         
         new_mirror = constructor.make_node_mirror(
             node_name,
-            node_data.uid,
-            node_data.data,
-            node_data.position
+            scene_data.uid,
+            scene_data.data,
+            scene_data.metadata,
+            scene_data.position
         )
 
         if not new_mirror:
             return None
         
         if update_scene_data and self.scene_reader.scene_data and new_mirror:
-            self.scene_reader.scene_data.nodes[new_mirror.uid] = node_data
+            self.scene_reader.scene_data.nodes[new_mirror.uid] = scene_data
 
         self.node_manager.add_node(new_mirror)
         return new_mirror

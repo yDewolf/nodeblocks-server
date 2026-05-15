@@ -2,6 +2,7 @@ from typing import Annotated, Literal, Optional, Dict, List, Union, Any
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from nodeserver.wrapper.nodes.data.node_data_types import DataTypes
+from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
 
 class DataModel(BaseModel):
     model_config = ConfigDict(
@@ -48,6 +49,7 @@ NodeParameterData = Annotated[
 NodeParameterDataAdapter = TypeAdapter(NodeParameterData)
 
 class NodeTypeData(DataModel):
+    metadata: NodeMetadata
     parameters: Dict[str, NodeParameterData] = Field(default_factory=dict)
     slots: Dict[str, SlotData] = Field(default_factory=dict)
 

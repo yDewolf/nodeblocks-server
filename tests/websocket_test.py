@@ -11,11 +11,18 @@ from nodeserver.wrapper.nodes.data.node_data_types import FILE_TYPE
 import logging
 import logging.config
 
+from nodeserver.wrapper.nodes.data.node_metadata import INPUT_CATEGORY, NodeCategory, NodeMetadata, NodeTag
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.wrapper.utils.type_reader_utils import TypeReaderUtils
 
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("root")
+
+MATH_CATEGORY = NodeCategory(
+    super_category=None, 
+    name="Math", 
+    description=""
+)
 
 class _InputNodeOutput(BaseModel):
     out_0: Optional[float]
@@ -41,6 +48,11 @@ class MyInputNode(BaseNode):
             out_0=value
         )
 
+    _metadata: NodeMetadata = NodeMetadata(
+        category=INPUT_CATEGORY,
+        capitalized_type="InputNode",
+    )
+
 class _FileInput_Out(BaseModel):
     out_0: Annotated[Optional[str], Output(datatype_override=FILE_TYPE)]
 class FileInputNode(MyInputNode):
@@ -51,6 +63,11 @@ class FileInputNode(MyInputNode):
             extension_filter=[".json"],
         )] = ""
     _parameters: Parameters
+    _metadata: NodeMetadata = NodeMetadata(
+        category=INPUT_CATEGORY,
+        capitalized_type="FileInputNode",
+        tags=[NodeTag(tag_name="output/file")]
+    )
 
 
 class _MathNodeInput(BaseModel):
@@ -79,6 +96,12 @@ class MyMathNode(BaseNode):
         return _MathNodeOutput(
             out_0=result
         )
+    
+    _metadata: NodeMetadata = NodeMetadata(
+        category=MATH_CATEGORY,
+        capitalized_type=""
+    )
+
 class SumNode(MyMathNode): operation = 0
 class SubNode(MyMathNode): operation = 1
 class MulNode(MyMathNode): operation = 2

@@ -16,6 +16,7 @@ from nodeserver.api.node.slots import NodeSlot
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
+from nodeserver.wrapper.nodes.data.node_metadata import DEFAULT_CATEGORY, NodeMetadata, NodeTag
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, NodeParameterDataAdapter, SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel
@@ -41,6 +42,8 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
     _parameters: Parameters
     _params_spec: dict[str, dict]
+    
+    _metadata: Optional[NodeMetadata] = None
 
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)
@@ -218,6 +221,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         constructor: ConstructorModel = ConstructorModel(
             type_name=str(type_name),
             node_data=NodeData(param_data),
+            node_metadata=cls._metadata,
             slots=slot_types,
             parser=None,
         )

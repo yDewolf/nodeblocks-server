@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
+from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodePathData
 from nodeserver.wrapper.nodes.node.node_types import SuperSlotTypes
 from nodeserver.wrapper.utils.uuid_utils import IDGenerator
@@ -15,17 +16,19 @@ class NodeMirror:
     type_name: str    
 
     data: NodeData
+    metadata: NodeMetadata
     raw_data: dict
     _position: Optional[Vector2]
 
     slots: dict[SuperSlotTypes, list[SlotMirror]]
 
-    def __init__(self, node_name: str, node_data: NodeData, uid: str | None = None, type_name: str = "BaseNode", _position: Vector2 | None = None):
+    def __init__(self, node_name: str, node_data: NodeData, metadata: NodeMetadata, uid: str | None = None, type_name: str = "BaseNode", _position: Vector2 | None = None):
         self.uid = uid if uid != None else IDGenerator.generate_node_id()
         self.node_name = node_name
         self.type_name = type_name
         self._position = _position
 
+        self.metadata = metadata
         self.data = node_data
         self.slots = {}
 
