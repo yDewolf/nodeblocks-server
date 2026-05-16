@@ -182,15 +182,15 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
             real_slot = self.slot(slot.slot_name)
             if real_slot._io.is_collection():
-                raw_inputs[slot.slot_name] = values[:real_slot._io._max_inputs]
-                if len(values) > real_slot._io._max_inputs:
+                raw_inputs[slot.slot_name] = values[:real_slot._io._max_connections]
+                if len(values) > real_slot._io._max_connections:
                     logger.warning(f"WARNING: Shrinking node inputs for slot {slot}")
                     instance_protocol.send_to_client(ServerNotification.slot_notify(
                         node_uid=self._mirror.uid,
                         slot_name=slot.slot_name,
                         message="Inputs will be shrunk",
                         level=NotificationLevel.WARNING,
-                        description=f"{slot.slot_name} won't receive all its inputs since it has a max input count of {real_slot._io._max_inputs}"
+                        description=f"{slot.slot_name} won't receive all its inputs since it has a max input count of {real_slot._io._max_connections}"
                     ))
 
                 continue
@@ -257,6 +257,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         
         slot_types[key] = SlotData(
             type=super_slot_name,
-            data_type=DataTypeUtils._match_super_type(raw_type.__name__)
+            data_type=DataTypeUtils._match_super_type(raw_type.__name__),
+            max_connections=slot_instance._io._max_connections
         )
     

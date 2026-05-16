@@ -63,7 +63,7 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
             **spec["args"]
         )
 
-        instance._io._max_inputs = spec["max_inputs"]
+        instance._io._max_connections = spec["max_inputs"]
         instance._io._raw_io_type = spec["raw_type"]
         datatype_override = spec.get("datatype_override")
         instance._io._datatype_override = datatype_override

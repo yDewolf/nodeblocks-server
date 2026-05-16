@@ -20,6 +20,7 @@ class SlotTypeData(DataModel):
 class SlotData(DataModel):
     type: str
     data_type: Optional[DataTypes] = None
+    max_connections: Optional[int] = None # 0 -> Doesn't have a max
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)

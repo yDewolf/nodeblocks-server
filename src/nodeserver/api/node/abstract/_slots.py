@@ -6,7 +6,7 @@ from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType
 
 
 class _SlotIO[inputType: Any, valueType: Any]:
-    _max_inputs: int = 0
+    _max_connections: int = 0
     _version: int
     _value: Optional[valueType] = None
 
@@ -16,8 +16,8 @@ class _SlotIO[inputType: Any, valueType: Any]:
     
     _type_args: Optional[tuple[Any, ...]] = None
 
-    def __init__(self, value: Optional[valueType] = None, max_inputs: int = 0, raw_io_type: Type[Any] = Type) -> None:
-        self._max_inputs = max_inputs
+    def __init__(self, value: Optional[valueType] = None, max_connections: int = -1, raw_io_type: Type[Any] = Type) -> None:
+        self._max_connections = max_connections
         self._value = value
         self._version = 0
 
@@ -28,12 +28,12 @@ class _SlotIO[inputType: Any, valueType: Any]:
         input_type = get_origin(self._raw_io_type)
         try:
             is_collection = issubclass(input_type, (list, tuple))
-            if self._max_inputs == 0:
+            if self._max_connections == -1:
                 if is_collection:
-                    self._max_inputs = -1 # TODO: Can receive any amount of inputs
+                    self._max_connections = 0 # TODO: Can receive any amount of inputs
 
                 if not is_collection and self._is_input:
-                    self._max_inputs = 1
+                    self._max_connections = 1
 
         except TypeError: 
             pass
@@ -60,4 +60,4 @@ class _SlotIO[inputType: Any, valueType: Any]:
         return self._raw_io_type
 
     def is_collection(self) -> bool:
-        return self._max_inputs == -1 or self._max_inputs > 1
+        return self._max_connections == 0 or self._max_connections > 1
