@@ -29,7 +29,7 @@ class _SlotIO[inputType: Any, valueType: Any]:
         try:
             is_collection = issubclass(input_type, (list, tuple))
             if self._max_connections == -1:
-                if is_collection:
+                if is_collection or not self._is_input:
                     self._max_connections = 0 # TODO: Can receive any amount of inputs
 
                 if not is_collection and self._is_input:

@@ -20,7 +20,7 @@ class NodeUtils:
             input_io = InputSlotIO
             output_io = OutputSlotIO
 
-            max_inputs: int = 0
+            max_inputs: Optional[int] = None
             datatype_override: Optional[BaseNodeType] = None
             is_input = default_is_input
             extra_args = {}
