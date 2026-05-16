@@ -82,17 +82,19 @@ class SlotMirror:
     slot_name: str
     parent_node: NodeMirror
 
+    max_connections: int = 0
     data_type: BaseNodeType
     type: BaseSlotType
 
     connections: dict[SlotMirror, ConnectionMirror]
 
-    def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, slot_data_type: BaseNodeType | None) -> None:
+    def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, slot_data_type: BaseNodeType | None, max_connections: int = 0) -> None:
         self._version = 0
         self.parent_node = parent_node
         self.slot_name = slot_name
 
         self.type = slot_type
+        self.max_connections = max_connections
         self.data_type = slot_data_type if slot_data_type != None else slot_type.data_type
         self.connections = {}
 
@@ -102,6 +104,8 @@ class SlotMirror:
         
         # if not DataTypeUtils.is_type_compatible_with(self.data_type, slot.data_type):
         #     return False
+        if len(self.connections.values()) >= self.max_connections and self.max_connections != 0:
+            return False
 
         if not DataTypeUtils.is_type_compatible_with(self.type, slot.type):
             return False
@@ -163,6 +167,9 @@ class ConnectionMirror:
     # TODO: do some checks I guess
     def is_valid(self) -> bool:
         if not self.slot_a.can_connect_to(self.slot_b):
+            return False
+        
+        if not self.slot_b.can_connect_to(self.slot_a):
             return False
         
         return True

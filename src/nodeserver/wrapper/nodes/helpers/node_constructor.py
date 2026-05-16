@@ -61,6 +61,7 @@ class BaseMirrorConstructor:
             slot_name,
             slot_type,
             slot_data_type if slot_data_type != UNKNOWN_TYPE else None,
+            slot_data.max_connections if slot_data.max_connections else 0
         )
 
     def build_node(self, mirror: NodeMirror) -> _ParsedNode:

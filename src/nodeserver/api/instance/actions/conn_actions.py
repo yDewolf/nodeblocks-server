@@ -16,8 +16,14 @@ class ConnActionUtils:
         if isinstance(payload, ConnectionActionAddUpdate):
             for conn_uid, conn_data in payload.action_data.items():
                 conn_data.uid = conn_uid
-                instance.mirror_manager.add_conn_mirror(conn_data)
-
+                conn = instance.mirror_manager.add_conn_mirror(conn_data)
+                if not conn:
+                    instance.send_to_client(ServerNotification.conn_notify(
+                        conn_uid=conn_uid,
+                        message="Failed to add connection",
+                        level=NotificationLevel.WARNING
+                    ))
+                    continue
                 instance.send_to_client(ServerNotification.conn_notify(
                     conn_uid=conn_uid,
                     message="Added connection",
