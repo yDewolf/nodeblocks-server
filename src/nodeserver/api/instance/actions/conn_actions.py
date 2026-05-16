@@ -1,5 +1,6 @@
 from nodeserver.api.instance.actions.action_controller import Action
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
+from nodeserver.api.node.node_exceptions import ReachedMaxConnections
 from nodeserver.api.web.requests.action_requests import ConnectionActionAddUpdate, ConnectionActionRemove
 from nodeserver.api.web.requests.client_requests import MsgConnectionAction
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
@@ -16,14 +17,24 @@ class ConnActionUtils:
         if isinstance(payload, ConnectionActionAddUpdate):
             for conn_uid, conn_data in payload.action_data.items():
                 conn_data.uid = conn_uid
-                conn = instance.mirror_manager.add_conn_mirror(conn_data)
-                if not conn:
-                    instance.send_to_client(ServerNotification.conn_notify(
-                        conn_uid=conn_uid,
-                        message="Failed to add connection",
-                        level=NotificationLevel.WARNING
+                try:
+                    conn = instance.mirror_manager.add_conn_mirror(conn_data)
+                    if not conn:
+                        instance.send_to_client(ServerNotification.conn_notify(
+                            conn_uid=conn_uid,
+                            message="Failed to add connection",
+                            level=NotificationLevel.WARNING
+                        ))
+                        continue
+                except ReachedMaxConnections as e:
+                    instance.send_to_client(ServerNotification.slot_notify(
+                        node_uid=e.slot.parent_node.uid,                        
+                        slot_name=e.slot.slot_name,
+                        message="Slot reached Max Connections",
+                        level=NotificationLevel.ERROR
                     ))
                     continue
+
                 instance.send_to_client(ServerNotification.conn_notify(
                     conn_uid=conn_uid,
                     message="Added connection",

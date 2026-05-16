@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Optional
 
+from nodeserver.api.node.node_exceptions import ReachedMaxConnections
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
 from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
@@ -105,7 +106,7 @@ class SlotMirror:
         # if not DataTypeUtils.is_type_compatible_with(self.data_type, slot.data_type):
         #     return False
         if len(self.connections.values()) >= self.max_connections and self.max_connections != 0:
-            return False
+            raise ReachedMaxConnections(self)
 
         if not DataTypeUtils.is_type_compatible_with(self.type, slot.type):
             return False

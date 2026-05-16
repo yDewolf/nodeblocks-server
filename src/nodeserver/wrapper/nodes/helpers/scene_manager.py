@@ -1,4 +1,5 @@
 
+from nodeserver.api.node.node_exceptions import ReachedMaxConnections
 from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
@@ -66,7 +67,10 @@ class MirrorSceneManager:
             self.add_node_mirror(node_data, node_name, update_scene_data=False)
 
         for conn_data in self.scene_reader.scene_data.connections.values():
-            self.add_conn_mirror(conn_data, update_scene_data=False)
+            try:
+                self.add_conn_mirror(conn_data, update_scene_data=False)
+            except ReachedMaxConnections:
+                pass
 
         return True
 
