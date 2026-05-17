@@ -222,7 +222,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         constructor: ConstructorModel = ConstructorModel(
             type_name=str(type_name),
             node_data=NodeData(param_data),
-            node_metadata=cls._metadata,
+            node_metadata=cls._metadata.model_copy(),
             slots=slot_types,
             parser=None,
         )
