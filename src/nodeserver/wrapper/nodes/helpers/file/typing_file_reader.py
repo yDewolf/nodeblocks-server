@@ -144,6 +144,9 @@ class TypeFileReader:
         
         for type_name in type_data.node_types:
             node_type_data = type_data.node_types[type_name]
+            if node_type_data.metadata == None:
+                raise Exception(f"Every node should have metadata. Node of type {type_name} doesn't have any.")
+            
             constructor = CustomMirrorConstructor(
                 type_name,
                 NodeData(node_type_data.parameters),

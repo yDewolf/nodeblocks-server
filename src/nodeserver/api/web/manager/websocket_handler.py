@@ -168,11 +168,10 @@ class WebsocketHandler:
         # Load previous instance state, if it exists
         state_paths = session.workspace.get_saved_instances()
         if state_paths:
-            state_root = state_paths[0]
-            loaded_state = StateFileUtils.get_instance_state(state_root)
+            instance_path = state_paths[0]
+            loaded_state = StateFileUtils.get_instance_state(instance_path)
             
             if loaded_state:
-                instance_path = WorkspaceUtils.get_instance_path(state_root, instance._attributed_id)
                 node_state_path = WorkspaceUtils.get_node_states_path(instance_path)
                 instance.load_internal_state(
                     instance_path, node_state_path, loaded_state

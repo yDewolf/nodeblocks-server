@@ -48,6 +48,8 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)
         self._parameters = self.Parameters()
+        self._ensure_parameters_updated()
+        
         self._slots = self.Slots()
         self._build_slots()
 
@@ -143,16 +145,15 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     # Should have save logic
     @abstractmethod
     def save_state(self, root_state_path: str) -> Optional[InternalNodeState]:
-        state = self.get_state()
-        if state:
-            my_state_file_path, filename = NodeUtils.make_state_file_path(self._mirror, root_state_path, "json")
-            state.relative_state_path = str(pathlib.Path(my_state_file_path).relative_to(root_state_path))
-            
-            with open(my_state_file_path, "w") as file:
-                file.write(json.dumps({"some": "data"}))
+        return
+        # state = self.get_state()
+        # if state:
+        #     my_state_file_path, filename = NodeUtils.make_state_file_path(self._mirror, root_state_path, "json")
+        #     state.relative_state_path = str(pathlib.Path(my_state_file_path).relative_to(root_state_path))
+            # Save the state of your node in another file (my_state_file_path) 
 
-        # Do some Save stuff if you need to
-        return state
+        # # Do some Save stuff if you need to
+        # return state
 
     # Shouldn't have save logic
     @abstractmethod
