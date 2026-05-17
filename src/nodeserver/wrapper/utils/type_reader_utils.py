@@ -3,6 +3,7 @@ from typing import Callable
 
 from nodeserver.api.node.nodes import BaseNode
 from nodeserver.wrapper.nodes.data.node_data import NodeData
+from nodeserver.wrapper.nodes.data.node_metadata import DEFAULT_CATEGORY, NodeCategory, NodeMetadata
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader
 from nodeserver.wrapper.nodes.helpers.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
@@ -11,12 +12,24 @@ from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
 class TypeReaderUtils:
     @staticmethod
-    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], _ParsedNode], models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
+    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], _ParsedNode], default_category: NodeCategory, models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
         constructors: list[BaseMirrorConstructor] = []
         for model in models:
+            metadata = model.node_metadata
+            if not metadata:
+                metadata = NodeMetadata(
+                    category=default_category,
+                    capitalized_type=model.type_name,
+                    tags=[]
+                )
+            
+            if metadata.capitalized_type == "":
+                metadata.capitalized_type = model.type_name
+            
             constructor = CustomMirrorConstructor(
                 type_name=model.type_name,
                 data=model.node_data if model.node_data else NodeData({}),
+                metadata=metadata,
                 slot_types=base_types.slot_types,
                 slots=model.slots if model.slots else default_slots,
                 builder_func=model.parser if model.parser else default_builder,
@@ -49,7 +62,7 @@ class TypeReaderUtils:
 
         types.slot_types.update(slot_types)
         types.set_new_constructors(TypeReaderUtils.make_constructors(
-            types, {}, auto_parser, node_constructors
+            types, {}, auto_parser, DEFAULT_CATEGORY, node_constructors
         ))
 
         return types

@@ -16,6 +16,7 @@ from nodeserver.api.node.slots import NodeSlot
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
+from nodeserver.wrapper.nodes.data.node_metadata import DEFAULT_CATEGORY, NodeMetadata, NodeTag
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, NodeParameterDataAdapter, SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel
@@ -41,10 +42,14 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
     _parameters: Parameters
     _params_spec: dict[str, dict]
+    
+    _metadata: Optional[NodeMetadata] = None
 
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)
         self._parameters = self.Parameters()
+        self._ensure_parameters_updated()
+        
         self._slots = self.Slots()
         self._build_slots()
 
@@ -140,16 +145,15 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     # Should have save logic
     @abstractmethod
     def save_state(self, root_state_path: str) -> Optional[InternalNodeState]:
-        state = self.get_state()
-        if state:
-            my_state_file_path, filename = NodeUtils.make_state_file_path(self._mirror, root_state_path, "json")
-            state.relative_state_path = str(pathlib.Path(my_state_file_path).relative_to(root_state_path))
-            
-            with open(my_state_file_path, "w") as file:
-                file.write(json.dumps({"some": "data"}))
+        return
+        # state = self.get_state()
+        # if state:
+        #     my_state_file_path, filename = NodeUtils.make_state_file_path(self._mirror, root_state_path, "json")
+        #     state.relative_state_path = str(pathlib.Path(my_state_file_path).relative_to(root_state_path))
+            # Save the state of your node in another file (my_state_file_path) 
 
-        # Do some Save stuff if you need to
-        return state
+        # # Do some Save stuff if you need to
+        # return state
 
     # Shouldn't have save logic
     @abstractmethod
@@ -179,15 +183,15 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
             real_slot = self.slot(slot.slot_name)
             if real_slot._io.is_collection():
-                raw_inputs[slot.slot_name] = values[:real_slot._io._max_inputs]
-                if len(values) > real_slot._io._max_inputs:
+                raw_inputs[slot.slot_name] = values[:real_slot._io._max_connections]
+                if len(values) > real_slot._io._max_connections:
                     logger.warning(f"WARNING: Shrinking node inputs for slot {slot}")
                     instance_protocol.send_to_client(ServerNotification.slot_notify(
                         node_uid=self._mirror.uid,
                         slot_name=slot.slot_name,
                         message="Inputs will be shrunk",
                         level=NotificationLevel.WARNING,
-                        description=f"{slot.slot_name} won't receive all its inputs since it has a max input count of {real_slot._io._max_inputs}"
+                        description=f"{slot.slot_name} won't receive all its inputs since it has a max input count of {real_slot._io._max_connections}"
                     ))
 
                 continue
@@ -218,6 +222,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         constructor: ConstructorModel = ConstructorModel(
             type_name=str(type_name),
             node_data=NodeData(param_data),
+            node_metadata=cls._metadata.model_copy(),
             slots=slot_types,
             parser=None,
         )
@@ -253,6 +258,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         
         slot_types[key] = SlotData(
             type=super_slot_name,
-            data_type=DataTypeUtils._match_super_type(raw_type.__name__)
+            data_type=DataTypeUtils._match_super_type(raw_type.__name__),
+            max_connections=slot_instance._io._max_connections
         )
     

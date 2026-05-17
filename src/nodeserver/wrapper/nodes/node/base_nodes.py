@@ -2,8 +2,10 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Optional
 
+from nodeserver.api.node.node_exceptions import ReachedMaxConnections
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
+from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodePathData
 from nodeserver.wrapper.nodes.node.node_types import SuperSlotTypes
 from nodeserver.wrapper.utils.uuid_utils import IDGenerator
@@ -15,17 +17,19 @@ class NodeMirror:
     type_name: str    
 
     data: NodeData
+    metadata: NodeMetadata
     raw_data: dict
     _position: Optional[Vector2]
 
     slots: dict[SuperSlotTypes, list[SlotMirror]]
 
-    def __init__(self, node_name: str, node_data: NodeData, uid: str | None = None, type_name: str = "BaseNode", _position: Vector2 | None = None):
+    def __init__(self, node_name: str, node_data: NodeData, metadata: NodeMetadata, uid: str | None = None, type_name: str = "BaseNode", _position: Vector2 | None = None):
         self.uid = uid if uid != None else IDGenerator.generate_node_id()
         self.node_name = node_name
         self.type_name = type_name
         self._position = _position
 
+        self.metadata = metadata
         self.data = node_data
         self.slots = {}
 
@@ -79,17 +83,19 @@ class SlotMirror:
     slot_name: str
     parent_node: NodeMirror
 
+    max_connections: int = 0
     data_type: BaseNodeType
     type: BaseSlotType
 
     connections: dict[SlotMirror, ConnectionMirror]
 
-    def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, slot_data_type: BaseNodeType | None) -> None:
+    def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, slot_data_type: BaseNodeType | None, max_connections: int = 0) -> None:
         self._version = 0
         self.parent_node = parent_node
         self.slot_name = slot_name
 
         self.type = slot_type
+        self.max_connections = max_connections
         self.data_type = slot_data_type if slot_data_type != None else slot_type.data_type
         self.connections = {}
 
@@ -99,6 +105,8 @@ class SlotMirror:
         
         # if not DataTypeUtils.is_type_compatible_with(self.data_type, slot.data_type):
         #     return False
+        if len(self.connections.values()) >= self.max_connections and self.max_connections != 0:
+            raise ReachedMaxConnections(self)
 
         if not DataTypeUtils.is_type_compatible_with(self.type, slot.type):
             return False
@@ -160,6 +168,9 @@ class ConnectionMirror:
     # TODO: do some checks I guess
     def is_valid(self) -> bool:
         if not self.slot_a.can_connect_to(self.slot_b):
+            return False
+        
+        if not self.slot_b.can_connect_to(self.slot_a):
             return False
         
         return True

@@ -2,6 +2,7 @@ from typing import Annotated, Literal, Optional, Dict, List, Union, Any
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from nodeserver.wrapper.nodes.data.node_data_types import DataTypes
+from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
 
 class DataModel(BaseModel):
     model_config = ConfigDict(
@@ -19,6 +20,7 @@ class SlotTypeData(DataModel):
 class SlotData(DataModel):
     type: str
     data_type: Optional[DataTypes] = None
+    max_connections: Optional[int] = None # 0 -> Doesn't have a max
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)
@@ -48,6 +50,7 @@ NodeParameterData = Annotated[
 NodeParameterDataAdapter = TypeAdapter(NodeParameterData)
 
 class NodeTypeData(DataModel):
+    metadata: Optional[NodeMetadata] = None
     parameters: Dict[str, NodeParameterData] = Field(default_factory=dict)
     slots: Dict[str, SlotData] = Field(default_factory=dict)
 
