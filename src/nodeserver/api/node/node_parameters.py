@@ -1,6 +1,6 @@
 from typing import Optional
 
-from nodeserver.wrapper.nodes.data.node_data_types import DataTypes
+from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
 
 class ParamConfig:
     label: Optional[str]
@@ -42,4 +42,4 @@ def Param(label: Optional[str] = None, **kwargs):
     return ParamConfig(label=label, **kwargs)
 
 def FileParam(label: Optional[str] = None, extension_filter: Optional[list[str]] = None, **kwargs):
-    return ParamConfig(label=label, type=DataTypes.FILE, extension_filter=extension_filter, **kwargs)
+    return ParamConfig(label=label, type=DefaultDataTypes.FILE, extension_filter=extension_filter, **kwargs)
