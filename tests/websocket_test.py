@@ -5,8 +5,7 @@ from pydantic import BaseModel
 from nodeserver.api.base_server import NodeServer
 from nodeserver.api.node.node_parameters import FileParam, Param
 from nodeserver.api.node.nodes import BaseNode
-from nodeserver.api.node.slots import Input, InputSlotIO, NodeSlot, Output
-from nodeserver.wrapper.nodes.data.node_data_types import FILE_TYPE
+from nodeserver.api.node.slots import Input, NodeSlot, Output
 
 import logging
 import logging.config
@@ -54,7 +53,8 @@ class MyInputNode(BaseNode):
     )
 
 class _FileInput_Out(BaseModel):
-    out_0: Annotated[Optional[str], Output(datatype_override=FILE_TYPE)]
+    out_0: Annotated[Optional[str], Output()] # TODO: Implement FileOutput SlotIO
+
 class FileInputNode(MyInputNode):
     OutputModel = _FileInput_Out
     class Parameters(BaseModel):
@@ -109,7 +109,7 @@ class DivNode(MyMathNode): operation = 3
 
 class TestNode(BaseNode):
     class Slots:
-        slot_0: NodeSlot[InputSlotIO[list[float]]]
+        slot_0: Annotated[list[float], Input()]
 
 NODE_REGISTRY: dict[str, type[BaseNode]] = {
     "MyInputNode": MyInputNode,

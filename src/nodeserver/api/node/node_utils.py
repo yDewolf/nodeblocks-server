@@ -4,7 +4,7 @@ from typing import Any, Optional, Type
 from pydantic import BaseModel
 
 from nodeserver.api.node.slots import InputSlotIO, NodeSlot, OutputSlotIO, SlotConfig
-from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType
+from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
 
 class NodeUtils:
@@ -21,7 +21,7 @@ class NodeUtils:
             output_io = OutputSlotIO
 
             max_inputs: Optional[int] = None
-            datatype_override: Optional[BaseNodeType] = None
+            renderer_override: Optional[DefaultDataTypes] = None
             is_input = default_is_input
             extra_args = {}
 
@@ -34,19 +34,18 @@ class NodeUtils:
                     is_input = meta.is_input
                     extra_args = meta.extra_kwargs
                     max_inputs = meta.max_inputs
-                    datatype_override = meta.datatype_override
-
+                    renderer_override = meta.renderer_override
 
             raw_type = field.annotation
 
-            io_generic = input_io[raw_type] if is_input else output_io[raw_type]
+            io_generic = input_io[raw_type] if is_input else output_io[raw_type] # type: ignore
             _slot_definitions[name] = {
                 "class": slot_class,
                 "io": io_generic,
                 "args": extra_args,
                 "max_inputs": max_inputs,
                 "raw_type": raw_type,
-                "datatype_override": datatype_override
+                "renderer_override": renderer_override
             }
             
             slots_class.__annotations__[name] = slot_class[io_generic] # type: ignore

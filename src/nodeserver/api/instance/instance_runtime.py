@@ -10,7 +10,6 @@ from nodeserver.api.node.abstract._nodes import _Node
 from nodeserver.api.node.abstract._slots import _SlotIO
 from nodeserver.api.node.node_exceptions import ConnRecursionException
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
-from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.wrapper.nodes.node.node_utils import NodeMirrorUtils
 
@@ -65,7 +64,7 @@ class _ReadonlyContext:
     def _get_cached_outputs(self, node: _Node) -> dict[SlotMirror, _SlotIO]:
         return {
             slot: self._output_cache[slot]
-            for slot in node._mirror.slots.get(SuperSlotTypes.OUTPUT, [])
+            for slot in node._mirror.outputs
             if slot in self._output_cache
         }
 
@@ -115,7 +114,7 @@ class RuntimeContext(_ReadonlyContext):
         output_data: dict[SlotMirror, _SlotIO] = {}
         for slot_name in outputs:
             slot = node.slot(slot_name)
-            if slot._mirror.type._super_type != SuperSlotTypes.OUTPUT:
+            if slot._mirror.is_input:
                 logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {node}")
             
             slot._io.value = outputs[slot_name]

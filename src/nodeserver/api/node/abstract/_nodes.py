@@ -1,8 +1,6 @@
 from abc import abstractmethod
-import json
 import logging
 import os
-import pathlib
 from typing import Optional, get_args, get_origin, get_type_hints
 
 from pydantic import BaseModel
@@ -11,7 +9,6 @@ from nodeserver.api.internal.instance_state import InternalNodeState
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.node.abstract._slots import _SlotIO
 from nodeserver.api.node.node_parameters import ParamConfig
-from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.slots import NodeSlot
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.wrapper.nodes.data.node_data import NodeData
@@ -168,7 +165,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     def get_execution_hash(self, output_cache: dict[SlotMirror, _SlotIO]) -> int:
         input_versions = 0
         slots_version = 0
-        for slot in self._mirror.slots.get(SuperSlotTypes.INPUT, []):
+        for slot in self._mirror.inputs:
             slots_version += slot._version
             for conn in slot.connections:
                 cached = output_cache.get(conn)
@@ -178,7 +175,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
     def resolve_inputs(self, output_cache: dict, instance_protocol: InstanceProtocol) -> dict:
         raw_inputs = {}
-        for slot in self._mirror.slots.get(SuperSlotTypes.INPUT, []):
+        for slot in self._mirror.inputs:
             values = [output_cache[conn].value for conn in slot.connections if conn in output_cache]
             if not values: raw_inputs[slot.slot_name] = None
 
@@ -208,12 +205,12 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
             type_name = cls.__name__
         
         data_types: dict[str, BaseDataType] = super_data_types
-        super_types: dict[str, BaseSlotType] = super_slot_types
-        slot_types: dict[str, SlotData] = {}
+        slot_types: dict[str, BaseSlotType] = super_slot_types
+        node_slots: dict[str, SlotData] = {}
         
-        cls._add_cls_slot_types(super_types, data_types, slot_types)
-        constructor = cls._generate_constructor(slot_types, type_name)
-        return (super_types, constructor)
+        cls._add_cls_slot_and_data_types(slot_types, data_types, node_slots)
+        constructor = cls._generate_constructor(node_slots, type_name)
+        return (slot_types, constructor)
 
     @classmethod
     def _generate_constructor(cls, slot_types: dict[str, SlotData], type_name: str) -> ConstructorModel:
@@ -224,7 +221,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         constructor: ConstructorModel = ConstructorModel(
             type_name=str(type_name),
             node_data=NodeData(param_data),
-            node_metadata=cls._metadata.model_copy(),
+            node_metadata=cls._metadata.model_copy() if cls._metadata else None,
             slots=slot_types,
             parser=None,
         )
@@ -232,49 +229,43 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         return constructor
 
     @classmethod
-    def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], slot_types: dict[str, SlotData]):
+    def _add_cls_slot_and_data_types(cls, slot_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], node_slots: dict[str, SlotData]):
         slot_hints = get_type_hints(cls.Slots, globalns=globals())
         for attribute_name, hint in slot_hints.items():
             if attribute_name.startswith("_"): continue
             slot_instance = cls._build_slot_instance(hint, None)
-            cls._add_slot_types(attribute_name, slot_instance, super_types, data_types, slot_types)
+            
+            cls._add_data_types(slot_instance, data_types)
+            cls._add_slot_types(attribute_name, slot_instance, slot_types, data_types, node_slots)
 
     @classmethod
-    def _add_data_types(cls, slot_instance: NodeSlot, super_data_types: dict[str, BaseDataType], data_types: dict[str, DataTypeData]):
-        raw_type = slot_instance._io.get_type()
-        renderer = slot_instance._io._renderer if slot_instance._io._renderer else DefaultDataTypes.UNKNOWN
+    def _add_data_types(cls, slot_instance: NodeSlot, data_types: dict[str, BaseDataType]):
+        renderer = slot_instance._io.get_renderer()
         
-        data_type_id = slot_instance._io.__class__.__name__
-        if not super_data_types.__contains__(data_type_id):
-            super_data_types[data_type_id] = BaseDataType(
+        data_type_id = slot_instance._io.make_datatype_id()
+        if not data_types.__contains__(data_type_id):
+            data_types[data_type_id] = BaseDataType(
                 data_type_id,
                 renderer,
                 [],
                 [data_type_id]
-                # TODO: Generate DataType from SlotIO attributes   
             )
-        
-        data_types[data_type_id] = DataTypeData(
-            default_renderer=renderer,
-            whitelist=[]
-        )
     
 
     @classmethod
-    def _add_slot_types(cls, key: str, slot_instance: NodeSlot, super_types: dict[str, BaseSlotType], super_data_types: dict[str, BaseDataType], slot_types: dict[str, SlotData]):
-        # FIXME: Improve DataTypes so it can make new DataTypes and pass it with the scene
+    def _add_slot_types(cls, key: str, slot_instance: NodeSlot, slot_types: dict[str, BaseSlotType], super_data_types: dict[str, BaseDataType], node_slots: dict[str, SlotData]):
         raw_type = slot_instance._io.get_type()
-        data_type_id = str(raw_type)
+        data_type_id = slot_instance._io.make_datatype_id()
         
         super_slot_name = f"{slot_instance.__class__.__name__}:{raw_type.__name__}"
-        if not super_types.__contains__(super_slot_name):
+        if not slot_types.__contains__(super_slot_name):
             data_type = super_data_types.get(data_type_id)
             if not data_type: raise Exception(f"Incorrect DataType id or DataType wasn't parsed yet. {data_type_id} for {key}")
-            super_types[super_slot_name] = BaseSlotType(
+            slot_types[super_slot_name] = BaseSlotType(
                 data_type=data_type
             )
         
-        slot_types[key] = SlotData(
+        node_slots[key] = SlotData(
             type=super_slot_name,
             data_type=DataTypeUtils._match_super_type(raw_type.__name__),
             max_connections=slot_instance._io._max_connections,

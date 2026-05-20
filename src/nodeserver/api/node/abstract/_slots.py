@@ -2,9 +2,9 @@
 from typing import Any, Optional, Type, get_args
 from typing_extensions import get_origin
 
-from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
+from nodeserver.wrapper.nodes.data.node_data_types import DataTypeUtils, DefaultDataTypes
 
-class _SlotIO[inputType: Any, valueType: Any]:
+class _SlotIO[valueType: Any]:
     _max_connections: int = 0
     _version: int
     _value: Optional[valueType] = None
@@ -58,5 +58,18 @@ class _SlotIO[inputType: Any, valueType: Any]:
         
         return self._raw_io_type
 
+    def get_renderer(self) -> DefaultDataTypes:
+        if self._renderer:
+            return self._renderer
+
+        return DataTypeUtils._match_super_type(
+            self.get_type().__name__
+        )
+
     def is_collection(self) -> bool:
         return self._max_connections == 0 or self._max_connections > 1
+
+
+    def make_datatype_id(self) -> str:
+        return f"{self.__class__.__name__}:{self.get_type().__name__}"
+    

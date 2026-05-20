@@ -1,8 +1,8 @@
 
 from typing import Any, Callable
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import  UNKNOWN_TYPE, BaseSlotType, DataTypeUtils
 from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
+from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import Vector2
 from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
@@ -49,18 +49,13 @@ class BaseMirrorConstructor:
         slot_type_str = slot_data.type if slot_data.type != None else ""
         slot_type = self._slot_types.get(slot_type_str)
         if not slot_type:
-            # Search for default slot types
-            slot_type = DataTypeUtils._match_slot_type_str(slot_type_str)
-            
-            if slot_type == None:
-                return None
+            raise Exception(f"Slot Type isn't indexed in Node Constructor. SlotType: {slot_type}; Parent Node: {parent_node}")
 
-        slot_data_type = DataTypeUtils._match_data_type_str(slot_data.data_type if slot_data.data_type != None else "")
         return SlotMirror(
             parent_node,
             slot_name,
             slot_type,
-            slot_data_type if slot_data_type != UNKNOWN_TYPE else None,
+            slot_data.is_input,
             slot_data.max_connections if slot_data.max_connections else 0
         )
 

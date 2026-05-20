@@ -49,11 +49,11 @@ class TypeReaderUtils:
     @staticmethod
     def set_types_from_registry(types: TypeFileReader, node_registry: dict[str, type[BaseNode]]):
         node_constructors: list[ConstructorModel] = []
-        data_types: dict[str, BaseDataType] = {}
         
+        data_types: dict[str, BaseDataType] = {}
         slot_types: dict[str, BaseSlotType] = {}
         for type_name, node_type in node_registry.items():
-            super_slot_types, constructor = node_type.generate_types(slot_types, type_name)
+            super_slot_types, constructor = node_type.generate_types(slot_types, data_types, type_name)
             node_constructors.append(constructor)
             slot_types = super_slot_types
 
@@ -64,6 +64,7 @@ class TypeReaderUtils:
 
             return node_class(mirror)
 
+        types.data_types.update(data_types)
         types.slot_types.update(slot_types)
         types.set_new_constructors(TypeReaderUtils.make_constructors(
             types, {}, auto_parser, DEFAULT_CATEGORY, node_constructors

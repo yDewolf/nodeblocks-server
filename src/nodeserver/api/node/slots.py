@@ -1,12 +1,13 @@
 
 from typing import Any, Generic, Optional, Type, TypeVar
+from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
 from nodeserver.wrapper.nodes.node.base_nodes import SlotMirror
 from nodeserver.api.node.abstract._slots import _SlotIO
 
-class InputSlotIO[inputType: Any](_SlotIO[inputType, None]):
+class InputSlotIO[inputType: Any](_SlotIO[inputType]):
     _is_input = True
 
-class OutputSlotIO[outputType: Any](_SlotIO[None, outputType]):
+class OutputSlotIO[outputType: Any](_SlotIO[outputType]):
     _is_input = False
 
 T_SlotIO = TypeVar("T_SlotIO", bound=_SlotIO, default=_SlotIO)
@@ -35,8 +36,9 @@ class SlotConfig:
     def __init__(
         self, 
         slot_class: Optional[Type[NodeSlot]] = None,
-        input_io: Optional[Type[_SlotIO[Any, None]]] = None,
-        output_io: Optional[Type[_SlotIO[None, Any]]] = None,
+        input_io: Optional[Type[_SlotIO[Any]]] = None,
+        output_io: Optional[Type[_SlotIO[Any]]] = None,
+        renderer_override: Optional[DefaultDataTypes] = None,
         is_input: bool = False, 
         max_inputs: int = 1, 
         **kwargs
@@ -48,10 +50,11 @@ class SlotConfig:
         self.is_input = is_input
         self.extra_kwargs = kwargs
 
+        self.renderer_override = renderer_override
         self.max_inputs = max_inputs if self.is_input else 0
 
 def Input(max_inputs: int = 1, **kwargs):
     return SlotConfig(slot_class=NodeSlot, input_io=InputSlotIO, output_io=OutputSlotIO, is_input=True, max_inputs=max_inputs, **kwargs)
 
-def Output(**kwargs):
-    return SlotConfig(slot_class=NodeSlot, input_io=InputSlotIO, output_io=OutputSlotIO, is_input=False, **kwargs)
+def Output(renderer_override: Optional[DefaultDataTypes] = None, **kwargs):
+    return SlotConfig(slot_class=NodeSlot, input_io=InputSlotIO, output_io=OutputSlotIO, is_input=False, renderer_override=renderer_override, **kwargs)
