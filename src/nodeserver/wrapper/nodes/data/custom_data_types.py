@@ -8,4 +8,4 @@ class CustomDataType(BaseDataType):
         parsed_data_type = DataTypeUtils._match_data_type_str(super_type)
         type_whitelist, name_whitelist = DataTypeUtils._parse_type_whitelist(_type_whitelist)
         
-        super().__init__(type_name, parsed_data_type._super_type, type_whitelist, name_whitelist)
+        super().__init__(type_name, parsed_data_type._renderer, type_whitelist, name_whitelist)

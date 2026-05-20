@@ -10,7 +10,7 @@ class DataModel(BaseModel):
     )
 
 class DataTypeData(DataModel):
-    renderer: DefaultDataTypes
+    default_renderer: DefaultDataTypes # TODO: Implement proper renderer solver
     whitelist: list[str]
 
 

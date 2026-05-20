@@ -4,11 +4,11 @@ from typing import Any, Optional, Type
 
 from pydantic import BaseModel
 
-from nodeserver.api.instance.instance_runtime import _ReadonlyContext, RuntimeContext
 from nodeserver.api.node.node_utils import NodeUtils
-from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
 from nodeserver.api.node.abstract._nodes import _Node
 from nodeserver.api.node.slots import NodeSlot
+from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType
+from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.node.base_nodes import SlotMirror
 
@@ -75,10 +75,10 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
         return instance
 
     @classmethod
-    def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
+    def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], slot_types: dict[str, SlotData]):
         for name, spec in cls._slot_definitions.items():
             slot_instance = cls._build_slot_instance_from_spec(spec, None)
-            cls._add_slot_types(name, slot_instance, super_types, slot_types)
+            cls._add_slot_types(name, slot_instance, super_types, data_types, slot_types)
 
     def _parse_inputs(self, raw_input_data: dict) -> BaseModel:
         return self.InputModel(**raw_input_data)

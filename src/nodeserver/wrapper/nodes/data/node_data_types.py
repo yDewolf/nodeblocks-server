@@ -13,14 +13,14 @@ class DefaultDataTypes(str, Enum):
 class BaseDataType:
     type_id: str
 
-    _default_super_type: DefaultDataTypes
+    _renderer: DefaultDataTypes # Used to set the DataTypeData renderer
     _type_whitelist: list[DefaultDataTypes] = []
     _name_whitelist: list[str] = []
 
-    def __init__(self, type_name: str, super_type: DefaultDataTypes, type_whitelist: list[DefaultDataTypes], name_whitelist: list[str] = []):
+    def __init__(self, type_name: str, renderer: DefaultDataTypes, type_whitelist: list[DefaultDataTypes], name_whitelist: list[str] = []):
         self.type_id = type_name
 
-        self._super_type = super_type
+        self._renderer = renderer
         self._type_whitelist = type_whitelist
         self._name_whitelist = name_whitelist
 
@@ -58,7 +58,7 @@ class DataTypeUtils:
 
     @staticmethod
     def is_type_compatible_with(type_a: BaseDataType, type_b: BaseDataType) -> bool:
-        if type_a._type_whitelist.__contains__(type_b._super_type):
+        if type_a._type_whitelist.__contains__(type_b._renderer):
             return True
 
         if type_a._name_whitelist.__contains__(type_b.type_id):
