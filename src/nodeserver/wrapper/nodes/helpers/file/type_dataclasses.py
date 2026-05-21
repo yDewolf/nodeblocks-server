@@ -62,6 +62,7 @@ class NodeTypeData(DataModel):
         return self.model_dump(by_alias=True)
 
 class TypeFile(DataModel):
+    format: Optional[int] = None
     version: int
     id: str
     

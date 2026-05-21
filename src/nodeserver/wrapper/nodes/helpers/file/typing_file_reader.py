@@ -14,6 +14,7 @@ from nodeserver.wrapper.nodes.helpers.node_constructor import BaseMirrorConstruc
 from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
 class TypeFileReader:
+    _format: int = 2
     _node_types_version: int = -1
     _node_types_id: str | None = None
     
@@ -115,6 +116,7 @@ class TypeFileReader:
             _node_types[type_name] = type_data
         
         type_data = TypeFile(
+            format=self._format,
             id=self._node_types_id if self._node_types_id else "unknown",
             version=self._node_types_version,
             data_types=_data_types,

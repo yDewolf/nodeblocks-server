@@ -1,10 +1,11 @@
 
+from types import get_original_bases
 from typing import Any, Optional, Type, get_args
 from typing_extensions import get_origin
 
 from nodeserver.wrapper.nodes.data.node_data_types import DataTypeUtils, DefaultDataTypes
 
-class _SlotIO[valueType: Any]:
+class _SlotIO[valueType: Any, is_input: bool]:
     _max_connections: int = 0
     _version: int
     _value: Optional[valueType] = None
@@ -15,11 +16,12 @@ class _SlotIO[valueType: Any]:
     _type_args: Optional[tuple[Any, ...]] = None
     _renderer: Optional[DefaultDataTypes] = None # Sets the respective generated DataType's Renderer
 
-    def __init__(self, value: Optional[valueType] = None, max_connections: int = -1, raw_io_type: Type[Any] = Type) -> None:
+    def __init__(self, value: Optional[valueType] = None, max_connections: int = -1, raw_io_type: Type[Any] = Type, is_input: bool = False) -> None:
         self._max_connections = max_connections
         self._value = value
         self._version = 0
 
+        self._is_input = is_input
         self._raw_io_type = raw_io_type
         self._setup_type_variables()
         

@@ -3,6 +3,7 @@ from typing import Any, Optional, Type
 
 from pydantic import BaseModel
 
+from nodeserver.api.node.abstract._slots import _SlotIO
 from nodeserver.api.node.slots import InputSlotIO, NodeSlot, OutputSlotIO, SlotConfig
 from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
@@ -17,8 +18,7 @@ class NodeUtils:
     def process_model(model: Type[BaseModel], default_is_input: bool, slots_class: Type, _slot_definitions: dict[str, Any]):
         for name, field in model.model_fields.items():
             slot_class = NodeSlot
-            input_io = InputSlotIO
-            output_io = OutputSlotIO
+            slot_io = _SlotIO
 
             max_inputs: Optional[int] = None
             renderer_override: Optional[DefaultDataTypes] = None
@@ -28,8 +28,7 @@ class NodeUtils:
             for meta in field.metadata:
                 if isinstance(meta, SlotConfig):
                     if meta.slot_class: slot_class = meta.slot_class
-                    if meta.input_io: input_io = meta.input_io
-                    if meta.output_io: output_io = meta.output_io
+                    if meta.slot_io: slot_io = meta.slot_io
 
                     is_input = meta.is_input
                     extra_args = meta.extra_kwargs
@@ -38,7 +37,7 @@ class NodeUtils:
 
             raw_type = field.annotation
 
-            io_generic = input_io[raw_type] if is_input else output_io[raw_type] # type: ignore
+            io_generic = slot_io[raw_type, is_input]
             _slot_definitions[name] = {
                 "class": slot_class,
                 "io": io_generic,
