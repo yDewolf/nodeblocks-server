@@ -67,6 +67,9 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
             instance._io._max_connections = spec["max_inputs"]
         
         instance._io._raw_io_type = spec["raw_type"]
+        base_type_override = spec.get("base_type_override")
+        instance._io._base_type = base_type_override
+        
         renderer_override = spec.get("renderer_override")
         instance._io._renderer = renderer_override
         return instance

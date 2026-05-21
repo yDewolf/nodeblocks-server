@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from nodeserver.api.node.abstract._slots import _SlotIO
 from nodeserver.api.node.slots import InputSlotIO, NodeSlot, OutputSlotIO, SlotConfig
-from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
+from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
 
 class NodeUtils:
@@ -21,7 +21,8 @@ class NodeUtils:
             slot_io = _SlotIO
 
             max_inputs: Optional[int] = None
-            renderer_override: Optional[DefaultDataTypes] = None
+            renderer_override: Optional[DefaultRenderers] = None
+            base_type_override: Optional[DefaultDataTypes] = None
             is_input = default_is_input
             extra_args = {}
 
@@ -34,6 +35,7 @@ class NodeUtils:
                     extra_args = meta.extra_kwargs
                     max_inputs = meta.max_inputs
                     renderer_override = meta.renderer_override
+                    base_type_override = meta.base_type_override
 
             raw_type = field.annotation
 
@@ -44,7 +46,8 @@ class NodeUtils:
                 "args": extra_args,
                 "max_inputs": max_inputs,
                 "raw_type": raw_type,
-                "renderer_override": renderer_override
+                "renderer_override": renderer_override,
+                "base_type_override": base_type_override,
             }
             
             slots_class.__annotations__[name] = slot_class[io_generic] # type: ignore

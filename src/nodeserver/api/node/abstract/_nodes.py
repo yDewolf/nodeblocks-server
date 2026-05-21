@@ -240,15 +240,14 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
 
     @classmethod
     def _add_data_types(cls, slot_instance: NodeSlot, data_types: dict[str, BaseDataType]):
-        renderer = slot_instance._io.get_renderer()
-        
         data_type_id = slot_instance._io.make_datatype_id()
         if not data_types.__contains__(data_type_id):
             data_types[data_type_id] = BaseDataType(
                 data_type_id,
-                renderer,
+                slot_instance._io.get_base_type(),
                 [],
-                [data_type_id]
+                [data_type_id],
+                renderer=slot_instance._io.get_renderer()
             )
     
 

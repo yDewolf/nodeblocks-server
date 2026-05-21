@@ -1,7 +1,7 @@
 from typing import Annotated, Literal, Optional, Dict, List, Union, Any
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
-from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
+from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
 from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
 
 class DataModel(BaseModel):
@@ -10,7 +10,8 @@ class DataModel(BaseModel):
     )
 
 class DataTypeData(DataModel):
-    default_renderer: DefaultDataTypes # TODO: Implement proper renderer solver
+    base: Optional[DefaultDataTypes]
+    default_renderer: DefaultRenderers # TODO: Implement proper renderer solver
     whitelist: list[str]
 
 

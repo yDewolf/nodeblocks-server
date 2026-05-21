@@ -10,6 +10,7 @@ from nodeserver.api.node.slots import Input, NodeSlot, Output
 import logging
 import logging.config
 
+from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
 from nodeserver.wrapper.nodes.data.node_metadata import INPUT_CATEGORY, NodeCategory, NodeMetadata, NodeTag
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.wrapper.utils.type_reader_utils import TypeReaderUtils
@@ -53,7 +54,7 @@ class MyInputNode(BaseNode):
     )
 
 class _FileInput_Out(BaseModel):
-    out_0: Annotated[Optional[str], Output()] # TODO: Implement FileOutput SlotIO
+    out_0: Annotated[Optional[str], Output(base_type_override=DefaultDataTypes.FILE)] # TODO: Implement FileOutput SlotIO
 
 class FileInputNode(MyInputNode):
     OutputModel = _FileInput_Out

@@ -3,7 +3,7 @@ from types import get_original_bases
 from typing import Any, Optional, Type, get_args
 from typing_extensions import get_origin
 
-from nodeserver.wrapper.nodes.data.node_data_types import DataTypeUtils, DefaultDataTypes
+from nodeserver.wrapper.nodes.data.node_data_types import DataTypeUtils, DefaultDataTypes, DefaultRenderers, _match_renderer
 
 class _SlotIO[valueType: Any, is_input: bool]:
     _max_connections: int = 0
@@ -14,7 +14,8 @@ class _SlotIO[valueType: Any, is_input: bool]:
     _is_input: bool = False
     
     _type_args: Optional[tuple[Any, ...]] = None
-    _renderer: Optional[DefaultDataTypes] = None # Sets the respective generated DataType's Renderer
+    _base_type: Optional[DefaultDataTypes] = None # Sets the respective generated DataType's Renderer
+    _renderer: Optional[DefaultRenderers] = None
 
     def __init__(self, value: Optional[valueType] = None, max_connections: int = -1, raw_io_type: Type[Any] = Type, is_input: bool = False) -> None:
         self._max_connections = max_connections
@@ -60,18 +61,25 @@ class _SlotIO[valueType: Any, is_input: bool]:
         
         return self._raw_io_type
 
-    def get_renderer(self) -> DefaultDataTypes:
-        if self._renderer:
-            return self._renderer
+    def get_base_type(self) -> DefaultDataTypes:
+        if self._base_type:
+            return self._base_type
 
         return DataTypeUtils._match_super_type(
             self.get_type().__name__
         )
+
+    def get_renderer(self) -> DefaultRenderers:
+        if self._renderer:
+            return self._renderer
+        
+        return _match_renderer(self.get_base_type())
+
 
     def is_collection(self) -> bool:
         return self._max_connections == 0 or self._max_connections > 1
 
 
     def make_datatype_id(self) -> str:
-        return f"{self.__class__.__name__}:{self.get_type().__name__}"
+        return f"{self.__class__.__name__}:{self.get_type().__name__}" + (f"_{self.get_base_type().value}" if self._base_type else "")
     
