@@ -150,7 +150,7 @@ class TypeFileReader:
         for data_type_id, data_type in type_data.data_types.items():
             custom_type = CustomDataType(
                 data_type_id,
-                data_type.default_renderer,
+                data_type.base,
                 _type_whitelist=data_type.whitelist
             )
             data_types[data_type_id] = custom_type

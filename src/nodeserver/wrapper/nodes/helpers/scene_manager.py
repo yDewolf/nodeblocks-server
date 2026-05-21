@@ -1,4 +1,6 @@
 
+from pydantic import ValidationError
+
 from nodeserver.api.node.node_exceptions import ReachedMaxConnections
 from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager

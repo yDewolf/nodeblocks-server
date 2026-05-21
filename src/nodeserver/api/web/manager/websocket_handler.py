@@ -5,6 +5,8 @@ from multidict import MultiMapping
 import json
 import logging
 
+from pydantic import ValidationError
+
 from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.instance_state import StateFileUtils
 from nodeserver.api.web.requests.notification_requests import ServerNotification
@@ -169,14 +171,18 @@ class WebsocketHandler:
         state_paths = session.workspace.get_saved_instances()
         if state_paths:
             instance_path = state_paths[0]
-            loaded_state = StateFileUtils.get_instance_state(instance_path)
-            
-            if loaded_state:
-                node_state_path = WorkspaceUtils.get_node_states_path(instance_path)
-                instance.load_internal_state(
-                    instance_path, node_state_path, loaded_state
-                )
-                loaded_from_file = True
+            try:
+                loaded_state = StateFileUtils.get_instance_state(instance_path)
+                
+                if loaded_state:
+                    node_state_path = WorkspaceUtils.get_node_states_path(instance_path)
+                    instance.load_internal_state(
+                        instance_path, node_state_path, loaded_state
+                    )
+                    loaded_from_file = True
+            except ValidationError as e:
+                logger.error(e)
+                
 
         logger.info(f"New Instance created for user {user_id}: {instance._attributed_id}")
         return (instance, loaded_from_file)
