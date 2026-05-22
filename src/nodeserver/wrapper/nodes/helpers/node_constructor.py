@@ -1,7 +1,7 @@
 
 from typing import Any, Callable
-from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import Vector2
