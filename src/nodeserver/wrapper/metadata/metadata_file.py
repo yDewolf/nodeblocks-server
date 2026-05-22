@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, field_serializer
 
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
-from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta, ParameterMeta, SlotMeta
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeCategory, NodeTag, NodeTypeMeta, ParameterMeta, SlotMeta
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import TypeFile
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 
@@ -14,10 +14,13 @@ METADATA_INDENT = 1
 class MetadataFileHeader(BaseModel):
     types_id: str
     meta_version: int # TODO: use hashing for versions
-
+    
 class Metadata(MetadataFileHeader):
     data_types: dict[str, DataTypeMeta]
     node_types: dict[str, NodeTypeMeta]
+    
+    tags: dict[str, NodeTag] = {}
+    categories: dict[str, NodeCategory] = {}
     
     @field_serializer("data_types")
     def serialize_data_types(self, data_types: dict[str, DataTypeMeta], _info):
@@ -97,6 +100,15 @@ class MetadataFile:
         if not type_reader._node_types_id: 
             raise Exception(f"TypeFile is missing node type id. Referred reader: {type_reader}")
         
+        node_categories: dict[str, NodeCategory] = {}
+        node_tags: dict[str, NodeTag] = {}
+        for type_id, constructor in type_reader.node_constructors.items():
+            category = constructor._metadata.category
+            
+            node_categories[category.category_id] = category 
+            for tag in constructor._metadata.tags:
+                node_tags[tag.tag_id] = tag
+        
         datatype_meta = {}
         for type_id, data_type in type_reader.data_types.items():
             meta = DataTypeMeta(
@@ -139,6 +151,8 @@ class MetadataFile:
             types_id=type_reader._node_types_id,
             meta_version=0,
             data_types=datatype_meta,
-            node_types=nodetype_meta 
+            node_types=nodetype_meta,
+            tags=node_tags,
+            categories=node_categories
         )
         return metadata

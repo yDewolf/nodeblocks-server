@@ -1,26 +1,23 @@
 from typing import Optional
 
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, Field, field_serializer
 from nodeserver.wrapper.metadata.base_metadata import BaseMetadata
 
 # TODO: Move this to a node_filtering file
 class NodeTag(BaseModel):
-    tag_id: str
+    tag_id: str = Field(exclude=True)
     description: str = ""
 
 # TODO: Move this to a node_filtering file
 class NodeCategory(BaseModel):
-    category_id: str
+    category_id: str = Field(exclude=True)
     description: str = ""
     super_category: Optional['NodeCategory'] = None
     default_tags: Optional[list[NodeTag]] = []
-
-class CategoryRef(BaseModel):
-    category_id: str
-
-class TagRef(BaseModel):
-    tag_id: str
-
+    
+    @field_serializer("default_tags")
+    def serialize_tags(self, default_tags: Optional[list[NodeTag]], _info):
+        return [tag.tag_id for tag in default_tags] if default_tags else []
 
 class ParameterMeta(BaseMetadata):
     pass
@@ -49,7 +46,7 @@ class NodeTypeMeta(BaseMetadata):
     
     @field_serializer("category")
     def serialize_category(self, category: NodeCategory, _info):
-        return CategoryRef(category_id=category.category_id)
+        return category.category_id
 
     @field_serializer("tags")
     def serialize_tags(self, tags: list[NodeTag], _info):
