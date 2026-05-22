@@ -41,6 +41,6 @@ class NodeMirrorUtils:
         if len(execution_order) != len(nodes):
             processed_uids = {node.uid for node in execution_order}
             problematic_nodes = [node for node in nodes if node.uid not in processed_uids]
-            raise ConnRecursionException(problematic_nodes)
+            raise ConnRecursionException(problematic_nodes) # type: ignore
 
         return execution_order

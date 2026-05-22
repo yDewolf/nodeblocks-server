@@ -48,19 +48,19 @@ class NodeMirror:
     def inputs(self) -> list[SlotMirror]:
         inputs: list[SlotMirror] = []
         for slot in self.slots:
-            if slot._is_input:
+            if slot.is_input:
                 inputs.append(slot)
         
         return inputs
 
     @property
     def outputs(self) -> list[SlotMirror]:
-        inputs: list[SlotMirror] = []
+        outputs: list[SlotMirror] = []
         for slot in self.slots:
-            if slot._is_input:
-                inputs.append(slot)
+            if not slot.is_input:
+                outputs.append(slot)
         
-        return inputs
+        return outputs
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}({self.uid})"

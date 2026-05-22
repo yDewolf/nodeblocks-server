@@ -39,7 +39,7 @@ class NodeUtils:
 
             raw_type = field.annotation
 
-            io_generic = slot_io[raw_type, is_input]
+            io_generic = slot_io[raw_type, is_input] # type: ignore
             _slot_definitions[name] = {
                 "class": slot_class,
                 "io": io_generic,
