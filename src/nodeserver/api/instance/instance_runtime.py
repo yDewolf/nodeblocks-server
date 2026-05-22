@@ -161,8 +161,7 @@ class InstanceRuntime:
         try:
             raw_node_inputs = current_node.resolve_inputs(self.context._output_cache, instance_protocol)
             node_inputs: BaseModel = current_node._parse_inputs(raw_node_inputs)
-            if isinstance(node_inputs, ContextAwareInput):
-                node_inputs._context = self.context.readonly()
+            self.insert_extra_input_data(node_inputs)
             
             current_node.pre_forward(node_inputs) # Node might set bypass cache to True here
             
@@ -208,3 +207,8 @@ class InstanceRuntime:
                     message="Node is causing recursion",
                     level=NotificationLevel.ERROR
                 ))
+    
+    def insert_extra_input_data(self, node_inputs: BaseModel) -> None:
+        if isinstance(node_inputs, ContextAwareInput) and self.context:
+            node_inputs._context = self.context.readonly()
+        

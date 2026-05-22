@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.instance_state import StateFileUtils
+from nodeserver.api.web.instance.special_instance import WsServerInstance
 from nodeserver.api.web.requests.notification_requests import ServerNotification
 from nodeserver.api.web.requests.request_unions import AnyServerMessage
 from nodeserver.api.web.requests.websocket_requests import SrvHandshakeError, SrvHandshakeSuccess
@@ -31,11 +32,11 @@ class WebsocketHandler:
     loop: asyncio.AbstractEventLoop | None = None
     connections: dict[web.WebSocketResponse, ServerInstance] # type: ignore
     
-    server_instance_type: type[ServerInstance] = ServerInstance
+    server_instance_type: type[WsServerInstance] = WsServerInstance
     _router: BaseMessagerouter
     _url_router: URLRouter
 
-    def __init__(self, instance_manager: InstanceManager, session_manager: SessionManager, server_instance_type: type[ServerInstance], router_type: type[BaseMessagerouter]) -> None:
+    def __init__(self, instance_manager: InstanceManager, session_manager: SessionManager, server_instance_type: type[WsServerInstance], router_type: type[BaseMessagerouter]) -> None:
         self.server_instance_type = server_instance_type
         self.instance_manager = instance_manager
         self.session_manager = session_manager
@@ -163,7 +164,7 @@ class WebsocketHandler:
     # Important: doesn't set the instance on instance_manager
     def _create_new_instance(self, session: UserSession, user_id: str) -> tuple[ServerInstance, bool]:
         loaded_from_file: bool = False
-        instance = self.server_instance_type(self.instance_manager._default_types)
+        instance = self.server_instance_type(session, self.instance_manager._default_types)
         instance._attributed_id, instance._created_at = WebsocketHandler.make_instance_id(user_id)
         instance._user_id = user_id
         
@@ -182,7 +183,7 @@ class WebsocketHandler:
                     loaded_from_file = True
             except ValidationError as e:
                 logger.error(e)
-                
+
 
         logger.info(f"New Instance created for user {user_id}: {instance._attributed_id}")
         return (instance, loaded_from_file)

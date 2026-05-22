@@ -2,6 +2,7 @@ import asyncio
 from aiohttp import web
 
 from nodeserver.api.internal.instance_manager import InstanceManager
+from nodeserver.api.web.instance.special_instance import WsServerInstance
 from nodeserver.api.web.manager.session_manager import SessionManager
 from nodeserver.api.web.manager.websocket_handler import WebsocketHandler
 from nodeserver.api.instance.server_instance import ServerInstance
@@ -20,7 +21,7 @@ class WebsocketManager:
 
     stop: asyncio.Future | None
 
-    def __init__(self, instance_manager: InstanceManager, session_manager: SessionManager, server_intance_type: type[ServerInstance], host: str, port: int):
+    def __init__(self, instance_manager: InstanceManager, session_manager: SessionManager, server_intance_type: type[WsServerInstance], host: str, port: int):
         self.instance_manager = instance_manager
         self.handler = WebsocketHandler(self.instance_manager, session_manager, server_intance_type, BaseMessagerouter)
         

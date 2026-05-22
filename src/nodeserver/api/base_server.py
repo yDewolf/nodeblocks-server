@@ -7,6 +7,7 @@ import aiohttp_cors
 
 from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.instance_manager import InstanceManager
+from nodeserver.api.web.instance.special_instance import WsServerInstance
 from nodeserver.api.web.manager.session_manager import SessionManager
 from nodeserver.api.web.rest.workspace.workspace_api import FileHandler
 from nodeserver.api.websocket_manager import WebsocketManager
@@ -23,7 +24,7 @@ class NodeServer:
     port: int
     app: web.Application
 
-    def __init__(self, default_types: TypeFileReader | None = None, server_instance_type: type[ServerInstance] = ServerInstance, host="localhost", port=3001) -> None:
+    def __init__(self, default_types: TypeFileReader | None = None, server_instance_type: type[WsServerInstance] = WsServerInstance, host="localhost", port=3001) -> None:
         self.app = web.Application()
         logging.basicConfig(level=logging.DEBUG)
         

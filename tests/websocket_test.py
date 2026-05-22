@@ -1,16 +1,19 @@
+import os
 from typing import Annotated, Optional
 
 from pydantic import BaseModel
 
 from nodeserver.api.base_server import NodeServer
+from nodeserver.api.instance.instance_runtime import ContextAwareInput
 from nodeserver.api.node.node_parameters import FileParam, Param
-from nodeserver.api.node.nodes import BaseNode
+from nodeserver.api.node.nodes import BaseNode, NoInput
 from nodeserver.api.node.slots import Input, NodeSlot, Output
 
 import logging
 import logging.config
 
-from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes
+from nodeserver.api.web.instance.special_instance import WorkspaceAwareInput
+from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
 from nodeserver.wrapper.nodes.data.node_metadata import INPUT_CATEGORY, NodeCategory, NodeMetadata, NodeTag
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.wrapper.utils.type_reader_utils import TypeReaderUtils
@@ -54,9 +57,13 @@ class MyInputNode(BaseNode):
     )
 
 class _FileInput_Out(BaseModel):
-    out_0: Annotated[Optional[str], Output(base_type_override=DefaultDataTypes.FILE)] # TODO: Implement FileOutput SlotIO
+    out_0: Annotated[Optional[str], Output(
+        base_type_override=DefaultDataTypes.FILE, 
+        renderer_override=DefaultRenderers.TEXT
+    )] # TODO: Implement FileOutput SlotIO
 
-class FileInputNode(MyInputNode):
+class FileInputNode(BaseNode):
+    InputModel = WorkspaceAwareInput
     OutputModel = _FileInput_Out
     class Parameters(BaseModel):
         file_path: Annotated[str, FileParam(
@@ -69,6 +76,21 @@ class FileInputNode(MyInputNode):
         capitalized_type="FileInputNode",
         tags=[NodeTag(tag_name="output/file")]
     )
+
+    def forward(self, input: WorkspaceAwareInput) -> _FileInput_Out:
+        if not self._parameters.file_path:
+            raise Exception("No file was selected")
+
+        uploads_path = input._workspace.get_uploads_path()
+        target_file_path = os.path.join(uploads_path, self._parameters.file_path)
+        logger.info(f"Will read data from file {target_file_path}")
+        file_content = ""
+        with open(target_file_path, "r") as file:
+            file_content = file.read()
+
+        return _FileInput_Out(
+            out_0=file_content
+        )
 
 
 class _MathNodeInput(BaseModel):
