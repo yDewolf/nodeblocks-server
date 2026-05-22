@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
 from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
@@ -18,7 +18,14 @@ class MetadataFileHeader(BaseModel):
 class Metadata(MetadataFileHeader):
     data_types: dict[str, DataTypeMeta]
     node_types: dict[str, NodeTypeMeta]
+    
+    @field_serializer("data_types")
+    def serialize_data_types(self, data_types: dict[str, DataTypeMeta], _info):
+        return [id for id in data_types]
 
+    @field_serializer("node_types")
+    def serialize_node_types(self, node_types: dict[str, DataTypeMeta], _info):
+        return [id for id in node_types]
 
 class MetadataFile:
     metadata: Optional[Metadata] = None
@@ -79,11 +86,7 @@ class MetadataFile:
         
         header_file_path = os.path.join(folder_path, f"metadata{METADATA_EXTENSION}")
         with open(header_file_path, "w") as file:
-            header_data = MetadataFileHeader(
-                types_id=self.metadata.types_id,
-                meta_version=self.metadata.meta_version
-            )
-            file.write(header_data.model_dump_json(indent=METADATA_INDENT))
+            file.write(self.metadata.model_dump_json(indent=METADATA_INDENT))
         
     def set_from_types(self, type_reader: TypeFileReader):
         self.metadata = MetadataFile.generate_meta_model(type_reader)

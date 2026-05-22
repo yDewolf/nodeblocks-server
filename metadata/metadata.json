@@ -1,88 +1,17 @@
 {
  "types_id": "MyCoolTypes",
  "meta_version": 0,
- "data_types": {
-  "_SlotIO:float": {
-   "capitalized_name": "_SlotIO:float",
-   "description": ""
-  },
-  "_SlotIO:str_file": {
-   "capitalized_name": "_SlotIO:str_file",
-   "description": ""
-  }
- },
- "node_types": {
-  "MyInputNode": {
-   "capitalized_name": "InputNode",
-   "description": "",
-   "category": {
-    "category_id": "Input"
-   },
-   "tags": [],
-   "parameter_meta": {},
-   "slot_meta": {}
-  },
-  "FileInputNode": {
-   "capitalized_name": "FileInputNode",
-   "description": "",
-   "category": {
-    "category_id": "Input"
-   },
-   "tags": [
-    "output/file"
-   ],
-   "parameter_meta": {},
-   "slot_meta": {}
-  },
-  "SumNode": {
-   "capitalized_name": "SumNode",
-   "description": "",
-   "category": {
-    "category_id": "Math"
-   },
-   "tags": [],
-   "parameter_meta": {},
-   "slot_meta": {}
-  },
-  "SubNode": {
-   "capitalized_name": "SubNode",
-   "description": "",
-   "category": {
-    "category_id": "Math"
-   },
-   "tags": [],
-   "parameter_meta": {},
-   "slot_meta": {}
-  },
-  "MulNode": {
-   "capitalized_name": "MulNode",
-   "description": "",
-   "category": {
-    "category_id": "Math"
-   },
-   "tags": [],
-   "parameter_meta": {},
-   "slot_meta": {}
-  },
-  "DivNode": {
-   "capitalized_name": "DivNode",
-   "description": "",
-   "category": {
-    "category_id": "Math"
-   },
-   "tags": [],
-   "parameter_meta": {},
-   "slot_meta": {}
-  },
-  "TestNode": {
-   "capitalized_name": "TestNode",
-   "description": "",
-   "category": {
-    "category_id": "Any"
-   },
-   "tags": [],
-   "parameter_meta": {},
-   "slot_meta": {}
-  }
- }
+ "data_types": [
+  "_SlotIO:float",
+  "_SlotIO:str_file"
+ ],
+ "node_types": [
+  "MyInputNode",
+  "FileInputNode",
+  "SumNode",
+  "SubNode",
+  "MulNode",
+  "DivNode",
+  "TestNode"
+ ]
 }
