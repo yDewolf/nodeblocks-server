@@ -40,6 +40,7 @@ class MetadataFile:
         return metadata_file
 
     def save_to_folder(self, folder_path: str):
+        # TODO: load metadata from folder and compare each field so it doesn't override fields that were modified
         if not self.metadata:
             raise Exception("No metadata to save")
         
@@ -119,15 +120,18 @@ class MetadataFile:
             if not constructor._metadata.parameter_meta:
                 param_meta: dict[str, ParameterMeta] = {}
                 for param_name in constructor._data_model.param_model:
-                    # TODO
-                    pass
+                    param_meta[param_name] = ParameterMeta(
+                        capitalized_name=param_name
+                    )
+                constructor._metadata.parameter_meta.update(param_meta)
             
             meta = NodeTypeMeta(
                 capitalized_name=constructor._metadata.capitalized_name,
                 description=constructor._metadata.description,
                 category=constructor._metadata.category,
                 tags=constructor._metadata.tags,
-                slot_meta=constructor._metadata.slot_meta
+                slot_meta=constructor._metadata.slot_meta,
+                parameter_meta=constructor._metadata.parameter_meta
             )
             nodetype_meta[type_id] = meta
         
