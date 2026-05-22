@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from nodeserver.api.base_server import NodeServer
 from nodeserver.api.instance.instance_runtime import ContextAwareInput
-from nodeserver.api.node.node_parameters import FileParam, OptionParam, Param
+from nodeserver.api.node.node_parameters import BooleanParam, FileParam, OptionParam, Param
 from nodeserver.api.node.nodes import BaseNode, NoInput
 from nodeserver.api.node.slots import Input, NodeSlot, Output
 
@@ -74,6 +74,8 @@ class FileInputNode(BaseNode):
             options=["option 1", "option 2", "option 3"],
             option_type=DefaultDataTypes.TEXT
         )] = "option 3"
+        test_boolean: Annotated[bool, BooleanParam()] = True
+
     _parameters: Parameters
     _metadata: NodeMetadata = NodeMetadata(
         category=INPUT_CATEGORY,
@@ -89,6 +91,7 @@ class FileInputNode(BaseNode):
         target_file_path = os.path.join(uploads_path, self._parameters.file_path)
         logger.info(f"Will read data from file {target_file_path}")
         logger.info(f"Assigned test_parameter to {self._parameters.test_parameter}")
+        logger.info(f"Assigned test_boolean to {self._parameters.test_boolean}")
         file_content = ""
         with open(target_file_path, "r") as file:
             file_content = file.read()

@@ -43,6 +43,9 @@ class NodeNumberParameter(BaseNodeParameter):
     range: Optional[List[Union[float, int]]] = None
     step: Optional[float] = None
 
+class BooleanParameter(BaseNodeParameter):
+    type: Literal[DefaultDataTypes.BOOLEAN]
+
 class NodeOptionParameter(BaseNodeParameter):
     type: Literal[DefaultDataTypes.OPTIONS]
     
@@ -55,7 +58,7 @@ class NodeFileParameter(BaseNodeParameter):
 
 
 NodeParameterData = Annotated[
-    Union[NodeNumberParameter, NodeFileParameter, NodeOptionParameter, BaseNodeParameter],
+    Union[NodeNumberParameter, BooleanParameter, NodeFileParameter, NodeOptionParameter, BaseNodeParameter],
     Field(discriminator="type")
 ]
 

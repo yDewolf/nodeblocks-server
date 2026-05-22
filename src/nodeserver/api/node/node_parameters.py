@@ -44,6 +44,9 @@ class ParamConfig:
 def Param(label: Optional[str] = None, **kwargs):
     return ParamConfig(label=label, **kwargs)
 
+def BooleanParam(label: Optional[str] = None):
+    return ParamConfig(label=label, type=DefaultDataTypes.BOOLEAN)
+
 def FileParam(label: Optional[str] = None, extension_filter: Optional[list[str]] = None, **kwargs):
     return ParamConfig(label=label, type=DefaultDataTypes.FILE, extension_filter=extension_filter, **kwargs)
 

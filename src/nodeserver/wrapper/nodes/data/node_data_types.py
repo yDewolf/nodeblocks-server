@@ -4,6 +4,7 @@ class DefaultDataTypes(str, Enum):
     FLOAT = "float"
     UINT = "uint"
     INT = "int"
+    BOOLEAN = "boolean"
     ARRAY = "array"
     FILE = "file"
     CUSTOM = "custom"
@@ -50,6 +51,7 @@ class BaseDataType:
 FLOAT_TYPE = BaseDataType("float", DefaultDataTypes.FLOAT, [DefaultDataTypes.FLOAT])
 INT_TYPE = BaseDataType("int" , DefaultDataTypes.INT, [DefaultDataTypes.INT])
 UINT_TYPE = BaseDataType("uint" , DefaultDataTypes.UINT, [DefaultDataTypes.UINT])
+BOOLEAN_TYPE = BaseDataType("boolean" , DefaultDataTypes.BOOLEAN, [DefaultDataTypes.BOOLEAN])
 ARRAY_TYPE = BaseDataType("array" , DefaultDataTypes.ARRAY, [DefaultDataTypes.ARRAY])
 FILE_TYPE = BaseDataType("file" , DefaultDataTypes.FILE, [DefaultDataTypes.FILE])
 TEXT_TYPE = BaseDataType("text" , DefaultDataTypes.TEXT, [DefaultDataTypes.TEXT])
