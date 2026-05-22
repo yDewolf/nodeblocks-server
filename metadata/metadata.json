@@ -16,15 +16,7 @@
    "capitalized_name": "InputNode",
    "description": "",
    "category": {
-    "super_category": null,
-    "name": "Input",
-    "description": "Nodes that receives user input",
-    "default_tags": [
-     {
-      "tag_name": "input/parameter",
-      "description": "No Description"
-     }
-    ]
+    "category_id": "Input"
    },
    "tags": [],
    "parameter_meta": {},
@@ -34,21 +26,10 @@
    "capitalized_name": "FileInputNode",
    "description": "",
    "category": {
-    "super_category": null,
-    "name": "Input",
-    "description": "Nodes that receives user input",
-    "default_tags": [
-     {
-      "tag_name": "input/parameter",
-      "description": "No Description"
-     }
-    ]
+    "category_id": "Input"
    },
    "tags": [
-    {
-     "tag_name": "output/file",
-     "description": "No Description"
-    }
+    "output/file"
    ],
    "parameter_meta": {},
    "slot_meta": {}
@@ -57,10 +38,7 @@
    "capitalized_name": "SumNode",
    "description": "",
    "category": {
-    "super_category": null,
-    "name": "Math",
-    "description": "",
-    "default_tags": []
+    "category_id": "Math"
    },
    "tags": [],
    "parameter_meta": {},
@@ -70,10 +48,7 @@
    "capitalized_name": "SubNode",
    "description": "",
    "category": {
-    "super_category": null,
-    "name": "Math",
-    "description": "",
-    "default_tags": []
+    "category_id": "Math"
    },
    "tags": [],
    "parameter_meta": {},
@@ -83,10 +58,7 @@
    "capitalized_name": "MulNode",
    "description": "",
    "category": {
-    "super_category": null,
-    "name": "Math",
-    "description": "",
-    "default_tags": []
+    "category_id": "Math"
    },
    "tags": [],
    "parameter_meta": {},
@@ -96,10 +68,7 @@
    "capitalized_name": "DivNode",
    "description": "",
    "category": {
-    "super_category": null,
-    "name": "Math",
-    "description": "",
-    "default_tags": []
+    "category_id": "Math"
    },
    "tags": [],
    "parameter_meta": {},
@@ -109,15 +78,7 @@
    "capitalized_name": "TestNode",
    "description": "",
    "category": {
-    "super_category": null,
-    "name": "Any",
-    "description": "Every node that doesn't fit in a category",
-    "default_tags": [
-     {
-      "tag_name": "default",
-      "description": "No Description"
-     }
-    ]
+    "category_id": "Any"
    },
    "tags": [],
    "parameter_meta": {},

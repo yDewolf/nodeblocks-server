@@ -2,10 +2,7 @@
  "capitalized_name": "DivNode",
  "description": "",
  "category": {
-  "super_category": null,
-  "name": "Math",
-  "description": "",
-  "default_tags": []
+  "category_id": "Math"
  },
  "tags": [],
  "parameter_meta": {},

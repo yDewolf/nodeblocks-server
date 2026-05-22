@@ -25,7 +25,7 @@ logger = logging.getLogger("root")
 
 MATH_CATEGORY = NodeCategory(
     super_category=None, 
-    name="Math", 
+    category_id="Math", 
     description=""
 )
 
@@ -82,7 +82,7 @@ class FileInputNode(BaseNode):
     _metadata: NodeTypeMeta = NodeTypeMeta(
         category=INPUT_CATEGORY,
         capitalized_name="FileInputNode",
-        tags=[NodeTag(tag_name="output/file")]
+        tags=[NodeTag(tag_id="output/file")]
     )
 
     def forward(self, input: WorkspaceAwareInput) -> _FileInput_Out:

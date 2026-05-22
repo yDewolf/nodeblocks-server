@@ -79,7 +79,10 @@ class MetadataFile:
         
         header_file_path = os.path.join(folder_path, f"metadata{METADATA_EXTENSION}")
         with open(header_file_path, "w") as file:
-            header_data = MetadataFileHeader.model_validate(self.metadata)
+            header_data = MetadataFileHeader(
+                types_id=self.metadata.types_id,
+                meta_version=self.metadata.meta_version
+            )
             file.write(header_data.model_dump_json(indent=METADATA_INDENT))
         
     def set_from_types(self, type_reader: TypeFileReader):
