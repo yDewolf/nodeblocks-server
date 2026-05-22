@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, field_serializer
 
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
-from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta, ParameterMeta, SlotMeta
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import TypeFile
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 
@@ -107,6 +107,21 @@ class MetadataFile:
         nodetype_meta = {}
         for type_id, constructor in type_reader.node_constructors.items():
             # TODO: auto generate some of the metadata here if it doesn't exist in the constructor
+            if not constructor._metadata.slot_meta:
+                slot_meta: dict[str, SlotMeta] = {}
+                for slot_id in constructor._slots:
+                    slot_meta[slot_id] = SlotMeta(
+                        capitalized_name=slot_id
+                    )
+                
+                constructor._metadata.slot_meta.update(slot_meta)
+
+            if not constructor._metadata.parameter_meta:
+                param_meta: dict[str, ParameterMeta] = {}
+                for param_name in constructor._data_model.param_model:
+                    # TODO
+                    pass
+            
             meta = NodeTypeMeta(
                 capitalized_name=constructor._metadata.capitalized_name,
                 description=constructor._metadata.description,
