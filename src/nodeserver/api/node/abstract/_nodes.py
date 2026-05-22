@@ -13,7 +13,7 @@ from nodeserver.api.node.slots import NodeSlot
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType, DataTypeUtils, DefaultDataTypes
-from nodeserver.wrapper.nodes.data.node_metadata import DEFAULT_CATEGORY, NodeMetadata, NodeTag
+from nodeserver.wrapper.metadata.nodes.node_metadata import DEFAULT_CATEGORY, NodeTypeMeta, NodeTag
 from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import DataTypeData, NodeParameterData, NodeParameterDataAdapter, SlotData
@@ -41,7 +41,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     _parameters: Parameters
     _params_spec: dict[str, dict]
     
-    _metadata: Optional[NodeMetadata] = None
+    _metadata: Optional[NodeTypeMeta] = None
 
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)

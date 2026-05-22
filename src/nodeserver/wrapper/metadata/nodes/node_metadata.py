@@ -2,6 +2,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from nodeserver.wrapper.metadata.base_metadata import BaseMetadata
+
 class NodeTag(BaseModel):
     tag_name: str
     description: Optional[str] = "No Description"
@@ -12,11 +14,30 @@ class NodeCategory(BaseModel):
     description: str
     default_tags: Optional[list[NodeTag]] = []
 
-class NodeMetadata(BaseModel):
+class ParameterMeta(BaseMetadata):
+    pass
+
+class SlotMeta(BaseMetadata):
+    pass
+
+class NodeTypeMeta(BaseMetadata):
+    """
+        Every attribute of this class will be used as a default value for the generated
+        metadata file. These attributes will be overridden by the metadata file content (if it exists)
+    """
     category: NodeCategory
+    """
+        A default category can be set in Node._metadata <br>
+        it will be auto overridden when a proper metadata file is edited
+    """
     
-    capitalized_type: str # Set to "" so it assigns based on the type registry
-    tags: Optional[list[NodeTag]] = []
+    tags: list[NodeTag] = []
+    """
+        Default tags can be set in Node._metadata <br>
+        it will be auto overridden when a proper metadata file is edited
+    """
+    parameter_meta: dict[str, ParameterMeta] = {}
+    slot_meta: dict[str, SlotMeta] = {}
 
 
 DEFAULT_NODE_TAG = NodeTag(tag_name="default")

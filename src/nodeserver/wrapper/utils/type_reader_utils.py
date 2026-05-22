@@ -4,7 +4,7 @@ from typing import Callable
 from nodeserver.api.node.nodes import BaseNode
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType
-from nodeserver.wrapper.nodes.data.node_metadata import DEFAULT_CATEGORY, NodeCategory, NodeMetadata
+from nodeserver.wrapper.metadata.nodes.node_metadata import DEFAULT_CATEGORY, NodeCategory, NodeTypeMeta
 from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader
@@ -19,17 +19,17 @@ class TypeReaderUtils:
         for model in models:
             metadata = model.node_metadata
             if not metadata:
-                metadata = NodeMetadata(
+                metadata = NodeTypeMeta(
                     category=default_category,
-                    capitalized_type=model.type_name,
+                    capitalized_name=model.type_name,
                     tags=[]
                 )
             
-            if metadata.capitalized_type == "":
-                metadata.capitalized_type = model.type_name
+            if metadata.capitalized_name == "":
+                metadata.capitalized_name = model.type_name
             
             constructor = CustomMirrorConstructor(
-                type_name=model.type_name,
+                type_id=model.type_name,
                 data=model.node_data if model.node_data else NodeData({}),
                 metadata=metadata,
                 slot_types=base_types.slot_types,

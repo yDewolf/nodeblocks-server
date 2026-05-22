@@ -1,0 +1,18 @@
+{
+ "capitalized_name": "TestNode",
+ "description": "",
+ "category": {
+  "super_category": null,
+  "name": "Any",
+  "description": "Every node that doesn't fit in a category",
+  "default_tags": [
+   {
+    "tag_name": "default",
+    "description": "No Description"
+   }
+  ]
+ },
+ "tags": [],
+ "parameter_meta": {},
+ "slot_meta": {}
+}

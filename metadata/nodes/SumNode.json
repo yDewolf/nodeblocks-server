@@ -1,0 +1,13 @@
+{
+ "capitalized_name": "SumNode",
+ "description": "",
+ "category": {
+  "super_category": null,
+  "name": "Math",
+  "description": "",
+  "default_tags": []
+ },
+ "tags": [],
+ "parameter_meta": {},
+ "slot_meta": {}
+}

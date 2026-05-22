@@ -1,7 +1,7 @@
 
 from typing import Any, Callable
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
 from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import Vector2
@@ -12,17 +12,17 @@ def _default_build_func(mirror: NodeMirror) -> _ParsedNode:
     return _ParsedNode(mirror)
 
 class BaseMirrorConstructor:
-    type_name: str
+    type_id: str
 
     _data_model: NodeData
-    _metadata: NodeMetadata
+    _metadata: NodeTypeMeta
     _slots: dict[str, SlotData]
     _slot_types: dict[str, BaseSlotType]
 
     _builder_func: Callable[[NodeMirror], _ParsedNode]
 
-    def __init__(self, type_name: str, metadata: NodeMetadata, builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
-        self.type_name = type_name
+    def __init__(self, type_id: str, metadata: NodeTypeMeta, builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
+        self.type_id = type_id
         self._metadata = metadata
         self._builder_func = builder_func
 
@@ -30,8 +30,8 @@ class BaseMirrorConstructor:
         self._slots = {}
         self._slot_types = {}
     
-    def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any], metadata: NodeMetadata, _position: Vector2) -> NodeMirror | None:
-        mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), metadata, id, self.type_name, _position)
+    def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any], metadata: NodeTypeMeta, _position: Vector2) -> NodeMirror | None:
+        mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), metadata, id, self.type_id, _position)
         mirror.data.parse_parameters(node_data)
 
         for slot_name in self._slots:
@@ -63,8 +63,8 @@ class BaseMirrorConstructor:
         return self._builder_func(mirror)
 
 class CustomMirrorConstructor(BaseMirrorConstructor):
-    def __init__(self, type_name: str, data: NodeData, metadata: NodeMetadata, slot_types: dict[str, BaseSlotType], slots: dict[str, SlotData], builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
-        super().__init__(type_name, metadata, builder_func)
+    def __init__(self, type_id: str, data: NodeData, metadata: NodeTypeMeta, slot_types: dict[str, BaseSlotType], slots: dict[str, SlotData], builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
+        super().__init__(type_id, metadata, builder_func)
 
         self._data_model = data
         self._slots = slots

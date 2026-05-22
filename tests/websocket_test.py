@@ -12,9 +12,11 @@ from nodeserver.api.node.slots import Input, NodeSlot, Output
 import logging
 import logging.config
 
+from nodeserver.api.utils.file_utils import get_project_root
 from nodeserver.api.web.instance.special_instance import WorkspaceAwareInput
+from nodeserver.wrapper.metadata.metadata_file import MetadataFile
+from nodeserver.wrapper.metadata.nodes.node_metadata import INPUT_CATEGORY, NodeCategory, NodeTag, NodeTypeMeta
 from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
-from nodeserver.wrapper.nodes.data.node_metadata import INPUT_CATEGORY, NodeCategory, NodeMetadata, NodeTag
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 from nodeserver.wrapper.utils.type_reader_utils import TypeReaderUtils
 
@@ -51,9 +53,9 @@ class MyInputNode(BaseNode):
             out_0=value
         )
 
-    _metadata: NodeMetadata = NodeMetadata(
+    _metadata: NodeTypeMeta = NodeTypeMeta(
         category=INPUT_CATEGORY,
-        capitalized_type="InputNode",
+        capitalized_name="InputNode",
     )
 
 class _FileInput_Out(BaseModel):
@@ -77,9 +79,9 @@ class FileInputNode(BaseNode):
         test_boolean: Annotated[bool, BooleanParam()] = True
 
     _parameters: Parameters
-    _metadata: NodeMetadata = NodeMetadata(
+    _metadata: NodeTypeMeta = NodeTypeMeta(
         category=INPUT_CATEGORY,
-        capitalized_type="FileInputNode",
+        capitalized_name="FileInputNode",
         tags=[NodeTag(tag_name="output/file")]
     )
 
@@ -128,9 +130,9 @@ class MyMathNode(BaseNode):
             out_0=result
         )
     
-    _metadata: NodeMetadata = NodeMetadata(
+    _metadata: NodeTypeMeta = NodeTypeMeta(
         category=MATH_CATEGORY,
-        capitalized_type=""
+        capitalized_name=""
     )
 
 class SumNode(MyMathNode): operation = 0
@@ -153,5 +155,8 @@ NODE_REGISTRY: dict[str, type[BaseNode]] = {
 }
 
 my_cool_types = TypeReaderUtils.make_types_from_registry(0, "MyCoolTypes", NODE_REGISTRY)
+metadata_file = MetadataFile.new(my_cool_types)
+metadata_file.save_to_folder(os.path.join(get_project_root(), "metadata"))
+
 server = NodeServer(my_cool_types)
 server.run_server()

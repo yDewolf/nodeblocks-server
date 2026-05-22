@@ -1,0 +1,23 @@
+{
+ "capitalized_name": "FileInputNode",
+ "description": "",
+ "category": {
+  "super_category": null,
+  "name": "Input",
+  "description": "Nodes that receives user input",
+  "default_tags": [
+   {
+    "tag_name": "input/parameter",
+    "description": "No Description"
+   }
+  ]
+ },
+ "tags": [
+  {
+   "tag_name": "output/file",
+   "description": "No Description"
+  }
+ ],
+ "parameter_meta": {},
+ "slot_meta": {}
+}

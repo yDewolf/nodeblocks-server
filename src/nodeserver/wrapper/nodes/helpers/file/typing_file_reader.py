@@ -6,7 +6,7 @@ from typing import Callable, Optional
 from nodeserver.wrapper.nodes.data.custom_data_types import CustomDataType
 from nodeserver.wrapper.nodes.data.node_data import NodeData
 from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType
-from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
 from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import DataTypeData, NodeTypeData, SlotData, SlotTypeData, TypeFile
@@ -39,7 +39,7 @@ class TypeFileReader:
 
         types.slot_types = slot_types
         for constructor in constructors:
-            types.set_constructor(constructor.type_name, constructor)
+            types.set_constructor(constructor.type_id, constructor)
 
         return types
 
@@ -73,7 +73,7 @@ class TypeFileReader:
     def set_new_constructors(self, constructors: list[BaseMirrorConstructor]):
         self.node_constructors.clear()
         for constructor in constructors:
-            self.set_constructor(constructor.type_name, constructor)
+            self.set_constructor(constructor.type_id, constructor)
 
 
     def get_constructor(self, type_name: str) -> BaseMirrorConstructor | None:
@@ -161,19 +161,19 @@ class TypeFileReader:
                 data_types[slot_type.data_type_id]
             )
         
-        for type_name in type_data.node_types:
-            node_type_data = type_data.node_types[type_name]
+        for type_id in type_data.node_types:
+            node_type_data = type_data.node_types[type_id]
             if node_type_data.metadata == None:
-                raise Exception(f"Every node should have metadata. Node of type {type_name} doesn't have any.")
+                raise Exception(f"Every node should have metadata. Node of type {type_id} doesn't have any.")
             
             constructor = CustomMirrorConstructor(
-                type_name,
+                type_id,
                 NodeData(node_type_data.parameters),
                 node_type_data.metadata,
                 slot_types,
                 node_type_data.slots
             )
-            constructors[type_name] = constructor
+            constructors[type_id] = constructor
     
         return type_data, data_types, slot_types, constructors
 
@@ -181,13 +181,13 @@ class TypeFileReader:
 class ConstructorModel:
     type_name: str
     node_data: Optional[NodeData]
-    node_metadata: Optional[NodeMetadata]
+    node_metadata: Optional[NodeTypeMeta]
 
     slots: Optional[dict[str, SlotData]]
     parser: Optional[Callable[[NodeMirror], _ParsedNode]]
 
     @staticmethod
-    def new(type_name: str, node_data: Optional[NodeData] = None, metadata: Optional[NodeMetadata] = None, slots: Optional[dict[str, SlotData]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
+    def new(type_name: str, node_data: Optional[NodeData] = None, metadata: Optional[NodeTypeMeta] = None, slots: Optional[dict[str, SlotData]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
         return ConstructorModel(
             type_name=type_name,
             node_data=node_data,

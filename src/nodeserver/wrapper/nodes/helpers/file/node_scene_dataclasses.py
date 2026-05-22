@@ -3,7 +3,7 @@ import uuid
 from typing import Annotated, Any, Dict, Optional
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
-from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
 
 class Vector2(BaseModel):
     x: float = 0.0
@@ -46,7 +46,7 @@ class NodeSceneData(BaseModel):
     type: str = ""
     position: Vector2
     data: Dict[str, Any] = Field(default_factory=dict)
-    metadata: Optional[NodeMetadata] = None
+    metadata: Optional[NodeTypeMeta] = None
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)

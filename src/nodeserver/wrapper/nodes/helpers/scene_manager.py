@@ -2,7 +2,7 @@
 from pydantic import ValidationError
 
 from nodeserver.api.node.node_exceptions import ReachedMaxConnections
-from nodeserver.wrapper.nodes.data.node_metadata import NodeMetadata
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
 from nodeserver.wrapper.nodes.helpers.file.node_scene_reader import SceneFileReader

@@ -1,0 +1,18 @@
+{
+ "capitalized_name": "InputNode",
+ "description": "",
+ "category": {
+  "super_category": null,
+  "name": "Input",
+  "description": "Nodes that receives user input",
+  "default_tags": [
+   {
+    "tag_name": "input/parameter",
+    "description": "No Description"
+   }
+  ]
+ },
+ "tags": [],
+ "parameter_meta": {},
+ "slot_meta": {}
+}
