@@ -33,22 +33,29 @@ class SlotData(DataModel):
 
 class BaseNodeParameter(DataModel):
     type: Literal[DefaultDataTypes.UNKNOWN] | Literal[DefaultDataTypes.CUSTOM] | Literal[DefaultDataTypes.ARRAY]
+    default: Optional[Any] = None
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)
 
-class NodeNumberParameter(DataModel):
+class NodeNumberParameter(BaseNodeParameter):
     type: Literal[DefaultDataTypes.FLOAT] | Literal[DefaultDataTypes.UINT] | Literal[DefaultDataTypes.INT]
     range: Optional[List[Union[float, int]]] = None
     step: Optional[float] = None
 
-class NodeFileParameter(DataModel):
+class NodeOptionParameter(BaseNodeParameter):
+    type: Literal[DefaultDataTypes.OPTIONS]
+    
+    option_type: DefaultDataTypes
+    options: list[Any]
+
+class NodeFileParameter(BaseNodeParameter):
     type: Literal[DefaultDataTypes.FILE] = DefaultDataTypes.FILE
     extension_filter: Optional[list[str]] = None
 
 
 NodeParameterData = Annotated[
-    Union[NodeNumberParameter, NodeFileParameter, BaseNodeParameter],
+    Union[NodeNumberParameter, NodeFileParameter, NodeOptionParameter, BaseNodeParameter],
     Field(discriminator="type")
 ]
 

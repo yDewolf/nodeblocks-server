@@ -209,11 +209,11 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         node_slots: dict[str, SlotData] = {}
         
         cls._add_cls_slot_and_data_types(slot_types, data_types, node_slots)
-        constructor = cls._generate_constructor(node_slots, type_name)
+        constructor = cls._generate_constructor(node_slots, data_types, type_name)
         return (slot_types, constructor)
 
     @classmethod
-    def _generate_constructor(cls, slot_types: dict[str, SlotData], type_name: str) -> ConstructorModel:
+    def _generate_constructor(cls, slot_types: dict[str, SlotData], data_types: dict[str, BaseDataType], type_name: str) -> ConstructorModel:
         param_data: dict[str, NodeParameterData] = {}
         for param_name, spec in cls._params_spec.items():
             param_data[param_name] = NodeParameterDataAdapter.validate_python(spec)

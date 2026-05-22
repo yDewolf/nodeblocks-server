@@ -7,6 +7,8 @@ class DefaultDataTypes(str, Enum):
     ARRAY = "array"
     FILE = "file"
     CUSTOM = "custom"
+    TEXT = "text"
+    OPTIONS = "options"
     UNKNOWN = "unknown"
 
 class DefaultRenderers(str, Enum):
@@ -50,6 +52,7 @@ INT_TYPE = BaseDataType("int" , DefaultDataTypes.INT, [DefaultDataTypes.INT])
 UINT_TYPE = BaseDataType("uint" , DefaultDataTypes.UINT, [DefaultDataTypes.UINT])
 ARRAY_TYPE = BaseDataType("array" , DefaultDataTypes.ARRAY, [DefaultDataTypes.ARRAY])
 FILE_TYPE = BaseDataType("file" , DefaultDataTypes.FILE, [DefaultDataTypes.FILE])
+TEXT_TYPE = BaseDataType("text" , DefaultDataTypes.TEXT, [DefaultDataTypes.TEXT])
 UNKNOWN_TYPE = BaseDataType("unknown" , DefaultDataTypes.UNKNOWN, [DefaultDataTypes.UNKNOWN])
 
 class DataTypeUtils:
@@ -61,6 +64,7 @@ class DataTypeUtils:
             case "uint": return DefaultDataTypes.UINT
             case "array": return DefaultDataTypes.ARRAY
             case "file": return DefaultDataTypes.FILE
+            case "text": return DefaultDataTypes.TEXT
             case "custom": return DefaultDataTypes.CUSTOM
             case _:
                 return DefaultDataTypes.UNKNOWN
@@ -72,6 +76,7 @@ class DataTypeUtils:
             case "int": return INT_TYPE
             case "uint": return UINT_TYPE
             case "array": return ARRAY_TYPE
+            case "text": return TEXT_TYPE
             case "file": return FILE_TYPE
             case _:
                 return UNKNOWN_TYPE

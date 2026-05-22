@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from nodeserver.api.base_server import NodeServer
 from nodeserver.api.instance.instance_runtime import ContextAwareInput
-from nodeserver.api.node.node_parameters import FileParam, Param
+from nodeserver.api.node.node_parameters import FileParam, OptionParam, Param
 from nodeserver.api.node.nodes import BaseNode, NoInput
 from nodeserver.api.node.slots import Input, NodeSlot, Output
 
@@ -70,6 +70,10 @@ class FileInputNode(BaseNode):
             label="Path",
             extension_filter=[".json"],
         )] = ""
+        test_parameter: Annotated[str, OptionParam(
+            options=["option 1", "option 2", "option 3"],
+            option_type=DefaultDataTypes.TEXT
+        )] = "option 3"
     _parameters: Parameters
     _metadata: NodeMetadata = NodeMetadata(
         category=INPUT_CATEGORY,
@@ -84,6 +88,7 @@ class FileInputNode(BaseNode):
         uploads_path = input._workspace.get_uploads_path()
         target_file_path = os.path.join(uploads_path, self._parameters.file_path)
         logger.info(f"Will read data from file {target_file_path}")
+        logger.info(f"Assigned test_parameter to {self._parameters.test_parameter}")
         file_content = ""
         with open(target_file_path, "r") as file:
             file_content = file.read()
