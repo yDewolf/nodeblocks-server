@@ -5,12 +5,25 @@ from nodeserver.api.utils.file_utils import get_project_root
 from nodeserver.wrapper.metadata.metadata_header import Metadata, MetadataFileHeader
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
 from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
+import logging
+logger = logging.getLogger("nds.metadata")
 
 METADATA_EXTENSION = ".json"
 METADATA_INDENT = 1
 
 ROOT_METADATA_PATH = os.path.join(get_project_root(), "metadata")
 
+"""
+    General Metadata Folder Structure:
+    types_id/
+        metadata.json (header file)
+        datatypes/
+            SlotIOType/
+                subtype.json
+                default.json (if no subtype is found)
+        nodes/
+            NodeTypeID.json
+"""
 class _MetadataLoad:
     @staticmethod
     def _load_header(folder_path: str) -> MetadataFileHeader:
@@ -73,6 +86,22 @@ class _MetadataLoad:
 
 class _MetadataSave:
     @staticmethod
+    def _deep_merge(base: dict, overrides: dict) -> dict:
+        """
+            Recursively merges dicts ``base`` and ``overrides``
+            ``overrides`` (should come from disk) has priority over ``base`` (should come from default metadata)
+            New fields from ``base`` that doesn't exist in ``overrides`` will be preserved.
+        """
+        merged = base.copy()
+        for key, value in overrides.items():
+            if isinstance(value, dict) and key in merged and isinstance(merged[key], dict):
+                merged[key] = _MetadataSave._deep_merge(merged[key], value)
+                continue
+            merged[key] = value
+
+        return merged
+
+    @staticmethod
     def _prepare_directories(folder_path: str) -> tuple[str, str]:
         if not os.path.exists(folder_path):
             os.mkdir(folder_path)
@@ -89,11 +118,27 @@ class _MetadataSave:
 
     @staticmethod
     def _write_node_types(metadata: Metadata, node_meta_path: str):
+        header_context = {
+            "tags": metadata.tags,
+            "categories": metadata.categories
+        }
         for type_id, node_meta in metadata.node_types.items():
             # TODO: Ensure type id doesn't contain any special characters
             file_path = os.path.join(node_meta_path, f"{type_id}{METADATA_EXTENSION}")
+
+            base_data = node_meta.model_dump(mode="json")
+            merged_data = base_data
+            if os.path.exists(file_path):
+                try:
+                    with open(file_path, "r") as file:
+                        disk_data = json.load(file)
+                    merged_data = _MetadataSave._deep_merge(base_data, disk_data)
+                except Exception as e:
+                    logger.error("Failed to load node metadata.", e)
+
+            merged_model = NodeTypeMeta.model_validate(merged_data, context=header_context)
             with open(file_path, "w") as file:
-                file.write(node_meta.model_dump_json(indent=METADATA_INDENT))
+                file.write(merged_model.model_dump_json(indent=METADATA_INDENT))
 
     @staticmethod
     def _write_datatypes(metadata: Metadata, datatypes_path: str):
@@ -109,14 +154,36 @@ class _MetadataSave:
                 if not subtype_meta: 
                     raise Exception(f"Failed to find corresponding metadata for datatype {type_id}")
                 
+                base_data = subtype_meta.model_dump(mode="json")
+                merged_data = base_data
+                if os.path.exists(subtype_file_path):
+                    try:
+                        with open(subtype_file_path, "r") as file:
+                            disk_data = json.load(file)
+                        merged_data = _MetadataSave._deep_merge(base_data, disk_data)
+                    except Exception as e:
+                        logger.error("Failed to load subtype metadata.", e)
+
+                merged_model = DataTypeMeta.model_validate(merged_data)
                 with open(subtype_file_path, "w") as file:
-                    file.write(subtype_meta.model_dump_json(indent=METADATA_INDENT))    
+                    file.write(merged_model.model_dump_json(indent=METADATA_INDENT))    
 
     @staticmethod
     def _write_header(metadata: Metadata, folder_path: str):
         header_file_path = os.path.join(folder_path, f"metadata{METADATA_EXTENSION}")
+        base_data = metadata.model_dump(mode="json")
+        merged_data = base_data
+        if os.path.exists(header_file_path):
+            try:
+                with open(header_file_path, "r") as file:
+                    disk_data = json.load(file)
+                merged_data = _MetadataSave._deep_merge(base_data, disk_data)
+            except Exception as e:
+                logger.error("Failed to load metadata header.", e)
+            
+        merged_model = MetadataFileHeader.model_validate(merged_data)
         with open(header_file_path, "w") as file:
-            file.write(metadata.model_dump_json(indent=METADATA_INDENT))
+            file.write(merged_model.model_dump_json(indent=METADATA_INDENT))
     
 
 class MetadataFileUtils:
@@ -141,7 +208,6 @@ class MetadataFileUtils:
     
     @staticmethod
     def save_to_folder(metadata: Metadata, folder_path: str):
-        # TODO: load metadata from folder and compare each field so it doesn't override fields that were modified
         if not metadata:
             raise Exception("No metadata to save")
         

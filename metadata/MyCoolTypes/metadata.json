@@ -26,24 +26,11 @@
    "default_tags": []
   },
   "Any": {
-   "description": "Every node that doesn't fit in a category",
+   "description": "My new metadata for 'Any' category",
    "super_category": null,
    "default_tags": [
     "default"
    ]
   }
- },
- "data_types": [
-  "_SlotIO:float",
-  "_SlotIO:str_file"
- ],
- "node_types": [
-  "MyInputNode",
-  "FileInputNode",
-  "SumNode",
-  "SubNode",
-  "MulNode",
-  "DivNode",
-  "TestNode"
- ]
+ }
 }

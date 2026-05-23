@@ -19,7 +19,7 @@ class MetadataFile:
         metadata_file.set_from_types(type_reader)
         return metadata_file
 
-    def save_on_metadata(self):
+    def save_on_metadata(self, override: bool = False):
         if not self.metadata:
             raise Exception("No metadata to save")
         
