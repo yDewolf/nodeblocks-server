@@ -90,7 +90,7 @@ class MirrorSceneManager:
             node_name,
             scene_data.uid,
             scene_data.data,
-            constructor._metadata,
+            constructor._base_metadata,
             scene_data.position
         )
 

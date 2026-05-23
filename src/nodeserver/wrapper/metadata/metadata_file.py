@@ -15,11 +15,26 @@ class MetadataFile:
 
     @classmethod
     def new(cls, type_reader: TypeFileReader) -> "MetadataFile":
+        """
+            Creates a :obj:`MetadataFile` object using ``type_reader`` default metadata 
+            as reference. 
+            
+            See Also:
+                :meth:`~nodeserver.MetadataFile.set_from_types`
+                :meth:`~nodeserver.MetadataFile.generate_meta_model`
+        """
         metadata_file = MetadataFile()
         metadata_file.set_from_types(type_reader)
         return metadata_file
 
-    def save_on_metadata(self, override: bool = False):
+    def save_on_metadata(self):
+        """
+            Saves metadata content from this object in ``{ROOT_METADATA_PATH}/{self.metadata.types_id}``.
+
+            See also:
+                :meth:`~nodeserver.MetadataFileUtils`
+                :meth:`~nodeserver.MetadataFileUtils.save_to_folder`
+        """
         if not self.metadata:
             raise Exception("No metadata to save")
         
@@ -28,6 +43,13 @@ class MetadataFile:
         MetadataFileUtils.save_to_folder(self.metadata, meta_path)
 
     def load_from_metadata(self, types_id: str):
+        """
+            Loads metadata from ``{ROOT_METADATA_PATH}/{self.metadata.types_id}``.
+
+            See also:
+                :obj:`~nodeserver.MetadataFileUtils`
+                :meth:`~nodeserver.MetadataFileUtils.load_from_folder`
+        """
         meta_path = os.path.join(ROOT_METADATA_PATH, types_id)
         self.metadata = MetadataFileUtils.load_from_folder(meta_path)
         
@@ -44,11 +66,11 @@ class MetadataFile:
         node_categories: dict[str, NodeCategory] = {}
         node_tags: dict[str, NodeTag] = {}
         for type_id, constructor in type_reader.node_constructors.items():
-            category = constructor._metadata.category
+            category = constructor._base_metadata.category
             if isinstance(category, str): continue
 
             node_categories[category.category_id] = category 
-            for tag in (constructor._metadata.tags + category.default_tags):
+            for tag in (constructor._base_metadata.tags + category.default_tags):
                 if isinstance(tag, str): continue
 
                 node_tags[tag.tag_id] = tag
@@ -64,30 +86,30 @@ class MetadataFile:
         nodetype_meta = {}
         for type_id, constructor in type_reader.node_constructors.items():
             # TODO: auto generate some of the metadata here if it doesn't exist in the constructor
-            if not constructor._metadata.slot_meta:
+            if not constructor._base_metadata.slot_meta:
                 slot_meta: dict[str, SlotMeta] = {}
                 for slot_id in constructor._slots:
                     slot_meta[slot_id] = SlotMeta(
                         capitalized_name=slot_id
                     )
                 
-                constructor._metadata.slot_meta.update(slot_meta)
+                constructor._base_metadata.slot_meta.update(slot_meta)
 
-            if not constructor._metadata.parameter_meta:
+            if not constructor._base_metadata.parameter_meta:
                 param_meta: dict[str, ParameterMeta] = {}
                 for param_name in constructor._data_model.param_model:
                     param_meta[param_name] = ParameterMeta(
                         capitalized_name=param_name
                     )
-                constructor._metadata.parameter_meta.update(param_meta)
+                constructor._base_metadata.parameter_meta.update(param_meta)
             
             meta = NodeTypeMeta(
-                capitalized_name=constructor._metadata.capitalized_name,
-                description=constructor._metadata.description,
-                category=constructor._metadata.category,
-                tags=constructor._metadata.tags,
-                slot_meta=constructor._metadata.slot_meta,
-                parameter_meta=constructor._metadata.parameter_meta
+                capitalized_name=constructor._base_metadata.capitalized_name,
+                description=constructor._base_metadata.description,
+                category=constructor._base_metadata.category,
+                tags=constructor._base_metadata.tags,
+                slot_meta=constructor._base_metadata.slot_meta,
+                parameter_meta=constructor._base_metadata.parameter_meta
             )
             nodetype_meta[type_id] = meta
         

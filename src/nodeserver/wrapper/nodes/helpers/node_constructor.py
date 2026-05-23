@@ -15,15 +15,15 @@ class BaseMirrorConstructor:
     type_id: str
 
     _data_model: NodeData
-    _metadata: NodeTypeMeta
+    _base_metadata: NodeTypeMeta
     _slots: dict[str, SlotData]
     _slot_types: dict[str, BaseSlotType]
 
     _builder_func: Callable[[NodeMirror], _ParsedNode]
 
-    def __init__(self, type_id: str, metadata: NodeTypeMeta, builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
+    def __init__(self, type_id: str, base_metadata: NodeTypeMeta, builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
         self.type_id = type_id
-        self._metadata = metadata
+        self._base_metadata = base_metadata
         self._builder_func = builder_func
 
         self._data_model = NodeData({})

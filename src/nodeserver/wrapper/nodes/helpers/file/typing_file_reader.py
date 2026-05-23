@@ -111,7 +111,7 @@ class TypeFileReader:
         for type_name, constructor in self.node_constructors.items():
             type_data = NodeTypeData(
                 parameters=constructor._data_model.param_model,
-                metadata=constructor._metadata,
+                _base_metadata=constructor._base_metadata,
                 slots=constructor._slots
             )
             _node_types[type_name] = type_data
@@ -163,13 +163,13 @@ class TypeFileReader:
         
         for type_id in type_data.node_types:
             node_type_data = type_data.node_types[type_id]
-            if node_type_data.metadata == None:
+            if node_type_data._base_metadata == None:
                 raise Exception(f"Every node should have metadata. Node of type {type_id} doesn't have any.")
             
             constructor = CustomMirrorConstructor(
                 type_id,
                 NodeData(node_type_data.parameters),
-                node_type_data.metadata,
+                node_type_data._base_metadata,
                 slot_types,
                 node_type_data.slots
             )
@@ -181,17 +181,17 @@ class TypeFileReader:
 class ConstructorModel:
     type_name: str
     node_data: Optional[NodeData]
-    node_metadata: Optional[NodeTypeMeta]
+    base_node_metadata: Optional[NodeTypeMeta]
 
     slots: Optional[dict[str, SlotData]]
     parser: Optional[Callable[[NodeMirror], _ParsedNode]]
 
     @staticmethod
-    def new(type_name: str, node_data: Optional[NodeData] = None, metadata: Optional[NodeTypeMeta] = None, slots: Optional[dict[str, SlotData]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
+    def new(type_name: str, node_data: Optional[NodeData] = None, base_metadata: Optional[NodeTypeMeta] = None, slots: Optional[dict[str, SlotData]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
         return ConstructorModel(
             type_name=type_name,
             node_data=node_data,
-            node_metadata=metadata,
+            base_node_metadata=base_metadata,
             slots=slots,
             parser=parser,
         )

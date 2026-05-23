@@ -13,18 +13,11 @@ METADATA_INDENT = 1
 
 ROOT_METADATA_PATH = os.path.join(get_project_root(), "metadata")
 
-"""
-    General Metadata Folder Structure:
-    types_id/
-        metadata.json (header file)
-        datatypes/
-            SlotIOType/
-                subtype.json
-                default.json (if no subtype is found)
-        nodes/
-            NodeTypeID.json
-"""
 class _MetadataLoad:
+    """
+        Helper class for metadata loading.
+        Please use :obj:`~nodeserver.MetadataFileUtils` if you only need to load full metadata.
+    """
     @staticmethod
     def _load_header(folder_path: str) -> MetadataFileHeader:
         header_file_path = os.path.join(folder_path, f"metadata{METADATA_EXTENSION}")
@@ -85,6 +78,10 @@ class _MetadataLoad:
         return datatypes
 
 class _MetadataSave:
+    """
+        Helper class for metadata saving.
+        Please use :obj:`~nodeserver.MetadataFileUtils` if you only need to save full metadata.
+    """
     @staticmethod
     def _deep_merge(base: dict, overrides: dict) -> dict:
         """
@@ -187,6 +184,19 @@ class _MetadataSave:
     
 
 class MetadataFileUtils:
+    """
+        General Metadata Folder Structure:
+
+        - types_id/
+            - metadata.json (header file)
+            - datatypes/
+                - SlotIOType/
+                    - subtype.json
+                    - default.json (if no subtype is found)
+            - nodes/
+                - NodeTypeID.json
+    """
+    
     @staticmethod
     def make_slotio_id_filename(slotio_type: str, subtype: str):
         return f"{slotio_type}:{subtype}"

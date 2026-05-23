@@ -17,7 +17,7 @@ class TypeReaderUtils:
     def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], _ParsedNode], default_category: NodeCategory, models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
         constructors: list[BaseMirrorConstructor] = []
         for model in models:
-            metadata = model.node_metadata
+            metadata = model.base_node_metadata
             if not metadata:
                 metadata = NodeTypeMeta(
                     category=default_category,

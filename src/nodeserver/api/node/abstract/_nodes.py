@@ -32,16 +32,19 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     class _Slots: pass
     # Parsed Slots
     class Slots(_Slots): pass
+    class Parameters(BaseModel): pass
 
     _slots: _Slots
-
-    class Parameters(BaseModel):
-        pass
-
     _parameters: Parameters
     _params_spec: dict[str, dict]
     
     _metadata: Optional[NodeTypeMeta] = None
+    """
+        Fill this attribute with ``NodeTypeMeta`` to act as a default node metadata for
+        this node type. <br>
+        **Note: contents will be overridden by changes made on the respective metadata json file.** <br>
+        This attribute won't be used to send metadata to client.
+    """
 
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)
@@ -174,6 +177,10 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         return (self._version + self._mirror.data._version + input_versions + slots_version)
 
     def resolve_inputs(self, output_cache: dict, instance_protocol: InstanceProtocol) -> dict:
+        """
+            Helper method to convert ``output_cache`` into a dictionary that can
+            be used to build this node's ``InputModel``
+        """
         raw_inputs = {}
         for slot in self._mirror.inputs:
             values = [output_cache[conn].value for conn in slot.connections if conn in output_cache]
@@ -221,7 +228,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         constructor: ConstructorModel = ConstructorModel(
             type_name=str(type_name),
             node_data=NodeData(param_data),
-            node_metadata=cls._metadata.model_copy() if cls._metadata else None,
+            base_node_metadata=cls._metadata.model_copy() if cls._metadata else None,
             slots=slot_types,
             parser=None,
         )
