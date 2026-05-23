@@ -1,7 +1,9 @@
+import datetime
 import os
+import time
 from typing import Optional
 
-from nodeserver.wrapper.metadata.helpers.metadata_utils import ROOT_METADATA_PATH, MetadataFileUtils
+from nodeserver.wrapper.metadata.helpers.metadata_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
 from nodeserver.wrapper.metadata.metadata_header import Metadata
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
 from nodeserver.wrapper.metadata.nodes.node_metadata import NodeCategory, NodeTag, NodeTypeMeta, ParameterMeta, SlotMeta
@@ -10,11 +12,13 @@ from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileRea
 
 class MetadataFile:
     metadata: Optional[Metadata] = None
+    last_update_timestamp: float = 0.0
+
     def __init__(self) -> None:
         pass
 
     @classmethod
-    def new(cls, type_reader: TypeFileReader) -> "MetadataFile":
+    def new(cls, type_reader: TypeFileReader, fetch_from_disk: bool = False) -> "MetadataFile":
         """
             Creates a :obj:`MetadataFile` object using ``type_reader`` default metadata 
             as reference. 
@@ -25,7 +29,28 @@ class MetadataFile:
         """
         metadata_file = MetadataFile()
         metadata_file.set_from_types(type_reader)
+        if fetch_from_disk:
+            metadata_file.save_on_metadata()
+            metadata_file.reload_from_disk()
+
         return metadata_file
+
+
+    def has_modifications_on_disk(self) -> bool:
+        if not self.metadata:
+            return False
+        
+        if self.last_update_timestamp < self.get_global_mtime():
+            return True
+
+        return False
+
+    def reload_from_disk(self):
+        if not self.metadata:
+            raise Exception("No metadata was loaded so it can't reload from disk")
+        
+        self.load_from_metadata(self.metadata.types_id)
+
 
     def save_on_metadata(self):
         """
@@ -52,11 +77,17 @@ class MetadataFile:
         """
         meta_path = os.path.join(ROOT_METADATA_PATH, types_id)
         self.metadata = MetadataFileUtils.load_from_folder(meta_path)
+        self.last_update_timestamp = self.get_global_mtime()
+
+    def get_global_mtime(self):
+        if not self.metadata:
+            return self.last_update_timestamp
         
+        return MetadataFileUtils.get_global_mtime(self.metadata)
+
 
     def set_from_types(self, type_reader: TypeFileReader):
-        self.metadata = MetadataFile.generate_meta_model(type_reader)
-    
+        self.metadata = MetadataFile.generate_meta_model(type_reader)    
 
     @staticmethod
     def generate_meta_model(type_reader: TypeFileReader) -> Metadata:
@@ -115,6 +146,7 @@ class MetadataFile:
         
         metadata = Metadata(
             types_id=type_reader._node_types_id,
+            types_version=type_reader._node_types_version,
             meta_version=0,
             data_types=datatype_meta,
             node_types=nodetype_meta,

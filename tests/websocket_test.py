@@ -156,10 +156,8 @@ NODE_REGISTRY: dict[str, type[BaseNode]] = {
 
 my_cool_types = TypeReaderUtils.make_types_from_registry(0, "MyCoolTypes", NODE_REGISTRY)
 metadata_file = MetadataFile.new(my_cool_types)
-metadata_file.save_on_metadata()
-
-loaded_meta = MetadataFile()
-loaded_meta.load_from_metadata(my_cool_types._node_types_id or "")
+# metadata_file.save_on_metadata()
+metadata_file.reload_from_disk()
 
 server = NodeServer(my_cool_types)
 server.run_server()

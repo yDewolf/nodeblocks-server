@@ -111,7 +111,7 @@ class TypeFileReader:
         for type_name, constructor in self.node_constructors.items():
             type_data = NodeTypeData(
                 parameters=constructor._data_model.param_model,
-                _base_metadata=constructor._base_metadata,
+                default_metadata=constructor._base_metadata,
                 slots=constructor._slots
             )
             _node_types[type_name] = type_data
@@ -163,13 +163,13 @@ class TypeFileReader:
         
         for type_id in type_data.node_types:
             node_type_data = type_data.node_types[type_id]
-            if node_type_data._base_metadata == None:
+            if node_type_data.default_metadata == None:
                 raise Exception(f"Every node should have metadata. Node of type {type_id} doesn't have any.")
             
             constructor = CustomMirrorConstructor(
                 type_id,
                 NodeData(node_type_data.parameters),
-                node_type_data._base_metadata,
+                node_type_data.default_metadata,
                 slot_types,
                 node_type_data.slots
             )

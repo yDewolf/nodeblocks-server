@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 
@@ -105,9 +106,8 @@ class _MetadataSave:
     
         if not os.path.isdir(folder_path):
             raise Exception("Folder path should lead to a folder")
-
-        node_meta_path = os.path.join(folder_path, "nodes")
-        datatypes_path = os.path.join(folder_path, "datatypes")
+        
+        node_meta_path, datatypes_path = MetadataFileUtils.get_metadata_main_subdirs(folder_path)
         if not os.path.exists(node_meta_path): os.mkdir(node_meta_path)
         if not os.path.exists(datatypes_path): os.mkdir(datatypes_path)
 
@@ -196,7 +196,41 @@ class MetadataFileUtils:
             - nodes/
                 - NodeTypeID.json
     """
-    
+    @staticmethod
+    def get_global_mtime(metadata: Metadata) -> float:
+        if not metadata:
+            return 0.0
+        
+        meta_path = os.path.join(ROOT_METADATA_PATH, metadata.types_id)
+        nodes_path, datatypes_path = MetadataFileUtils.get_metadata_main_subdirs(meta_path)
+        header_file = os.path.join(meta_path, f"metadata{METADATA_EXTENSION}")
+        highest_mtime = 0.0
+        if os.path.exists(header_file):
+            highest_mtime = max(highest_mtime, os.path.getmtime(header_file))
+
+        subdatatype_paths: list[str] = []
+        with os.scandir(datatypes_path) as entries:
+            subdatatype_paths += [entry.path for entry in entries]
+
+        directory_lookup = [nodes_path] + subdatatype_paths
+        for path in directory_lookup:
+            if not os.path.exists(path):
+                continue
+
+            with os.scandir(path) as entries:
+                for entry in entries:
+                    if entry.is_file() and entry.name.endswith(METADATA_EXTENSION):
+                        highest_mtime = max(highest_mtime, entry.stat().st_mtime)
+
+        date = datetime.datetime.fromtimestamp(highest_mtime)
+        return highest_mtime
+
+    @staticmethod
+    def get_metadata_main_subdirs(folder_path: str) -> tuple[str, str]:
+        node_meta_path = os.path.join(folder_path, "nodes")
+        datatypes_path = os.path.join(folder_path, "datatypes")
+        return node_meta_path, datatypes_path
+
     @staticmethod
     def make_slotio_id_filename(slotio_type: str, subtype: str):
         return f"{slotio_type}:{subtype}"
@@ -237,6 +271,7 @@ class MetadataFileUtils:
         
         return Metadata(
             types_id=header_metadata.types_id,
+            types_version=header_metadata.types_version,
             meta_version=header_metadata.meta_version,
             tags=header_metadata.tags,
             categories=header_metadata.categories,

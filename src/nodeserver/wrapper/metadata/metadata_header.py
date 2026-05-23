@@ -7,6 +7,7 @@ from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
 
 class MetadataFileHeader(BaseModel):
     types_id: str
+    types_version: int
     meta_version: int # TODO: use hashing for versions
     
     tags: dict[str, NodeTag] = Field(default_factory=dict)
