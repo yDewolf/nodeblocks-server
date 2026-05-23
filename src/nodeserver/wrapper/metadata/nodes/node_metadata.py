@@ -1,23 +1,8 @@
-from typing import Optional
 
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import field_serializer
 from nodeserver.wrapper.metadata.base_metadata import BaseMetadata
-
-# TODO: Move this to a node_filtering file
-class NodeTag(BaseModel):
-    tag_id: str = Field(exclude=True)
-    description: str = ""
-
-# TODO: Move this to a node_filtering file
-class NodeCategory(BaseModel):
-    category_id: str = Field(exclude=True)
-    description: str = ""
-    super_category: Optional['NodeCategory'] = None
-    default_tags: Optional[list[NodeTag]] = []
-    
-    @field_serializer("default_tags")
-    def serialize_tags(self, default_tags: Optional[list[NodeTag]], _info):
-        return [tag.tag_id for tag in default_tags] if default_tags else []
+from nodeserver.wrapper.metadata.helpers.category_solvers import ResolvedCategory, ResolvedTags
+from nodeserver.wrapper.metadata.nodes.node_filters import NodeCategory, NodeTag
 
 class ParameterMeta(BaseMetadata):
     pass
@@ -30,13 +15,13 @@ class NodeTypeMeta(BaseMetadata):
         Every attribute of this class will be used as a default value for the generated
         metadata file. These attributes will be overridden by the metadata file content (if it exists)
     """
-    category: NodeCategory
+    category: ResolvedCategory
     """
         A default category can be set in Node._metadata <br>
         it will be auto overridden when a proper metadata file is edited
     """
     
-    tags: list[NodeTag] = []
+    tags: ResolvedTags = []
     """
         Default tags can be set in Node._metadata <br>
         it will be auto overridden when a proper metadata file is edited
@@ -52,7 +37,6 @@ class NodeTypeMeta(BaseMetadata):
     def serialize_tags(self, tags: list[NodeTag], _info):
         tag_ids = [tag.tag_id for tag in tags]
         return tag_ids
-
 
 DEFAULT_NODE_TAG = NodeTag(tag_id="default")
 USER_INPUT_TAG = NodeTag(tag_id="input/parameter")

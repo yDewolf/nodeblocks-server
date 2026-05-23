@@ -1,21 +1,14 @@
 {
  "types_id": "MyCoolTypes",
  "meta_version": 0,
- "data_types": [
-  "_SlotIO:float",
-  "_SlotIO:str_file"
- ],
- "node_types": [
-  "MyInputNode",
-  "FileInputNode",
-  "SumNode",
-  "SubNode",
-  "MulNode",
-  "DivNode",
-  "TestNode"
- ],
  "tags": {
+  "input/parameter": {
+   "description": ""
+  },
   "output/file": {
+   "description": ""
+  },
+  "default": {
    "description": ""
   }
  },
@@ -39,5 +32,18 @@
     "default"
    ]
   }
- }
+ },
+ "data_types": [
+  "_SlotIO:float",
+  "_SlotIO:str_file"
+ ],
+ "node_types": [
+  "MyInputNode",
+  "FileInputNode",
+  "SumNode",
+  "SubNode",
+  "MulNode",
+  "DivNode",
+  "TestNode"
+ ]
 }
