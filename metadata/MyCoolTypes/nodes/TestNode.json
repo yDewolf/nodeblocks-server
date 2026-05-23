@@ -1,9 +1,7 @@
 {
- "capitalized_name": "SumNode",
+ "capitalized_name": "TestNode",
  "description": "",
- "category": {
-  "category_id": "Math"
- },
+ "category": "Any",
  "tags": [],
  "parameter_meta": {},
  "slot_meta": {}

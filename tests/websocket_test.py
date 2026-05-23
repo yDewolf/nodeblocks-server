@@ -156,7 +156,7 @@ NODE_REGISTRY: dict[str, type[BaseNode]] = {
 
 my_cool_types = TypeReaderUtils.make_types_from_registry(0, "MyCoolTypes", NODE_REGISTRY)
 metadata_file = MetadataFile.new(my_cool_types)
-metadata_file.save_to_folder(os.path.join(get_project_root(), "metadata"))
+metadata_file.save_on_metadata()
 
 server = NodeServer(my_cool_types)
 server.run_server()

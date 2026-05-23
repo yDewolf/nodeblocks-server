@@ -13,15 +13,6 @@ def get_git_repos() -> list[Path]:
 class FileUtils:
     _project_root: Path = Path()
 
-    @property
-    def project_root(cls):
-        return cls._project_root
-
-    @project_root.setter
-    def project_root(cls, new_root: Path):
-        cls._project_root = new_root
-        logger.info(f"Set PROJECT ROOT to {cls._project_root}")
-    
     @classmethod
     def select_project_root(cls):
         repos = get_git_repos()
@@ -32,9 +23,13 @@ class FileUtils:
         while idx < 0 or idx > len(repos):
             idx = int(input("Select which repository should be the project root: "))
             if not idx < 0 and not idx > len(repos):
-                selected_path = repos[idx]
-        
-        cls.project_root = selected_path
+                cls.set_project_root(repos[idx])
+                return
+
+    @classmethod
+    def set_project_root(cls, project_root: str | Path):
+        cls._project_root = Path(project_root)
+        logger.info(f"Set PROJECT ROOT to {cls._project_root}")
 
 def get_project_root():
-    return FileUtils.project_root
+    return str(FileUtils._project_root)

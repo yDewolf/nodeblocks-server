@@ -1,0 +1,21 @@
+{
+ "capitalized_name": "MulNode",
+ "description": "",
+ "category": "Math",
+ "tags": [],
+ "parameter_meta": {},
+ "slot_meta": {
+  "in_0": {
+   "capitalized_name": "in_0",
+   "description": ""
+  },
+  "in_1": {
+   "capitalized_name": "in_1",
+   "description": ""
+  },
+  "out_0": {
+   "capitalized_name": "out_0",
+   "description": ""
+  }
+ }
+}

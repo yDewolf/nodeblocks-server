@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from dotenv import find_dotenv, load_dotenv, set_key
 
 from nodeserver.api.utils.file_utils import FileUtils, get_project_root
@@ -8,7 +9,9 @@ load_dotenv(dotenv_path)
 project_root_path = os.getenv("PROJECT_ROOT_PATH")
 if not project_root_path:
     FileUtils.select_project_root()
-    set_key(dotenv_path, "PROJECT_ROOT_PATH", str(FileUtils.project_root))
+    set_key(dotenv_path, "PROJECT_ROOT_PATH", get_project_root())
+else:
+    FileUtils.set_project_root(project_root_path)
 
 secret_key = os.getenv("SECRET_KEY")
 SECRET_KEY = secret_key if secret_key else ""

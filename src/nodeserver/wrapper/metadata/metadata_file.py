@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, field_serializer
 
+from nodeserver.api.utils.file_utils import get_project_root
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
 from nodeserver.wrapper.metadata.nodes.node_metadata import NodeCategory, NodeTag, NodeTypeMeta, ParameterMeta, SlotMeta
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import TypeFile
@@ -10,6 +11,8 @@ from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileRea
 
 METADATA_EXTENSION = ".json"
 METADATA_INDENT = 1
+
+ROOT_METADATA_PATH = os.path.join(get_project_root(), "metadata")
 
 class MetadataFileHeader(BaseModel):
     types_id: str
@@ -42,7 +45,16 @@ class MetadataFile:
         metadata_file.set_from_types(type_reader)
         return metadata_file
 
-    def save_to_folder(self, folder_path: str):
+    def save_on_metadata(self):
+        if not self.metadata:
+            raise Exception("No metadata to save")
+        
+        meta_path = os.path.join(ROOT_METADATA_PATH, self.metadata.types_id)
+        if not os.path.exists(meta_path): os.mkdir(meta_path)
+        self._save_to_folder(meta_path)
+
+
+    def _save_to_folder(self, folder_path: str):
         # TODO: load metadata from folder and compare each field so it doesn't override fields that were modified
         if not self.metadata:
             raise Exception("No metadata to save")

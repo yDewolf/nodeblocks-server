@@ -1,0 +1,18 @@
+{
+ "capitalized_name": "InputNode",
+ "description": "",
+ "category": "Input",
+ "tags": [],
+ "parameter_meta": {
+  "value": {
+   "capitalized_name": "value",
+   "description": ""
+  }
+ },
+ "slot_meta": {
+  "out_0": {
+   "capitalized_name": "out_0",
+   "description": ""
+  }
+ }
+}

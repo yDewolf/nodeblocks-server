@@ -1,0 +1,43 @@
+{
+ "types_id": "MyCoolTypes",
+ "meta_version": 0,
+ "data_types": [
+  "_SlotIO:float",
+  "_SlotIO:str_file"
+ ],
+ "node_types": [
+  "MyInputNode",
+  "FileInputNode",
+  "SumNode",
+  "SubNode",
+  "MulNode",
+  "DivNode",
+  "TestNode"
+ ],
+ "tags": {
+  "output/file": {
+   "description": ""
+  }
+ },
+ "categories": {
+  "Input": {
+   "description": "Nodes that receives user input",
+   "super_category": null,
+   "default_tags": [
+    "input/parameter"
+   ]
+  },
+  "Math": {
+   "description": "",
+   "super_category": null,
+   "default_tags": []
+  },
+  "Any": {
+   "description": "Every node that doesn't fit in a category",
+   "super_category": null,
+   "default_tags": [
+    "default"
+   ]
+  }
+ }
+}
