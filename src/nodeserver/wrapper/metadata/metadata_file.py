@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field, field_serializer, field_validator, model_
 from nodeserver.api.utils.file_utils import get_project_root
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
 from nodeserver.wrapper.metadata.nodes.node_metadata import NodeCategory, NodeTag, NodeTypeMeta, ParameterMeta, SlotMeta
-from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import TypeFile
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 
 METADATA_EXTENSION = ".json"
@@ -181,22 +180,13 @@ class MetadataFile:
             with open(file_path, "w") as file:
                 file.write(node_meta.model_dump_json(indent=METADATA_INDENT))
         
-        slotio_types: dict[str, list[str]] = {}
-        for type_id in metadata.data_types:
-            # TODO: Ensure type id doesn't contain any special characters
-            splitted_type_id = type_id.split(":")
-            slotio_type = splitted_type_id[0]
-            if not slotio_types.__contains__(slotio_type):
-                slotio_types[slotio_type] = []
-            
-            slotio_types[slotio_type] += splitted_type_id[1:] or []
-        
+        slotio_types = MetadataFile.get_slotio_subtypes(metadata.data_types)    
         for slotio_type, subtypes in slotio_types.items():
             slotio_folder_path = os.path.join(datatypes_path, slotio_type)
             if not os.path.isdir(slotio_folder_path): os.mkdir(slotio_folder_path)
             if len(subtypes) == 0: subtypes.append("default")
             for subtype in subtypes:
-                type_id = f"{slotio_type}:{subtype}"
+                type_id = MetadataFile.make_slotio_id_filename(slotio_type, subtype)
                 subtype_file_path = os.path.join(slotio_folder_path, f"{subtype}{METADATA_EXTENSION}")
                 subtype_meta = metadata.data_types.get(type_id)
                 if not subtype_meta: 
@@ -241,4 +231,48 @@ class MetadataFile:
                 
                 node_types[type_id] = NodeTypeMeta.model_validate(node_json_data, context=header_context)
 
+        datatypes: dict[str, DataTypeMeta] = {}
         datatypes_path = os.path.join(folder_path, "datatypes")
+        if os.path.exists(datatypes_path):
+            datatype_files: list[str] = os.listdir(datatypes_path)
+            for slotio_name in datatype_files:
+                datatype_folder = os.path.join(datatypes_path, slotio_name)
+                if not os.path.isdir(datatype_folder): continue
+                
+                for subtype_filename in os.listdir(datatype_folder):
+                    subtype_path = os.path.join(datatype_folder, subtype_filename)
+                    if not os.path.isfile(subtype_path): continue
+
+                    subtype_name = os.path.splitext(subtype_filename)[0]
+                    datatype_id = MetadataFile.make_slotio_id_filename(slotio_name, subtype_name)
+                    with open(subtype_path, "r") as file:
+                        datatype_data = json.load(file)
+                    
+                    datatypes[datatype_id] = DataTypeMeta.model_validate(datatype_data)
+        
+        return Metadata(
+            types_id=header_metadata.types_id,
+            meta_version=header_metadata.meta_version,
+            tags=header_metadata.tags,
+            categories=header_metadata.categories,
+            data_types=datatypes,
+            node_types=node_types
+        )
+
+    @staticmethod
+    def make_slotio_id_filename(slotio_type: str, subtype: str):
+        return f"{slotio_type}:{subtype}"
+    
+    @staticmethod
+    def get_slotio_subtypes(data_types: dict[str, DataTypeMeta]):
+        slotio_types: dict[str, list[str]] = {}
+        for type_id in data_types:
+            # TODO: Ensure type id doesn't contain any special characters
+            splitted_type_id = type_id.split(":")
+            slotio_type = splitted_type_id[0]
+            if not slotio_types.__contains__(slotio_type):
+                slotio_types[slotio_type] = []
+            
+            slotio_types[slotio_type] += splitted_type_id[1:] or []
+    
+        return slotio_types
