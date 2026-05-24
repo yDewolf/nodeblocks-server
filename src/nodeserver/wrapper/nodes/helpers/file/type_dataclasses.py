@@ -65,7 +65,7 @@ NodeParameterData = Annotated[
 NodeParameterDataAdapter = TypeAdapter(NodeParameterData)
 
 class NodeTypeData(DataModel):
-    default_metadata: Optional[NodeTypeMeta] = Field(exclude=True)
+    default_metadata: Optional[NodeTypeMeta] = Field(default=None, exclude=True)
     parameters: Dict[str, NodeParameterData]
     slots: Dict[str, SlotData]
 

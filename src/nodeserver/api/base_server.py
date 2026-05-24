@@ -7,6 +7,7 @@ import aiohttp_cors
 
 from nodeserver.api.instance.server_instance import ServerInstance
 from nodeserver.api.internal.instance_manager import InstanceManager
+from nodeserver.api.internal.metadata_manager import MetadataManager
 from nodeserver.api.web.instance.special_instance import WsServerInstance
 from nodeserver.api.web.manager.session_manager import SessionManager
 from nodeserver.api.web.rest.workspace.workspace_api import FileHandler
@@ -15,6 +16,8 @@ from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileRea
 
 class NodeServer:
     instance_manager: InstanceManager
+    metadata_manager: MetadataManager
+
     websocket_manager: WebsocketManager
     session_manager: SessionManager
 
@@ -35,7 +38,9 @@ class NodeServer:
         self.file_handler = FileHandler(self.session_manager)
 
         self.instance_manager = InstanceManager(default_types)
-        self.websocket_manager = WebsocketManager(self.instance_manager, self.session_manager, server_instance_type, host, port)
+        self.metadata_manager = MetadataManager()
+
+        self.websocket_manager = WebsocketManager(self.instance_manager, self.metadata_manager, self.session_manager, server_instance_type, host, port)
         self._setup_routes()
 
     def _setup_routes(self):

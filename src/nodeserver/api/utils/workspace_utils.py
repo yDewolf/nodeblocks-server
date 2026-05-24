@@ -70,17 +70,17 @@ class WorkspaceUtils:
 
 
     @staticmethod
-    def get_user_instances(user_id: str) -> list[str]:
+    def get_user_instances(user_id: str) -> dict[str, str]:
         root_folder = WorkspaceUtils.prepare_workspace_path()
         user_instances_folder = os.path.join(root_folder, user_id, INSTANCE_FOLDER)
         if not os.path.exists(user_instances_folder):
-            return []
+            return {}
 
-        instance_directories: list[str] = []
-        for filename in os.listdir(user_instances_folder):
-            path = os.path.join(user_instances_folder, filename)
+        instance_directories: dict[str, str] = {}
+        for instance_id in os.listdir(user_instances_folder):
+            path = os.path.join(user_instances_folder, instance_id)
             if not os.path.isdir(path): continue
-            instance_directories.append(path)
+            instance_directories[instance_id] = path
 
         return instance_directories
 

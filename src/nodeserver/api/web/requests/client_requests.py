@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal, Optional, Union
 from pydantic import Field
 from pydantic import TypeAdapter
 
@@ -49,8 +49,16 @@ class MsgSimple(BaseSocketModel):
     type: Literal[ClientMessages.SYNC_CLIENT_SCENE]
 
 
+class MsgSyncVersions(BaseSocketModel):
+    type: Literal[ClientMessages.SYNC_VERSIONS]
+    types_id: Optional[str] = None
+    types_version: Optional[int] = None
+    meta_version: Optional[int] = None
+
+
 BaseClientCommands = Annotated[
     Union[
+        MsgSyncVersions,
         MsgNodeAction, MsgConnectionAction, MsgInstanceState, 
         MsgLoopState, MsgLoadScene, MsgInstanceCommand, MsgSimple
     ],

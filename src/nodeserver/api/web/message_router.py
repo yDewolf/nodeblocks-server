@@ -5,10 +5,10 @@ import logging
 from nodeserver.api.instance.actions.action_controller import Action
 from nodeserver.api.web.requests.notification_requests import ClientSyncNotifications, MsgUpdateNotification, ServerSyncNotifications
 from nodeserver.api.web.requests.request_unions import AnyServerMessage
-from nodeserver.api.web.requests.websocket_requests import SrvSyncScene
+from nodeserver.api.web.requests.websocket_requests import SrvSyncScene, SrvVersionSync
 from nodeserver.api.web.session.user_session import UserSession
 from nodeserver.api.web.websocket_messages import ClientMessageWrapper
-from nodeserver.api.web.requests.client_requests import MsgConnectionAction, MsgInstanceCommand, MsgInstanceState, MsgLoadScene, MsgLoopState, MsgNodeAction, MsgSimple
+from nodeserver.api.web.requests.client_requests import MsgConnectionAction, MsgInstanceCommand, MsgInstanceState, MsgLoadScene, MsgLoopState, MsgNodeAction, MsgSimple, MsgSyncVersions
 from nodeserver.api.web.websocket_protocol import ClientMessages
 from nodeserver.api.instance.server_instance import ServerInstance
 
@@ -30,7 +30,23 @@ class BaseMessagerouter:
                     return ServerSyncNotifications(
                         notifications=notification_data
                     )
+        elif isinstance(message.msg, MsgSyncVersions):
+            type_data = instance.mirror_manager.type_reader.serialize()
+            mismatch_type = False
+            
+            if type_data.id != message.msg.types_id:
+                mismatch_type = True
 
+            if message.msg.types_version:
+                if type_data.version > message.msg.types_version:
+                    mismatch_type = True
+
+            metadata = None # TODO:
+            return SrvVersionSync(
+                types=type_data if mismatch_type else None,
+                metadata=metadata
+            )
+            
         elif isinstance(message.msg, MsgInstanceState):
             instance.state_controller.queue_state(message.msg.payload.state)
 
