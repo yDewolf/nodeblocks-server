@@ -15,6 +15,7 @@ from nodeserver.api.web.rest.workspace.workspace_api import FileHandler
 from nodeserver.api.websocket_manager import WebsocketManager
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 
+USE_WATCHDOG: bool = True
 SESSION_CLEANUP_INTERVAL = 3.0
 METADATA_LOOKUP_INTERVAL = 20.0
 
@@ -45,7 +46,10 @@ class NodeServer:
         self.file_handler = FileHandler(self.session_manager)
 
         self.instance_manager = InstanceManager(default_types)
-        self.metadata_manager = MetadataManager()
+        self.metadata_manager = MetadataManager(self.handle_metadata_update)
+        if USE_WATCHDOG:
+            self.metadata_manager.start_watching()
+
         if default_types:
             self.metadata_manager.index_metadata_for_type(default_types)
         
@@ -75,7 +79,8 @@ class NodeServer:
         if not self.websocket_manager.loop:
             self.websocket_manager.set_loop(asyncio.get_running_loop())
             asyncio.create_task(self._session_clock_task()) # FIXME: move this somewhere else
-            asyncio.create_task(self._metadata_update_clock()) # FIXME: move this somewhere else
+            if not USE_WATCHDOG:
+                asyncio.create_task(self._metadata_update_clock()) # FIXME: move this somewhere else
 
         ws = web.WebSocketResponse()
         await ws.prepare(request)
@@ -97,8 +102,11 @@ class NodeServer:
                     self.instance_manager.remove_instance(session.workspace.instance_id)
                     logger.info(f"Removing inactive Instance {session.workspace.instance_id}")
 
+    def handle_metadata_update(self, type_id: str):
+        self.websocket_manager.sync_metadata_with_sockets([type_id])
+
     async def _metadata_update_clock(self):
         while True:
             await asyncio.sleep(METADATA_LOOKUP_INTERVAL)
-            updated_metadata = self.metadata_manager.keep_metadata_synced()
+            updated_metadata = self.metadata_manager.get_unsynced_metadata()
             self.websocket_manager.sync_metadata_with_sockets(updated_metadata)

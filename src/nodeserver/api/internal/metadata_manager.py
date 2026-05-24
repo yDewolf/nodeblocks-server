@@ -1,16 +1,40 @@
 
-from typing import Optional
+from pathlib import Path
+import time
+from typing import Callable, Optional
 
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
+from nodeserver.wrapper.metadata.helpers.metadata_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
 from nodeserver.wrapper.metadata.metadata_file import MetadataFile
 from nodeserver.wrapper.metadata.metadata_header import Metadata, MetadataVersion
-from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import TypeFile
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
+
+class MetadataFolderWatchdog(FileSystemEventHandler):
+    def __init__(self, callback_on_change: Callable[[Path], None]):
+        super().__init__()
+        self.callback_on_change = callback_on_change
+
+    def on_modified(self, event):
+        if event.is_directory:
+            return
+            
+        if event.src_path.endswith(METADATA_EXTENSION): # type: ignore
+            self.callback_on_change(Path(str(event.src_path)))
 
 
 class MetadataManager:
     indexed_metadata: dict[str, MetadataFile]
-    def __init__(self) -> None:
+    _handle_metadata_update: Callable[[str], None]
+    last_reload_time: float = 0.0
+
+    def __init__(self, handle_metadata_update: Callable[[str], None]) -> None:
         self.indexed_metadata = {}
+        self._handle_metadata_update = handle_metadata_update
+
+        self.observer = Observer()
+        self.handler = MetadataFolderWatchdog(self.handle_disk_update)
 
     def index_metadata_for_type(self, type_reader: TypeFileReader):
         if not type_reader._node_types_id: 
@@ -22,8 +46,29 @@ class MetadataManager:
         metadata = MetadataFile.new(type_reader, True)
         self.indexed_metadata[type_reader._node_types_id] = metadata
 
+    # Watchdog stuff
+    def start_watching(self):
+        self.observer.schedule(self.handler, ROOT_METADATA_PATH, recursive=True)
+        self.observer.start()
+        print(f"Watchdog is observing {ROOT_METADATA_PATH}")
 
-    def keep_metadata_synced(self) -> list[str]:
+    def stop_watching(self):
+        self.observer.stop()
+        self.observer.join()
+
+    def handle_disk_update(self, file_path: Path):
+        now = time.time()
+        if now - self.last_reload_time < 0.5:
+            return
+        
+        type_id: Optional[str] = file_path.parts[1] if len(file_path.parts) > 1 else None
+        if type_id:
+            self.last_reload_time = now
+            self._handle_metadata_update(type_id)
+            # print(f"Detected change on {file_path}. type_id: {type_id}")
+
+    # Manual syncing
+    def get_unsynced_metadata(self) -> list[str]:
         """
             Returns a list with the id of Types that have changes on their metadata.
         """
