@@ -18,3 +18,13 @@ class ConnRecursionException(Exception):
     def __init__(self, cyclic_nodes: list[NodeMirrorProtocol], *args: object) -> None:
         super().__init__(*args)
         self.problematic_nodes = cyclic_nodes
+
+# TODO: implement this properly, i'm lazy now, sorry future me
+class MissingSlotInput(Exception):
+    node: NodeMirrorProtocol
+    slot: SlotMirrorProtocol
+
+    def __init__(self, node: NodeMirrorProtocol, slot: SlotMirrorProtocol, *args: object) -> None:
+        super().__init__(*args)
+        self.node = node
+        self.slot = slot
