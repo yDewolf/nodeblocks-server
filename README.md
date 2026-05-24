@@ -5,6 +5,9 @@
 # Nodeblocks
 Nodeblocks é um framework de sistemas baseados em nodes voltado para edição e em tempo real.
 
+## Aviso:
+Esse projeto está em constante desenvolvimento e está atualmente em estado de **beta**, ou seja, não há garantia alguma de que novas versões serão compatíveis com ``NodeScenes`` e ``TypeData`` de formatos anteriores.
+
 ## Esse repositório:
 ![GitHub repo size](https://img.shields.io/github/repo-size/yDewolf/node-editor-server-api)
 
