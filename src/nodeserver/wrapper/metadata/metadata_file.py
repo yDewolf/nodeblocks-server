@@ -28,10 +28,7 @@ class MetadataFile:
         metadata_file = MetadataFile()
         metadata_file.set_from_types(type_reader)
         if fetch_from_disk:
-            meta_path = os.path.join(ROOT_METADATA_PATH, type_reader._node_types_id or "")
-            if not os.path.exists(meta_path): 
-                metadata_file.save_on_metadata()
-
+            metadata_file.save_on_metadata()
             metadata_file.reload_from_disk()
 
         return metadata_file

@@ -44,6 +44,7 @@ class MetadataManager:
             return
 
         metadata = MetadataFile.new(type_reader, True)
+        metadata.save_on_metadata()
         self.indexed_metadata[type_reader._node_types_id] = metadata
 
     # Watchdog stuff

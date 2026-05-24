@@ -14,6 +14,8 @@ METADATA_INDENT = 1
 
 METADATA_FOLDER_NAME = "metadata"
 ROOT_METADATA_PATH = os.path.join(get_project_root(), METADATA_FOLDER_NAME)
+if not os.path.exists(ROOT_METADATA_PATH):
+    os.mkdir(ROOT_METADATA_PATH)
 
 class _MetadataLoad:
     """
