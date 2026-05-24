@@ -45,7 +45,11 @@ class MetadataFile:
 
         return False
 
-    def reload_from_disk(self):
+    def reload_from_disk(self, only_if_modified: bool = False):
+        if only_if_modified:
+            if not self.has_modifications_on_disk():
+                return
+        
         if not self.metadata:
             raise Exception("No metadata was loaded so it can't reload from disk")
         
@@ -76,7 +80,13 @@ class MetadataFile:
                 :meth:`~nodeserver.MetadataFileUtils.load_from_folder`
         """
         meta_path = os.path.join(ROOT_METADATA_PATH, types_id)
+        current_version = self.metadata.meta_version if self.metadata else 0
         self.metadata = MetadataFileUtils.load_from_folder(meta_path)
+        if self.metadata.meta_version < current_version:
+            self.metadata.meta_version = current_version
+
+        self.metadata.meta_version += 1
+        MetadataFileUtils.update_metadata_header(self.metadata, meta_path)
         self.last_update_timestamp = self.get_global_mtime()
 
     def get_global_mtime(self):

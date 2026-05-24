@@ -12,17 +12,17 @@
   },
   "test_parameter": {
    "capitalized_name": "test_parameter",
-   "description": ""
+   "description": "Test"
   },
   "test_boolean": {
    "capitalized_name": "test_boolean",
-   "description": ""
+   "description": "aaaa"
   }
  },
  "slot_meta": {
   "out_0": {
    "capitalized_name": "out_0",
-   "description": ""
+   "description": "aaa"
   }
  }
 }

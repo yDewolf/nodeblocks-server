@@ -14,6 +14,7 @@ class ServerMessages(str, Enum):
     SYNC_ACTION = "sync_action"
     SYNC_FILES = "sync_files"
 
+    METADATA_UPDATED = "metadata_updated"
     NOTIFICATION = "notification"
     SYNC_NOTIFICATIONS = "sync_notifications"
 

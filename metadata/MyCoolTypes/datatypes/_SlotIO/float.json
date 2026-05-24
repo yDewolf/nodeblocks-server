@@ -1,4 +1,4 @@
 {
  "capitalized_name": "_SlotIO:float",
- "description": "aaa"
+ "description": "This Slot can only receive ``float`` values and will always output ``float``"
 }

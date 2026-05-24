@@ -14,6 +14,9 @@ from nodeserver.api.web.rest.workspace.workspace_api import FileHandler
 from nodeserver.api.websocket_manager import WebsocketManager
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 
+SESSION_CLEANUP_INTERVAL = 3.0
+METADATA_LOOKUP_INTERVAL = 30.0
+
 class NodeServer:
     instance_manager: InstanceManager
     metadata_manager: MetadataManager
@@ -39,6 +42,8 @@ class NodeServer:
 
         self.instance_manager = InstanceManager(default_types)
         self.metadata_manager = MetadataManager()
+        if default_types:
+            self.metadata_manager.index_metadata_for_type(default_types)
 
         self.websocket_manager = WebsocketManager(self.instance_manager, self.metadata_manager, self.session_manager, server_instance_type, host, port)
         self._setup_routes()
@@ -73,7 +78,8 @@ class NodeServer:
         if not self.websocket_manager.loop:
             self.websocket_manager.set_loop(asyncio.get_running_loop())
             asyncio.create_task(self._session_clock_task()) # FIXME: move this somewhere else
-        
+            asyncio.create_task(self._metadata_update_clock()) # FIXME: move this somewhere else
+
         ws = web.WebSocketResponse()
         await ws.prepare(request)
         await self.websocket_manager.handle_connection(ws, request)
@@ -83,7 +89,7 @@ class NodeServer:
     
     async def _session_clock_task(self):
         while True:
-            await asyncio.sleep(3.0)
+            await asyncio.sleep(SESSION_CLEANUP_INTERVAL)
 
             for id, session in self.session_manager.sessions.items():
                 session.workspace.do_autosave()
@@ -93,3 +99,9 @@ class NodeServer:
                 if session.workspace.instance_id:
                     self.instance_manager.remove_instance(session.workspace.instance_id)
                     logger.info(f"Removing inactive Instance {session.workspace.instance_id}")
+
+    async def _metadata_update_clock(self):
+        while True:
+            await asyncio.sleep(METADATA_LOOKUP_INTERVAL)
+            updated_metadata = self.metadata_manager.keep_metadata_synced()
+            self.websocket_manager.sync_metadata_with_sockets(updated_metadata)

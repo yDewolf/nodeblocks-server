@@ -55,3 +55,7 @@ class Metadata(MetadataFileHeader):
     @field_serializer("node_types")
     def serialize_node_types(self, node_types: dict[str, NodeTypeMeta], _info):
         return [id for id in node_types]
+
+class MetadataVersion(BaseModel):
+    types_version: int
+    meta_version: int

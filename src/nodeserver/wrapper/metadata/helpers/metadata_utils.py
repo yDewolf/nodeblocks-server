@@ -177,8 +177,11 @@ class _MetadataSave:
                 merged_data = _MetadataSave._deep_merge(base_data, disk_data)
             except Exception as e:
                 logger.error("Failed to load metadata header.", e)
-            
+        
         merged_model = MetadataFileHeader.model_validate(merged_data)
+
+        merged_model.types_version = metadata.types_version
+        merged_model.meta_version = metadata.meta_version
         with open(header_file_path, "w") as file:
             file.write(merged_model.model_dump_json(indent=METADATA_INDENT))
     
@@ -249,6 +252,12 @@ class MetadataFileUtils:
     
         return slotio_types
 
+    @staticmethod
+    def update_metadata_header(metadata: Metadata, folder_path: str):
+        if not metadata:
+            raise Exception("No metadata to save")
+        
+        _MetadataSave._write_header(metadata, folder_path)
     
     @staticmethod
     def save_to_folder(metadata: Metadata, folder_path: str):
@@ -258,7 +267,7 @@ class MetadataFileUtils:
         node_meta_path, datatypes_path = _MetadataSave._prepare_directories(folder_path)
         _MetadataSave._write_node_types(metadata, node_meta_path)
         _MetadataSave._write_datatypes(metadata, datatypes_path)
-        _MetadataSave._write_header(metadata, folder_path)    
+        _MetadataSave._write_header(metadata, folder_path)
 
     @staticmethod
     def load_from_folder(folder_path: str):

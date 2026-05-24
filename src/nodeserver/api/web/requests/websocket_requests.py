@@ -4,7 +4,7 @@ from nodeserver.api.instance.instance_states import InstanceStates, LoopStates
 from nodeserver.api.web.requests.base_requests import BaseSocketModel
 from nodeserver.api.web.requests.notification_requests import ServerSyncNotifications
 from nodeserver.api.web.websocket_protocol import EditorActionStatus, ServerMessages, WebsocketStatus
-from nodeserver.wrapper.metadata.metadata_header import Metadata
+from nodeserver.wrapper.metadata.metadata_header import Metadata, MetadataVersion
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import TypeFile
 
@@ -12,6 +12,10 @@ from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import TypeFile
 class SyncStatePayload(BaseSocketModel):
     instance_state: InstanceStates
     loop_state: LoopStates
+
+class SrvMetadataUpdated(BaseSocketModel):
+    type: Literal[ServerMessages.METADATA_UPDATED] = ServerMessages.METADATA_UPDATED
+    metadata_version: MetadataVersion
 
 class SrvVersionSync(BaseSocketModel):
     type: Literal[ServerMessages.SYNC_VERSIONS] = ServerMessages.SYNC_VERSIONS
@@ -56,7 +60,7 @@ HandshakeMessage = Annotated[
 
 BaseServerMessages = Annotated[
     Union[
-        HandshakeMessage, SrvVersionSync,
+        HandshakeMessage, SrvVersionSync, SrvMetadataUpdated,
         ServerSyncNotifications, SrvSyncAction, SrvSyncScene, SrvSyncState, SrvNodeOutput, SrvSyncFiles
     ],
     Field(discriminator="type")

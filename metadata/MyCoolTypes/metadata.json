@@ -1,10 +1,10 @@
 {
  "types_id": "MyCoolTypes",
  "types_version": 0,
- "meta_version": 0,
+ "meta_version": 4,
  "tags": {
   "input/parameter": {
-   "description": ""
+   "description": "Most of the outputs of this node should come from a parameter"
   },
   "output/file": {
    "description": ""
@@ -22,7 +22,7 @@
    ]
   },
   "Math": {
-   "description": "",
+   "description": "Any Node that does math",
    "super_category": null,
    "default_tags": []
   },
