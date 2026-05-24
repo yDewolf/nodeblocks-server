@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Optional, get_args, get_origin, get_type_hints
 
+from nodeserver.api.node.node_exceptions import MissingSlotInput
 from pydantic import BaseModel
 
 from nodeserver.api.internal.instance_state import InternalNodeState
@@ -200,9 +201,16 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
                     ))
 
                 continue
+            
+            if len(values) > 0:
+                raw_inputs[slot.slot_id] = values[0]
+                continue
 
-            raw_inputs[slot.slot_id] = values[0]
-        
+            if real_slot._io.is_optional():
+                raw_inputs[slot.slot_id] = None
+            else:
+                raise MissingSlotInput(self._mirror, slot, f"Missing input for slot: {slot.slot_id}") # type: ignore
+
         return raw_inputs
 
 

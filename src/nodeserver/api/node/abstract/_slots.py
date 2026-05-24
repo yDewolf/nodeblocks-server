@@ -1,6 +1,6 @@
 
 from types import get_original_bases
-from typing import Any, Optional, Type, get_args
+from typing import Any, Optional, Type, Union, get_args
 from typing_extensions import get_origin
 
 from nodeserver.wrapper.nodes.data.node_data_types import DataTypeUtils, DefaultDataTypes, DefaultRenderers, _match_renderer
@@ -11,6 +11,8 @@ class _SlotIO[valueType: Any, is_input: bool]:
     _value: Optional[valueType] = None
 
     _raw_io_type: Type[Any] = Type
+    _is_optional: Optional[bool] = None
+
     _is_input: bool = False
     
     _type_args: Optional[tuple[Any, ...]] = None
@@ -60,6 +62,18 @@ class _SlotIO[valueType: Any, is_input: bool]:
             return self._type_args[0]
         
         return self._raw_io_type
+
+    def is_optional(self) -> bool:
+        if self._is_optional != None:
+            return self._is_optional
+        
+        if get_origin(self._raw_io_type) is Union:
+            # Check if None (type(None)) is one of the arguments in the Union
+            self._is_optional = type(None) in get_args(self._raw_io_type)
+            return self._is_optional
+
+        self._is_optional = False
+        return self._is_optional
 
     def get_base_type(self) -> DefaultDataTypes:
         if self._base_type:
