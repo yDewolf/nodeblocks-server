@@ -21,15 +21,15 @@ class TypeReaderUtils:
             if not metadata:
                 metadata = NodeTypeMeta(
                     category=default_category,
-                    capitalized_name=model.type_name,
+                    capitalized_name=model.type_id,
                     tags=[]
                 )
             
             if metadata.capitalized_name == "":
-                metadata.capitalized_name = model.type_name
+                metadata.capitalized_name = model.type_id
             
             constructor = CustomMirrorConstructor(
-                type_id=model.type_name,
+                type_id=model.type_id,
                 data=model.node_data if model.node_data else NodeData({}),
                 metadata=metadata,
                 slot_types=base_types.slot_types,
@@ -52,15 +52,15 @@ class TypeReaderUtils:
         
         data_types: dict[str, BaseDataType] = {}
         slot_types: dict[str, BaseSlotType] = {}
-        for type_name, node_type in node_registry.items():
-            super_slot_types, constructor = node_type.generate_types(slot_types, data_types, type_name)
+        for type_id, node_type in node_registry.items():
+            super_slot_types, constructor = node_type.generate_types(slot_types, data_types, type_id)
             node_constructors.append(constructor)
             slot_types = super_slot_types
 
         def auto_parser(mirror: NodeMirror) -> _ParsedNode:
-            node_class = node_registry.get(mirror.type_name, None)
+            node_class = node_registry.get(mirror.type_id, None)
             if not node_class:
-                raise Exception(f"Couldn't parse node with type {mirror.type_name}")
+                raise Exception(f"Couldn't parse node with type {mirror.type_id}")
 
             return node_class(mirror)
 

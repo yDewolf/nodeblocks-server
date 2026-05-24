@@ -34,9 +34,9 @@ class BaseMirrorConstructor:
         mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), metadata, id, self.type_id, _position)
         mirror.data.parse_parameters(node_data)
 
-        for slot_name in self._slots:
-            slot_data = self._slots[slot_name]
-            new_slot = self.make_slot_mirror(mirror, slot_name, slot_data)
+        for slot_id in self._slots:
+            slot_data = self._slots[slot_id]
+            new_slot = self.make_slot_mirror(mirror, slot_id, slot_data)
             if not new_slot:
                 return None
 
@@ -45,7 +45,7 @@ class BaseMirrorConstructor:
         return mirror
 
 
-    def make_slot_mirror(self, parent_node: NodeMirror, slot_name: str, slot_data: SlotData):
+    def make_slot_mirror(self, parent_node: NodeMirror, slot_id: str, slot_data: SlotData):
         slot_type_str = slot_data.type if slot_data.type != None else ""
         slot_type = self._slot_types.get(slot_type_str)
         if not slot_type:
@@ -53,7 +53,7 @@ class BaseMirrorConstructor:
 
         return SlotMirror(
             parent_node,
-            slot_name,
+            slot_id,
             slot_type,
             slot_data.is_input,
             slot_data.max_connections if slot_data.max_connections else 0

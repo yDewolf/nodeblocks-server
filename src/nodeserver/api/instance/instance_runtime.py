@@ -112,12 +112,12 @@ class RuntimeContext(_ReadonlyContext):
 
     def _update_outputs(self, node: _Node, outputs: dict) -> dict[SlotMirror, _SlotIO]:
         output_data: dict[SlotMirror, _SlotIO] = {}
-        for slot_name in outputs:
-            slot = node.slot(slot_name)
+        for slot_id in outputs:
+            slot = node.slot(slot_id)
             if slot._mirror.is_input:
                 logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {node}")
             
-            slot._io.value = outputs[slot_name]
+            slot._io.value = outputs[slot_id]
             output_data[slot._mirror] = slot._io
             self._output_cache[slot._mirror] = slot._io
 

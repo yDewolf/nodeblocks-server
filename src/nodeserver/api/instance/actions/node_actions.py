@@ -39,8 +39,8 @@ class NodeActionUtils:
                 return EditorActionStatus.FAILED
 
             mirror._position = node_data.position
-            for param_name in node_data.data:
-                mirror.data.set_parameter_value(param_name, node_data.data.get(param_name))
+            for param_id in node_data.data:
+                mirror.data.set_parameter_value(param_id, node_data.data.get(param_id))
         
             if instance.mirror_manager.scene_reader.scene_data:
                 instance.mirror_manager.scene_reader.sync_node(mirror)
@@ -72,7 +72,7 @@ class NodeActionUtils:
 
             instance.send_to_client(ServerNotification.node_notify(
                 node._mirror.uid,
-                message=f"Added node of type {node._mirror.type_name}",
+                message=f"Added node of type {node._mirror.type_id}",
                 level=NotificationLevel.DEBUG
             ))
 

@@ -7,4 +7,4 @@ class NodeMirrorProtocol(Protocol):
 
 class SlotMirrorProtocol(Protocol):
     parent_node: NodeMirrorProtocol
-    slot_name: str
+    slot_id: str

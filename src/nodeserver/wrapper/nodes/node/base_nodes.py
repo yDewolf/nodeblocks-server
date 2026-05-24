@@ -14,7 +14,7 @@ from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import Vector2
 class NodeMirror:
     uid: str
     node_name: str
-    type_name: str    
+    type_id: str    
 
     data: NodeData
     metadata: NodeTypeMeta
@@ -23,10 +23,10 @@ class NodeMirror:
 
     slots: list[SlotMirror]
 
-    def __init__(self, node_name: str, node_data: NodeData, metadata: NodeTypeMeta, uid: str | None = None, type_name: str = "BaseNode", _position: Vector2 | None = None):
+    def __init__(self, node_name: str, node_data: NodeData, metadata: NodeTypeMeta, uid: str | None = None, type_id: str = "BaseNode", _position: Vector2 | None = None):
         self.uid = uid if uid != None else IDGenerator.generate_node_id()
         self.node_name = node_name
-        self.type_name = type_name
+        self.type_id = type_id
         self._position = _position
 
         self.metadata = metadata
@@ -37,9 +37,9 @@ class NodeMirror:
         self.slots.append(slot_mirror)
     
 
-    def get_slot(self, slot_name: str) -> SlotMirror | None:
+    def get_slot(self, slot_id: str) -> SlotMirror | None:
         for slot in self.slots:
-            if slot.slot_name == slot_name:
+            if slot.slot_id == slot_id:
                 return slot
         
         return None
@@ -87,7 +87,7 @@ class _ParsedNode:
 class SlotMirror:
     _version: int
 
-    slot_name: str
+    slot_id: str
     parent_node: NodeMirror
 
     max_connections: int = 0
@@ -98,11 +98,11 @@ class SlotMirror:
 
     connections: dict[SlotMirror, ConnectionMirror]
 
-    def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, is_input: bool, max_connections: int = 0) -> None:
+    def __init__(self, parent_node: NodeMirror, slot_id: str, slot_type: BaseSlotType, is_input: bool, max_connections: int = 0) -> None:
         self._version = 0
         self._is_input = is_input
         self.parent_node = parent_node
-        self.slot_name = slot_name
+        self.slot_id = slot_id
 
         self.type = slot_type
         self.max_connections = max_connections
@@ -191,7 +191,7 @@ class ConnectionMirror:
     def to_scene_data(self) -> ConnectionSceneData:
         return ConnectionSceneData.from_dict({
             "uid": self.uid,
-            "from": NodePathData(node_id=self.get_input().parent_node.uid, slot_name=self.get_input().slot_name),
-            "to": NodePathData(node_id=self.get_output().parent_node.uid, slot_name=self.get_output().slot_name)
+            "from": NodePathData(node_id=self.get_input().parent_node.uid, slot_id=self.get_input().slot_id),
+            "to": NodePathData(node_id=self.get_output().parent_node.uid, slot_id=self.get_output().slot_id)
         })
         

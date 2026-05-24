@@ -69,8 +69,8 @@ class _MetadataLoad:
                     subtype_path = os.path.join(datatype_folder, subtype_filename)
                     if not os.path.isfile(subtype_path): continue
 
-                    subtype_name = os.path.splitext(subtype_filename)[0]
-                    datatype_id = MetadataFileUtils.make_slotio_id_filename(slotio_name, subtype_name)
+                    subtype_id = os.path.splitext(subtype_filename)[0]
+                    datatype_id = MetadataFileUtils.make_slotio_id_filename(slotio_name, subtype_id)
                     with open(subtype_path, "r") as file:
                         datatype_data = json.load(file)
                     

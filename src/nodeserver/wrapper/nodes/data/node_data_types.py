@@ -35,8 +35,8 @@ class BaseDataType:
     _type_whitelist: list[DefaultDataTypes] = []
     _name_whitelist: list[str] = []
 
-    def __init__(self, type_name: str, base_type: DefaultDataTypes, type_whitelist: list[DefaultDataTypes], name_whitelist: list[str] = [], renderer: DefaultRenderers = DefaultRenderers.NOT_IMPLEMENTED):
-        self.type_id = type_name
+    def __init__(self, type_id: str, base_type: DefaultDataTypes, type_whitelist: list[DefaultDataTypes], name_whitelist: list[str] = [], renderer: DefaultRenderers = DefaultRenderers.NOT_IMPLEMENTED):
+        self.type_id = type_id
         
         if renderer == DefaultRenderers.NOT_IMPLEMENTED:
             renderer = _match_renderer(base_type)

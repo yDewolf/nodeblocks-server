@@ -29,7 +29,7 @@ class ConnActionUtils:
                 except ReachedMaxConnections as e:
                     instance.send_to_client(ServerNotification.slot_notify(
                         node_uid=e.slot.parent_node.uid,                        
-                        slot_name=e.slot.slot_name,
+                        slot_id=e.slot.slot_id,
                         message="Slot reached Max Connections",
                         level=NotificationLevel.ERROR
                     ))

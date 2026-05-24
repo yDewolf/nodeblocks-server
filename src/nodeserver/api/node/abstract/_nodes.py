@@ -184,49 +184,49 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         raw_inputs = {}
         for slot in self._mirror.inputs:
             values = [output_cache[conn].value for conn in slot.connections if conn in output_cache]
-            if not values: raw_inputs[slot.slot_name] = None
+            if not values: raw_inputs[slot.slot_id] = None
 
-            real_slot = self.slot(slot.slot_name)
+            real_slot = self.slot(slot.slot_id)
             if real_slot._io.is_collection():
-                raw_inputs[slot.slot_name] = values[:real_slot._io._max_connections]
+                raw_inputs[slot.slot_id] = values[:real_slot._io._max_connections]
                 if len(values) > real_slot._io._max_connections:
                     logger.warning(f"WARNING: Shrinking node inputs for slot {slot}")
                     instance_protocol.send_to_client(ServerNotification.slot_notify(
                         node_uid=self._mirror.uid,
-                        slot_name=slot.slot_name,
+                        slot_id=slot.slot_id,
                         message="Inputs will be shrunk",
                         level=NotificationLevel.WARNING,
-                        description=f"{slot.slot_name} won't receive all its inputs since it has a max input count of {real_slot._io._max_connections}"
+                        description=f"{slot.slot_id} won't receive all its inputs since it has a max input count of {real_slot._io._max_connections}"
                     ))
 
                 continue
 
-            raw_inputs[slot.slot_name] = values[0]
+            raw_inputs[slot.slot_id] = values[0]
         
         return raw_inputs
 
 
     @classmethod
-    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}, super_data_types: dict[str, BaseDataType] = {}, type_name: Optional[str] = None) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
-        if type_name == None:
-            type_name = cls.__name__
+    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}, super_data_types: dict[str, BaseDataType] = {}, type_id: Optional[str] = None) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
+        if type_id == None:
+            type_id = cls.__name__
         
         data_types: dict[str, BaseDataType] = super_data_types
         slot_types: dict[str, BaseSlotType] = super_slot_types
         node_slots: dict[str, SlotData] = {}
         
         cls._add_cls_slot_and_data_types(slot_types, data_types, node_slots)
-        constructor = cls._generate_constructor(node_slots, data_types, type_name)
+        constructor = cls._generate_constructor(node_slots, data_types, type_id)
         return (slot_types, constructor)
 
     @classmethod
-    def _generate_constructor(cls, slot_types: dict[str, SlotData], data_types: dict[str, BaseDataType], type_name: str) -> ConstructorModel:
+    def _generate_constructor(cls, slot_types: dict[str, SlotData], data_types: dict[str, BaseDataType], type_id: str) -> ConstructorModel:
         param_data: dict[str, NodeParameterData] = {}
-        for param_name, spec in cls._params_spec.items():
-            param_data[param_name] = NodeParameterDataAdapter.validate_python(spec)
+        for param_id, spec in cls._params_spec.items():
+            param_data[param_id] = NodeParameterDataAdapter.validate_python(spec)
 
         constructor: ConstructorModel = ConstructorModel(
-            type_name=str(type_name),
+            type_id=str(type_id),
             node_data=NodeData(param_data),
             base_node_metadata=cls._metadata.model_copy() if cls._metadata else None,
             slots=slot_types,

@@ -125,11 +125,11 @@ default_slots: dict[str, SlotData] = {
 }
 
 def my_parser(mirror: NodeMirror) -> BaseNode:
-    if mirror.type_name == "InputNode":
+    if mirror.type_id == "InputNode":
         return MyInputNode(mirror)
     
     node = MyMathNode(mirror)
-    match mirror.type_name:
+    match mirror.type_id:
         case "SumNode": node.operation = 0
         case "SubNode": node.operation = 1
         case "MulNode": node.operation = 2

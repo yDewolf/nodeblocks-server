@@ -144,9 +144,9 @@ class MetadataFile:
 
             if not constructor._base_metadata.parameter_meta:
                 param_meta: dict[str, ParameterMeta] = {}
-                for param_name in constructor._data_model.param_model:
-                    param_meta[param_name] = ParameterMeta(
-                        capitalized_name=param_name
+                for param_id in constructor._data_model.param_model:
+                    param_meta[param_id] = ParameterMeta(
+                        capitalized_name=param_id
                     )
                 constructor._base_metadata.parameter_meta.update(param_meta)
             

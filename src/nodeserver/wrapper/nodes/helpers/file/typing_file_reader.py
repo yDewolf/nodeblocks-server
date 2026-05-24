@@ -67,8 +67,8 @@ class TypeFileReader:
         return True
 
 
-    def set_constructor(self, type_name: str, constructor: BaseMirrorConstructor):
-        self.node_constructors[type_name] = constructor
+    def set_constructor(self, type_id: str, constructor: BaseMirrorConstructor):
+        self.node_constructors[type_id] = constructor
     
     def set_new_constructors(self, constructors: list[BaseMirrorConstructor]):
         self.node_constructors.clear()
@@ -76,8 +76,8 @@ class TypeFileReader:
             self.set_constructor(constructor.type_id, constructor)
 
 
-    def get_constructor(self, type_name: str) -> BaseMirrorConstructor | None:
-        return self.node_constructors.get(type_name, None)
+    def get_constructor(self, type_id: str) -> BaseMirrorConstructor | None:
+        return self.node_constructors.get(type_id, None)
 
 
     def load_from_file(self, file_path: str):
@@ -108,13 +108,13 @@ class TypeFileReader:
             _data_types[type_id] = type_data
 
         _node_types: dict[str, NodeTypeData] = {}
-        for type_name, constructor in self.node_constructors.items():
+        for type_id, constructor in self.node_constructors.items():
             type_data = NodeTypeData(
                 parameters=constructor._data_model.param_model,
                 default_metadata=constructor._base_metadata,
                 slots=constructor._slots
             )
-            _node_types[type_name] = type_data
+            _node_types[type_id] = type_data
         
         type_data = TypeFile(
             format=self._format,
@@ -179,7 +179,7 @@ class TypeFileReader:
 
 @dataclass
 class ConstructorModel:
-    type_name: str
+    type_id: str
     node_data: Optional[NodeData]
     base_node_metadata: Optional[NodeTypeMeta]
 
@@ -187,9 +187,9 @@ class ConstructorModel:
     parser: Optional[Callable[[NodeMirror], _ParsedNode]]
 
     @staticmethod
-    def new(type_name: str, node_data: Optional[NodeData] = None, base_metadata: Optional[NodeTypeMeta] = None, slots: Optional[dict[str, SlotData]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
+    def new(type_id: str, node_data: Optional[NodeData] = None, base_metadata: Optional[NodeTypeMeta] = None, slots: Optional[dict[str, SlotData]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
         return ConstructorModel(
-            type_name=type_name,
+            type_id=type_id,
             node_data=node_data,
             base_node_metadata=base_metadata,
             slots=slots,

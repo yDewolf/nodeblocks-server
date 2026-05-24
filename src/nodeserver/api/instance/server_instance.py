@@ -163,7 +163,7 @@ class ServerInstance:
         result_data = {}
         if slot_results != None:
             for slot, result in slot_results.items():
-                result_data[slot.slot_name] = result.value
+                result_data[slot.slot_id] = result.value
         
         return result_data
 
