@@ -6,7 +6,7 @@ from typing import Callable, Optional
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from nodeserver.wrapper.metadata.helpers.metadata_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
+from nodeserver.wrapper.metadata.helpers.metadata_utils import METADATA_EXTENSION, METADATA_FOLDER_NAME, ROOT_METADATA_PATH, MetadataFileUtils
 from nodeserver.wrapper.metadata.metadata_file import MetadataFile
 from nodeserver.wrapper.metadata.metadata_header import Metadata, MetadataVersion
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
@@ -61,7 +61,16 @@ class MetadataManager:
         if now - self.last_reload_time < 0.5:
             return
         
-        type_id: Optional[str] = file_path.parts[1] if len(file_path.parts) > 1 else None
+        previous_part: str = ""
+        type_id: Optional[str] = None
+        for idx in range(1, len(file_path.parts)):
+            current_part = file_path.parts[-idx]
+            if current_part == METADATA_FOLDER_NAME:
+                type_id = previous_part
+                break
+
+            previous_part = current_part
+
         if not type_id: return
 
         metadata_file = self.indexed_metadata.get(type_id)

@@ -35,7 +35,7 @@ class NodeTypeMeta(BaseMetadata):
 
     @field_serializer("tags")
     def serialize_tags(self, tags: list[NodeTag], _info):
-        tag_ids = [tag.tag_id for tag in tags]
+        tag_ids = [(tag if isinstance(tag, str) else tag.tag_id) for tag in tags]
         return tag_ids
 
 DEFAULT_NODE_TAG = NodeTag(tag_id="default")

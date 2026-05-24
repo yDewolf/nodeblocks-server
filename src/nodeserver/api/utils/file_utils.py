@@ -1,3 +1,4 @@
+from typing import Optional
 from pathlib import Path
 import logging
 logger = logging.getLogger("root")
@@ -11,7 +12,7 @@ def get_git_repos() -> list[Path]:
     return git_repos
 
 class FileUtils:
-    _project_root: Path = Path()
+    _project_root: Optional[Path] = None
 
     @classmethod
     def select_project_root(cls):
@@ -31,5 +32,3 @@ class FileUtils:
         cls._project_root = Path(project_root)
         logger.info(f"Set PROJECT ROOT to {cls._project_root}")
 
-def get_project_root():
-    return str(FileUtils._project_root)
