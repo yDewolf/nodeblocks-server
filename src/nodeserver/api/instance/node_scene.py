@@ -34,7 +34,7 @@ class NodeScene:
 
 
     def build_node(self, mirror: NodeMirror) -> _ParsedNode | None:
-        constructor = self.mirror_manager.type_reader.node_constructors.get(mirror.type_name)
+        constructor = self.mirror_manager.type_reader.node_constructors.get(mirror.type_id)
         if not constructor:
             return None
     

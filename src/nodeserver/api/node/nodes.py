@@ -4,11 +4,11 @@ from typing import Any, Optional, Type
 
 from pydantic import BaseModel
 
-from nodeserver.api.instance.instance_runtime import _ReadonlyContext, RuntimeContext
 from nodeserver.api.node.node_utils import NodeUtils
-from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
 from nodeserver.api.node.abstract._nodes import _Node
 from nodeserver.api.node.slots import NodeSlot
+from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType
+from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import SlotData
 from nodeserver.wrapper.nodes.node.base_nodes import SlotMirror
 
@@ -63,20 +63,24 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
             **spec["args"]
         )
 
-        instance._io._max_inputs = spec["max_inputs"]
+        if spec["max_inputs"]:
+            instance._io._max_connections = spec["max_inputs"]
+        
         instance._io._raw_io_type = spec["raw_type"]
-        datatype_override = spec.get("datatype_override")
-        instance._io._datatype_override = datatype_override
-        if datatype_override and instance.has_mirror():
-            instance._mirror.data_type = datatype_override
-
+        base_type_override = spec.get("base_type_override")
+        instance._io._base_type = base_type_override
+        
+        renderer_override = spec.get("renderer_override")
+        instance._io._renderer = renderer_override
         return instance
 
     @classmethod
-    def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
+    def _add_cls_slot_and_data_types(cls, super_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], slot_types: dict[str, SlotData]):
         for name, spec in cls._slot_definitions.items():
             slot_instance = cls._build_slot_instance_from_spec(spec, None)
-            cls._add_slot_types(name, slot_instance, super_types, slot_types)
+
+            cls._add_data_types(slot_instance, data_types)
+            cls._add_slot_types(name, slot_instance, super_types, data_types, slot_types)
 
     def _parse_inputs(self, raw_input_data: dict) -> BaseModel:
         return self.InputModel(**raw_input_data)

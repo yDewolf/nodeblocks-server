@@ -9,18 +9,15 @@ from nodeserver.api.instance.actions.node_actions import NodeActionUtils
 from nodeserver.api.instance.instance_runtime import InstanceRuntime
 from nodeserver.api.instance.instance_states import InstanceCommands, InstanceStates, LoopStates, StateController
 from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
-from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.api.web.requests.request_unions import AnyServerMessage
 from nodeserver.api.web.requests.websocket_requests import SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus
 from nodeserver.api.instance.node_scene import NodeScene
-from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.wrapper.nodes.helpers.scene_manager import MirrorSceneManager
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
-from nodeserver.wrapper.nodes.node.node_utils import NodeMirrorUtils
+from nodeserver.wrapper.nodes.node.base_nodes import SlotMirror
 from nodeserver.api.node.abstract._nodes import _Node
 from nodeserver.api.node.abstract._slots import _SlotIO
 
@@ -166,7 +163,7 @@ class ServerInstance:
         result_data = {}
         if slot_results != None:
             for slot, result in slot_results.items():
-                result_data[slot.slot_name] = result.value
+                result_data[slot.slot_id] = result.value
         
         return result_data
 

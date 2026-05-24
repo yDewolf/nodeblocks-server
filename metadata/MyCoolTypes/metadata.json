@@ -1,0 +1,38 @@
+{
+ "types_id": "MyCoolTypes",
+ "types_version": 0,
+ "meta_version": 21,
+ "last_modified": 1779640180.608894,
+ "tags": {
+  "input/parameter": {
+   "description": "Most of the outputs of this node should come from a parameter"
+  },
+  "output/file": {
+   "description": "Test12aa"
+  },
+  "default": {
+   "description": ""
+  }
+ },
+ "categories": {
+  "Input": {
+   "description": "Nodes that receives user input",
+   "super_category": null,
+   "default_tags": [
+    "input/parameter"
+   ]
+  },
+  "Math": {
+   "description": "Any Node that does math",
+   "super_category": null,
+   "default_tags": []
+  },
+  "Any": {
+   "description": "My new metadata for 'Any' category",
+   "super_category": null,
+   "default_tags": [
+    "default"
+   ]
+  }
+ }
+}

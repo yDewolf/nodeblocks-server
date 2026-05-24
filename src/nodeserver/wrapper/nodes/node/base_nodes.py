@@ -2,54 +2,65 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Optional
 
+from nodeserver.api.node.node_exceptions import ReachedMaxConnections
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType, BaseSlotType, DataTypeUtils
+from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType, DataTypeUtils
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType, SlotTypeUtils
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodePathData
-from nodeserver.wrapper.nodes.node.node_types import SuperSlotTypes
 from nodeserver.wrapper.utils.uuid_utils import IDGenerator
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import Vector2
 
 class NodeMirror:
     uid: str
     node_name: str
-    type_name: str    
+    type_id: str    
 
     data: NodeData
+    metadata: NodeTypeMeta
     raw_data: dict
     _position: Optional[Vector2]
 
-    slots: dict[SuperSlotTypes, list[SlotMirror]]
+    slots: list[SlotMirror]
 
-    def __init__(self, node_name: str, node_data: NodeData, uid: str | None = None, type_name: str = "BaseNode", _position: Vector2 | None = None):
+    def __init__(self, node_name: str, node_data: NodeData, metadata: NodeTypeMeta, uid: str | None = None, type_id: str = "BaseNode", _position: Vector2 | None = None):
         self.uid = uid if uid != None else IDGenerator.generate_node_id()
         self.node_name = node_name
-        self.type_name = type_name
+        self.type_id = type_id
         self._position = _position
 
+        self.metadata = metadata
         self.data = node_data
-        self.slots = {}
+        self.slots = []
 
     def add_slot(self, slot_mirror: SlotMirror):
-        if self.slots.get(slot_mirror.type._super_type) == None:
-            self.slots[slot_mirror.type._super_type] = []
-        
-        self.slots[slot_mirror.type._super_type].append(slot_mirror)
+        self.slots.append(slot_mirror)
     
 
-    def get_slot(self, slot_name: str) -> SlotMirror | None:
-        for super_type, slots in self.slots.items():
-            for slot in slots:
-                if slot.slot_name == slot_name:
-                    return slot
+    def get_slot(self, slot_id: str) -> SlotMirror | None:
+        for slot in self.slots:
+            if slot.slot_id == slot_id:
+                return slot
         
         return None
     
-    def all_slots(self) -> list[SlotMirror]:
-        every_slot: list[SlotMirror] = []
-        for slot_type in self.slots:
-            every_slot += self.slots[slot_type]
+    @property
+    def inputs(self) -> list[SlotMirror]:
+        inputs: list[SlotMirror] = []
+        for slot in self.slots:
+            if slot.is_input:
+                inputs.append(slot)
         
-        return every_slot
+        return inputs
+
+    @property
+    def outputs(self) -> list[SlotMirror]:
+        outputs: list[SlotMirror] = []
+        for slot in self.slots:
+            if not slot.is_input:
+                outputs.append(slot)
+        
+        return outputs
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}({self.uid})"
@@ -76,22 +87,30 @@ class _ParsedNode:
 class SlotMirror:
     _version: int
 
-    slot_name: str
+    slot_id: str
     parent_node: NodeMirror
 
-    data_type: BaseNodeType
+    max_connections: int = 0
+    data_type: BaseDataType
+
+    _is_input: bool
     type: BaseSlotType
 
     connections: dict[SlotMirror, ConnectionMirror]
 
-    def __init__(self, parent_node: NodeMirror, slot_name: str, slot_type: BaseSlotType, slot_data_type: BaseNodeType | None) -> None:
+    def __init__(self, parent_node: NodeMirror, slot_id: str, slot_type: BaseSlotType, is_input: bool, max_connections: int = 0) -> None:
         self._version = 0
+        self._is_input = is_input
         self.parent_node = parent_node
-        self.slot_name = slot_name
+        self.slot_id = slot_id
 
         self.type = slot_type
-        self.data_type = slot_data_type if slot_data_type != None else slot_type.data_type
+        self.max_connections = max_connections
         self.connections = {}
+
+    @property
+    def is_input(self):
+        return self._is_input
 
     def can_connect_to(self, slot: SlotMirror) -> bool:
         if slot == self:
@@ -99,8 +118,10 @@ class SlotMirror:
         
         # if not DataTypeUtils.is_type_compatible_with(self.data_type, slot.data_type):
         #     return False
+        if len(self.connections.values()) >= self.max_connections and self.max_connections != 0:
+            raise ReachedMaxConnections(self) # type: ignore
 
-        if not DataTypeUtils.is_type_compatible_with(self.type, slot.type):
+        if not SlotTypeUtils.is_type_compatible_with(self.type, slot.type):
             return False
     
         return True
@@ -145,13 +166,13 @@ class ConnectionMirror:
 
 
     def get_input(self):
-        if self.slot_a.type._super_type == SuperSlotTypes.INPUT:
+        if self.slot_a.is_input:
             return self.slot_a
         
         return self.slot_b
     
     def get_output(self):
-        if self.slot_a.type._super_type == SuperSlotTypes.OUTPUT:
+        if not self.slot_a.is_input:
             return self.slot_a
         
         return self.slot_b
@@ -162,12 +183,15 @@ class ConnectionMirror:
         if not self.slot_a.can_connect_to(self.slot_b):
             return False
         
+        if not self.slot_b.can_connect_to(self.slot_a):
+            return False
+        
         return True
     
     def to_scene_data(self) -> ConnectionSceneData:
         return ConnectionSceneData.from_dict({
             "uid": self.uid,
-            "from": NodePathData(node_id=self.get_input().parent_node.uid, slot_name=self.get_input().slot_name),
-            "to": NodePathData(node_id=self.get_output().parent_node.uid, slot_name=self.get_output().slot_name)
+            "from": NodePathData(node_id=self.get_input().parent_node.uid, slot_id=self.get_input().slot_id),
+            "to": NodePathData(node_id=self.get_output().parent_node.uid, slot_id=self.get_output().slot_id)
         })
         

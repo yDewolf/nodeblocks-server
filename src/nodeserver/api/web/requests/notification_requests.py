@@ -32,8 +32,8 @@ class ServerNotification(BaseSocketModel):
     description: Optional[str] = None
     extra_data: Optional[dict[str, Any]] = None
     node_uid: Optional[str] = None
-    slot_name: Optional[str] = None
-    param_name: Optional[str] = None
+    slot_id: Optional[str] = None
+    param_id: Optional[str] = None
     conn_uid: Optional[str] = None
 
     @classmethod 
@@ -49,9 +49,9 @@ class ServerNotification(BaseSocketModel):
         )
     
     @classmethod 
-    def slot_notify(cls, node_uid: str, slot_name: str, message: str, level: NotificationLevel, description: Optional[str] = None, extra_data: Optional[dict[str, Any]] = None):
+    def slot_notify(cls, node_uid: str, slot_id: str, message: str, level: NotificationLevel, description: Optional[str] = None, extra_data: Optional[dict[str, Any]] = None):
         return cls.notify(message, level, NotificationTarget.SLOT, description=description, extra_data=extra_data, 
-            node_uid=node_uid, slot_name=slot_name
+            node_uid=node_uid, slot_id=slot_id
         )
     
     @classmethod 
@@ -61,20 +61,20 @@ class ServerNotification(BaseSocketModel):
         )
     
     @classmethod 
-    def param_notify(cls, node_uid: str, param_name: str, message: str, level: NotificationLevel, description: Optional[str] = None, extra_data: Optional[dict[str, Any]] = None):
+    def param_notify(cls, node_uid: str, param_id: str, message: str, level: NotificationLevel, description: Optional[str] = None, extra_data: Optional[dict[str, Any]] = None):
         return cls.notify(message, level, NotificationTarget.PARAMETER, description=description, extra_data=extra_data, 
-            node_uid=node_uid, param_name=param_name
+            node_uid=node_uid, param_id=param_id
         )
 
     @model_validator(mode='after')
     def check_targets(self):
         if self.target == NotificationTarget.SLOT:
-            if not self.node_uid or not self.slot_name:
-                raise ValueError("Slot notifications require node_uid and slot_name")
+            if not self.node_uid or not self.slot_id:
+                raise ValueError("Slot notifications require node_uid and slot_id")
         
         elif self.target == NotificationTarget.PARAMETER:
-            if not self.node_uid or not self.param_name:
-                raise ValueError("Parameter notifications require node_uid and param_name")
+            if not self.node_uid or not self.param_id:
+                raise ValueError("Parameter notifications require node_uid and param_id")
 
         elif self.target == NotificationTarget.NODE:
             if not self.node_uid:

@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 from nodeserver.api.node.nodes import BaseNode
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, DataTypes
+from nodeserver.wrapper.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, DefaultDataTypes
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeNumberParameter, NodeParameterData
 from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror, SlotMirror
 
@@ -45,7 +45,7 @@ mirror.add_slot(SlotMirror(mirror, "in_0", INPUT_TYPE, None))
 mirror.add_slot(SlotMirror(mirror, "out_0", OUTPUT_TYPE, None))
 node = MyMathNode(mirror)
 
-input_mirror = NodeMirror("", NodeData.from_model(NodeData({"value": NodeNumberParameter(type=DataTypes.INT)})))
+input_mirror = NodeMirror("", NodeData.from_model(NodeData({"value": NodeNumberParameter(type=DefaultDataTypes.INT)})))
 input_mirror.data.parse_parameters({
     "value": 10
 })

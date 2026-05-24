@@ -12,10 +12,22 @@ logger = logging.getLogger("nds.state_file")
 NODE_STATE_SUBFOLDER = "node_states"
 
 class InternalNodeState(BaseModel):
-    # Relative to NODE_STATE_SUBFOLDER inside instance's folder
-    relative_state_path: Optional[str] # node.save_state() can return a path to some file that stores node's state
-    state_data: Optional[dict[str, Any]] # if the node doesn't save in an external file, it should use this state_data
-    # Other node data
+    """
+        Dedicated for Custom Node Types that needs to save its state in other file Formats
+        Example: Saving a Torch Module as .pt in another file
+    """
+    relative_state_path: Optional[str] = None # 
+    """
+        Relative to NODE_STATE_SUBFOLDER inside instance's folder
+        should be set in Node.save_state(). <br>
+        **Use NodeUtils.make_state_file_path(mirror, root_state_path, {your_extension}) to generate this path properly**
+    """
+    
+    state_data: Optional[dict[str, Any]] # 
+    """
+        If the node doesn't need to save in an external file, it should use this state_data
+        to store things like its class attributes
+    """
 
 
 class InternalState(BaseModel):

@@ -98,7 +98,11 @@ class UserWorkspace:
             instance_path, node_state_path
         )
         
-    def get_saved_instances(self) -> list[str]:
+    def get_saved_instances(self) -> dict[str, str]:
         user_instances = WorkspaceUtils.get_user_instances(self.user_id)
-        user_instances.sort(key=os.path.getmtime, reverse=True)
+        user_instances = dict(sorted(
+            user_instances.items(), 
+            key=lambda item: os.path.getmtime(item[1]), 
+            reverse=True
+        ))
         return user_instances

@@ -3,6 +3,8 @@ import uuid
 from typing import Annotated, Any, Dict, Optional
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
+
 class Vector2(BaseModel):
     x: float = 0.0
     y: float = 0.0
@@ -13,18 +15,18 @@ class Vector2(BaseModel):
 
 class NodePathData(BaseModel):
     node_id: str = ""
-    slot_name: str = ""
+    slot_id: str = ""
 
     @classmethod
     def from_str(cls, path: str) -> 'NodePathData':
         pattern = r"nodes:([a-z0-9-]+):slots:([^:\s]+)"
         match = re.search(pattern, path, re.IGNORECASE)
         if match:
-            return cls(node_id=match.group(1), slot_name=match.group(2))
+            return cls(node_id=match.group(1), slot_id=match.group(2))
         return cls()
 
     def serialize(self) -> str:
-        return self.make_path(self.node_id, self.slot_name)
+        return self.make_path(self.node_id, self.slot_id)
 
     @staticmethod
     def make_path(node_id: str, slot_id: str) -> str:

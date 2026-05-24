@@ -8,14 +8,14 @@ from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameter
 class NodeParameter:
     _version: int
     type: BaseDataType
-    _field_name: str
+    _field_id: str
     
     _value: Any
     _data_model: NodeParameterData
 
-    def __init__(self, field_data_model: NodeParameterData, field_name: str, value: Any):
+    def __init__(self, field_data_model: NodeParameterData, field_id: str, value: Any):
         self._version = 0
-        self._field_name = field_name
+        self._field_id = field_id
         self._data_model = field_data_model
 
         self._value = value
@@ -46,15 +46,15 @@ class NodeData:
     def map_parameters(self) -> dict[str, Any]:
         return {key: parameter.value for key, parameter in self.parameters.items()}
 
-    def get_parameter_value(self, param_name: str, default: Any = None) -> Any:
-        parameter = self.parameters.get(param_name)
+    def get_parameter_value(self, param_id: str, default: Any = None) -> Any:
+        parameter = self.parameters.get(param_id)
         if not parameter:
             return default
         
         return parameter.value
 
-    def set_parameter_value(self, param_name: str, new_value: Any):
-        parameter = self.parameters.get(param_name)
+    def set_parameter_value(self, param_id: str, new_value: Any):
+        parameter = self.parameters.get(param_id)
         if not parameter:
             return
         

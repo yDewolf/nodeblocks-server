@@ -1,23 +1,27 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import json
-from typing import Callable
+from typing import Callable, Optional
 
-from nodeserver.wrapper.nodes.data.custom_data_types import CustomSlotType
+from nodeserver.wrapper.nodes.data.custom_data_types import CustomDataType
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import BaseSlotType
+from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType
+from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
-from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeTypeData, SlotData, SlotTypeData, TypeFile
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import DataTypeData, NodeTypeData, SlotData, SlotTypeData, TypeFile
 from nodeserver.wrapper.nodes.helpers.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
 from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
 class TypeFileReader:
+    _format: int = 2
     _node_types_version: int = -1
     _node_types_id: str | None = None
     
     # file_path: str | None = None
     _raw_data: dict | None = None
 
+    data_types: dict[str, BaseDataType]
     slot_types: dict[str, BaseSlotType]
     node_constructors: dict[str, BaseMirrorConstructor]
 
@@ -26,14 +30,16 @@ class TypeFileReader:
         self.node_constructors = {}
 
     @staticmethod
-    def new(version: int, id: str, slot_types: dict[str, BaseSlotType], constructors: list[BaseMirrorConstructor]) -> TypeFileReader:
+    def new(version: int, id: str, data_types: dict[str, BaseDataType], slot_types: dict[str, BaseSlotType], constructors: list[BaseMirrorConstructor]) -> TypeFileReader:
         types = TypeFileReader()
+        
+        types.data_types = data_types
         types._node_types_version = version
         types._node_types_id = id
 
         types.slot_types = slot_types
         for constructor in constructors:
-            types.set_constructor(constructor.type_name, constructor)
+            types.set_constructor(constructor.type_id, constructor)
 
         return types
 
@@ -61,17 +67,17 @@ class TypeFileReader:
         return True
 
 
-    def set_constructor(self, type_name: str, constructor: BaseMirrorConstructor):
-        self.node_constructors[type_name] = constructor
+    def set_constructor(self, type_id: str, constructor: BaseMirrorConstructor):
+        self.node_constructors[type_id] = constructor
     
     def set_new_constructors(self, constructors: list[BaseMirrorConstructor]):
         self.node_constructors.clear()
         for constructor in constructors:
-            self.set_constructor(constructor.type_name, constructor)
+            self.set_constructor(constructor.type_id, constructor)
 
 
-    def get_constructor(self, type_name: str) -> BaseMirrorConstructor | None:
-        return self.node_constructors.get(type_name, None)
+    def get_constructor(self, type_id: str) -> BaseMirrorConstructor | None:
+        return self.node_constructors.get(type_id, None)
 
 
     def load_from_file(self, file_path: str):
@@ -81,29 +87,40 @@ class TypeFileReader:
 
 
     def serialize(self) -> TypeFile:
+        # TODO:
         _slot_types: dict[str, SlotTypeData] = {}
-        for type_name, slot_type in self.slot_types.items():
-            whitelist: list[str] = []
-            for name in slot_type._name_whitelist: whitelist.append(name)
-            for super_type in slot_type._type_whitelist: whitelist.append(f"#{super_type.value}")
-            type_data = SlotTypeData(
-                extends=slot_type._super_type.value,
-                conn_whitelist=whitelist,
-                default_data_type=slot_type.data_type.type_name
+        for slot_type_id, slot_type in self.slot_types.items():
+            _slot_types[slot_type_id] = SlotTypeData(
+                data_type_id=slot_type.data_type.type_id
             )
-            _slot_types[type_name] = type_data
+        
+        _data_types: dict[str, DataTypeData] = {}
+        for type_id, data_type in self.data_types.items():
+            whitelist: list[str] = []
+            for name in data_type._name_whitelist: whitelist.append(name)
+            for super_type in data_type._type_whitelist: whitelist.append(f"#{super_type.value}")
+            
+            type_data = DataTypeData(
+                base=data_type.base,
+                default_renderer=data_type.renderer,
+                whitelist=whitelist
+            )
+            _data_types[type_id] = type_data
 
         _node_types: dict[str, NodeTypeData] = {}
-        for type_name, constructor in self.node_constructors.items():
+        for type_id, constructor in self.node_constructors.items():
             type_data = NodeTypeData(
                 parameters=constructor._data_model.param_model,
+                default_metadata=constructor._base_metadata,
                 slots=constructor._slots
             )
-            _node_types[type_name] = type_data
+            _node_types[type_id] = type_data
         
         type_data = TypeFile(
+            format=self._format,
             id=self._node_types_id if self._node_types_id else "unknown",
             version=self._node_types_version,
+            data_types=_data_types,
             slot_types=_slot_types,
             node_types=_node_types
         )
@@ -112,59 +129,69 @@ class TypeFileReader:
         
 
     def _load_json_data(self, json_data: dict):
-        type_data, slot_types, constructors = TypeFileReader._parse_json_data(json_data)
+        type_data, data_types, slot_types, constructors = TypeFileReader._parse_json_data(json_data)
         
         self._raw_data = json_data
 
         self._node_types_id = type_data.id
         self._node_types_version = type_data.version
         
+        self.data_types = data_types
         self.slot_types = slot_types
         self.node_constructors = constructors
     
 
     @staticmethod
-    def _parse_json_data(json_data: dict) -> tuple[TypeFile, dict[str, BaseSlotType], dict[str, BaseMirrorConstructor]]:
+    def _parse_json_data(json_data: dict) -> tuple[TypeFile, dict[str, BaseDataType], dict[str, BaseSlotType], dict[str, BaseMirrorConstructor]]:
         type_data: TypeFile = TypeFile.model_validate(json_data)
         
         constructors: dict[str, BaseMirrorConstructor] = {}
-        slot_types: dict[str, BaseSlotType] = {}
-
-        for type_name in type_data.slot_types:
-            slot_type_data = type_data.slot_types[type_name]
-            custom_type = CustomSlotType(
-                type_name,
-                slot_type_data.default_data_type,
-                slot_type_data.extends,
-                slot_type_data.conn_whitelist
+        data_types: dict[str, BaseDataType] = {}
+        for data_type_id, data_type in type_data.data_types.items():
+            custom_type = CustomDataType(
+                data_type_id,
+                data_type.base,
+                _type_whitelist=data_type.whitelist
             )
-            slot_types[type_name] = custom_type
+            data_types[data_type_id] = custom_type
         
-        for type_name in type_data.node_types:
-            node_type_data = type_data.node_types[type_name]
-            constructor = CustomMirrorConstructor(
-                type_name,
-                NodeData(node_type_data.parameters),
-                slot_types,
-                node_type_data.slots,
+        slot_types: dict[str, BaseSlotType] = {}
+        for slot_type_id, slot_type in type_data.slot_types.items():
+            slot_types[slot_type_id] = BaseSlotType(
+                data_types[slot_type.data_type_id]
             )
-            constructors[type_name] = constructor
+        
+        for type_id in type_data.node_types:
+            node_type_data = type_data.node_types[type_id]
+            if node_type_data.default_metadata == None:
+                raise Exception(f"Every node should have metadata. Node of type {type_id} doesn't have any.")
+            
+            constructor = CustomMirrorConstructor(
+                type_id,
+                NodeData(node_type_data.parameters),
+                node_type_data.default_metadata,
+                slot_types,
+                node_type_data.slots
+            )
+            constructors[type_id] = constructor
     
-        return type_data, slot_types, constructors
+        return type_data, data_types, slot_types, constructors
 
 @dataclass
 class ConstructorModel:
-    type_name: str
-    node_data: NodeData | None
+    type_id: str
+    node_data: Optional[NodeData]
+    base_node_metadata: Optional[NodeTypeMeta]
 
-    slots: dict[str, SlotData] | None
-    parser: Callable[[NodeMirror], _ParsedNode] | None
+    slots: Optional[dict[str, SlotData]]
+    parser: Optional[Callable[[NodeMirror], _ParsedNode]]
 
     @staticmethod
-    def new(type_name: str, node_data: NodeData | None = None, slots: dict[str, SlotData] | None = None, parser: Callable[[NodeMirror], _ParsedNode] | None = None) -> 'ConstructorModel':
+    def new(type_id: str, node_data: Optional[NodeData] = None, base_metadata: Optional[NodeTypeMeta] = None, slots: Optional[dict[str, SlotData]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
         return ConstructorModel(
-            type_name=type_name,
+            type_id=type_id,
             node_data=node_data,
+            base_node_metadata=base_metadata,
             slots=slots,
             parser=parser,
         )

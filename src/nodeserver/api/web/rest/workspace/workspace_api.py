@@ -4,8 +4,11 @@ from typing import Optional
 from aiohttp import web
 import os
 
+import aiohttp_cors
+
 from nodeserver.api.web.manager.session_manager import SessionManager
 from nodeserver.api.web.requests.websocket_requests import SrvSyncFiles
+from nodeserver.api.web.rest.rest_utils import BaseRequestRouter, RestUtils
 from nodeserver.api.web.session.user_session import UserSession
 
 class FileRequestType(Enum):
@@ -14,14 +17,9 @@ class FileRequestType(Enum):
     UPLOAD = 2
     DOWNLOAD = 3
 
-class FileHandler:
-    session_manager: SessionManager
-
-    def __init__(self, session_manager: SessionManager) -> None:
-        self.session_manager = session_manager
-
-    async def route_file_request(self, request: web.Request, request_type: FileRequestType) -> web.StreamResponse:
-        user_session, error = self.get_session_from_request(request)
+class FileHandler(BaseRequestRouter):
+    async def route_request(self, request: web.Request, request_type: FileRequestType) -> web.StreamResponse:
+        user_session, error = RestUtils.get_session_from_request(self.session_manager, request)
         if error: return error
         if not user_session: return web.json_response({})
 
@@ -37,17 +35,29 @@ class FileHandler:
         
         return result
 
+    def setup_http_routes(self, app: web.Application, host: str, cors: aiohttp_cors.CorsConfig):
+        cors.add(app.router.add_get('/api/{user_id}/files', self.list_files))
+        cors.add(app.router.add_get('/api/{user_id}/file/delete', self.delete_file), {
+            f"http://{host}:3000": aiohttp_cors.ResourceOptions(allow_credentials=True)
+        })
+        cors.add(app.router.add_get('/api/{user_id}/file/download', self.download_file))
+        cors.add(app.router.add_post('/api/{user_id}/file/upload', self.upload_file),{
+            f"http://{host}:3000": aiohttp_cors.ResourceOptions(
+                allow_methods=("POST", "OPTIONS")
+            )
+        })
+
     async def list_files(self, request: web.Request):
-        return await self.route_file_request(request, FileRequestType.GET)
+        return await self.route_request(request, FileRequestType.GET)
     
     async def delete_file(self, request: web.Request):
-        return await self.route_file_request(request, FileRequestType.DELETE)
+        return await self.route_request(request, FileRequestType.DELETE)
     
     async def download_file(self, request: web.Request):
-        return await self.route_file_request(request, FileRequestType.DOWNLOAD)
+        return await self.route_request(request, FileRequestType.DOWNLOAD)
     
     async def upload_file(self, request: web.Request):
-        return await self.route_file_request(request, FileRequestType.UPLOAD)
+        return await self.route_request(request, FileRequestType.UPLOAD)
 
 
     def _list_files(self, request: web.Request, user_session: UserSession):
@@ -108,15 +118,3 @@ class FileHandler:
 
         user_session.workspace.send_msg_as_instance(SrvSyncFiles())
         return web.json_response({"message": "Uploaded File Successfully", "filename": filename})
-
-    
-    def get_session_from_request(self, request: web.Request) -> tuple[Optional[UserSession], Optional[web.Response]]:
-        token = request.query.get("token")
-        if not token:
-            return (None, web.json_response({"message": "Missing session token"}))
-        
-        user_session = self.session_manager.get_session(token)
-        if not user_session:
-            return (None, web.json_response({"message": "Session is not loaded"}))
-
-        return (user_session, None)

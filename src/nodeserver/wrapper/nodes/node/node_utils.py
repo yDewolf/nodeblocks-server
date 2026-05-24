@@ -1,7 +1,6 @@
 from collections import deque
 
 from nodeserver.api.node.node_exceptions import ConnRecursionException
-from nodeserver.wrapper.nodes.data.node_data_types import SuperSlotTypes
 from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
 class NodeMirrorUtils:
@@ -17,9 +16,7 @@ class NodeMirrorUtils:
         adjacency: dict[NodeMirror, list[NodeMirror]] = {node: [] for node in nodes}
 
         for node in nodes:
-            output_slots = node.slots.get(SuperSlotTypes.OUTPUT, [])
-            
-            for slot in output_slots:
+            for slot in node.outputs:
                 for target_slot, connection in slot.connections.items():
                     target_node = target_slot.parent_node
                     
@@ -44,6 +41,6 @@ class NodeMirrorUtils:
         if len(execution_order) != len(nodes):
             processed_uids = {node.uid for node in execution_order}
             problematic_nodes = [node for node in nodes if node.uid not in processed_uids]
-            raise ConnRecursionException(problematic_nodes)
+            raise ConnRecursionException(problematic_nodes) # type: ignore
 
         return execution_order

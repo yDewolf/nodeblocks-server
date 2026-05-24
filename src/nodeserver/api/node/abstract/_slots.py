@@ -1,26 +1,28 @@
 
+from types import get_original_bases
 from typing import Any, Optional, Type, get_args
 from typing_extensions import get_origin
 
-from nodeserver.wrapper.nodes.data.node_data_types import BaseNodeType
+from nodeserver.wrapper.nodes.data.node_data_types import DataTypeUtils, DefaultDataTypes, DefaultRenderers, _match_renderer
 
-
-class _SlotIO[inputType: Any, valueType: Any]:
-    _max_inputs: int = 0
+class _SlotIO[valueType: Any, is_input: bool]:
+    _max_connections: int = 0
     _version: int
     _value: Optional[valueType] = None
 
-    _datatype_override: Optional[BaseNodeType] = None
     _raw_io_type: Type[Any] = Type
     _is_input: bool = False
     
     _type_args: Optional[tuple[Any, ...]] = None
+    _base_type: Optional[DefaultDataTypes] = None # Sets the respective generated DataType's Renderer
+    _renderer: Optional[DefaultRenderers] = None
 
-    def __init__(self, value: Optional[valueType] = None, max_inputs: int = 0, raw_io_type: Type[Any] = Type) -> None:
-        self._max_inputs = max_inputs
+    def __init__(self, value: Optional[valueType] = None, max_connections: int = -1, raw_io_type: Type[Any] = Type, is_input: bool = False) -> None:
+        self._max_connections = max_connections
         self._value = value
         self._version = 0
 
+        self._is_input = is_input
         self._raw_io_type = raw_io_type
         self._setup_type_variables()
         
@@ -28,12 +30,12 @@ class _SlotIO[inputType: Any, valueType: Any]:
         input_type = get_origin(self._raw_io_type)
         try:
             is_collection = issubclass(input_type, (list, tuple))
-            if self._max_inputs == 0:
-                if is_collection:
-                    self._max_inputs = -1 # TODO: Can receive any amount of inputs
+            if self._max_connections == -1:
+                if is_collection or not self._is_input:
+                    self._max_connections = 0 # TODO: Can receive any amount of inputs
 
                 if not is_collection and self._is_input:
-                    self._max_inputs = 1
+                    self._max_connections = 1
 
         except TypeError: 
             pass
@@ -59,5 +61,25 @@ class _SlotIO[inputType: Any, valueType: Any]:
         
         return self._raw_io_type
 
+    def get_base_type(self) -> DefaultDataTypes:
+        if self._base_type:
+            return self._base_type
+
+        return DataTypeUtils._match_super_type(
+            self.get_type().__name__
+        )
+
+    def get_renderer(self) -> DefaultRenderers:
+        if self._renderer:
+            return self._renderer
+        
+        return _match_renderer(self.get_base_type())
+
+
     def is_collection(self) -> bool:
-        return self._max_inputs == -1 or self._max_inputs > 1
+        return self._max_connections == 0 or self._max_connections > 1
+
+
+    def make_datatype_id(self) -> str:
+        return f"{self.__class__.__name__}:{self.get_type().__name__}" + (f"_{self.get_base_type().value}" if self._base_type else "")
+    

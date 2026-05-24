@@ -1,8 +1,6 @@
 from abc import abstractmethod
-import json
 import logging
 import os
-import pathlib
 from typing import Optional, get_args, get_origin, get_type_hints
 
 from pydantic import BaseModel
@@ -11,13 +9,14 @@ from nodeserver.api.internal.instance_state import InternalNodeState
 from nodeserver.api.internal.internal_protocols import InstanceProtocol
 from nodeserver.api.node.abstract._slots import _SlotIO
 from nodeserver.api.node.node_parameters import ParamConfig
-from nodeserver.api.node.node_utils import NodeUtils
 from nodeserver.api.node.slots import NodeSlot
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.wrapper.nodes.data.node_data import NodeData
-from nodeserver.wrapper.nodes.data.node_data_types import UNKNOWN_TYPE, BaseSlotType, DataTypeUtils, SuperSlotTypes
+from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType, DataTypeUtils, DefaultDataTypes
+from nodeserver.wrapper.metadata.nodes.node_metadata import DEFAULT_CATEGORY, NodeTypeMeta, NodeTag
+from nodeserver.wrapper.nodes.data.slot_types import BaseSlotType
 from nodeserver.wrapper.nodes.helpers.connection_manager import ConnectionManager
-from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData, NodeParameterDataAdapter, SlotData
+from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import DataTypeData, NodeParameterData, NodeParameterDataAdapter, SlotData
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import ConstructorModel
 from nodeserver.wrapper.nodes.helpers.node_manager import NodeMirrorManager
 from nodeserver.wrapper.nodes.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
@@ -33,18 +32,25 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     class _Slots: pass
     # Parsed Slots
     class Slots(_Slots): pass
+    class Parameters(BaseModel): pass
 
     _slots: _Slots
-
-    class Parameters(BaseModel):
-        pass
-
     _parameters: Parameters
     _params_spec: dict[str, dict]
+    
+    _metadata: Optional[NodeTypeMeta] = None
+    """
+        Fill this attribute with ``NodeTypeMeta`` to act as a default node metadata for
+        this node type. <br>
+        **Note: contents will be overridden by changes made on the respective metadata json file.** <br>
+        This attribute won't be used to send metadata to client.
+    """
 
     def __init__(self, mirror: NodeMirror | None = None):
         super().__init__(mirror)
         self._parameters = self.Parameters()
+        self._ensure_parameters_updated()
+        
         self._slots = self.Slots()
         self._build_slots()
 
@@ -140,16 +146,15 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     # Should have save logic
     @abstractmethod
     def save_state(self, root_state_path: str) -> Optional[InternalNodeState]:
-        state = self.get_state()
-        if state:
-            my_state_file_path, filename = NodeUtils.make_state_file_path(self._mirror, root_state_path, "json")
-            state.relative_state_path = str(pathlib.Path(my_state_file_path).relative_to(root_state_path))
-            
-            with open(my_state_file_path, "w") as file:
-                file.write(json.dumps({"some": "data"}))
+        return
+        # state = self.get_state()
+        # if state:
+        #     my_state_file_path, filename = NodeUtils.make_state_file_path(self._mirror, root_state_path, "json")
+        #     state.relative_state_path = str(pathlib.Path(my_state_file_path).relative_to(root_state_path))
+            # Save the state of your node in another file (my_state_file_path) 
 
-        # Do some Save stuff if you need to
-        return state
+        # # Do some Save stuff if you need to
+        # return state
 
     # Shouldn't have save logic
     @abstractmethod
@@ -163,7 +168,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     def get_execution_hash(self, output_cache: dict[SlotMirror, _SlotIO]) -> int:
         input_versions = 0
         slots_version = 0
-        for slot in self._mirror.slots.get(SuperSlotTypes.INPUT, []):
+        for slot in self._mirror.inputs:
             slots_version += slot._version
             for conn in slot.connections:
                 cached = output_cache.get(conn)
@@ -172,52 +177,58 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         return (self._version + self._mirror.data._version + input_versions + slots_version)
 
     def resolve_inputs(self, output_cache: dict, instance_protocol: InstanceProtocol) -> dict:
+        """
+            Helper method to convert ``output_cache`` into a dictionary that can
+            be used to build this node's ``InputModel``
+        """
         raw_inputs = {}
-        for slot in self._mirror.slots.get(SuperSlotTypes.INPUT, []):
+        for slot in self._mirror.inputs:
             values = [output_cache[conn].value for conn in slot.connections if conn in output_cache]
-            if not values: raw_inputs[slot.slot_name] = None
+            if not values: raw_inputs[slot.slot_id] = None
 
-            real_slot = self.slot(slot.slot_name)
+            real_slot = self.slot(slot.slot_id)
             if real_slot._io.is_collection():
-                raw_inputs[slot.slot_name] = values[:real_slot._io._max_inputs]
-                if len(values) > real_slot._io._max_inputs:
+                raw_inputs[slot.slot_id] = values[:real_slot._io._max_connections]
+                if len(values) > real_slot._io._max_connections:
                     logger.warning(f"WARNING: Shrinking node inputs for slot {slot}")
                     instance_protocol.send_to_client(ServerNotification.slot_notify(
                         node_uid=self._mirror.uid,
-                        slot_name=slot.slot_name,
+                        slot_id=slot.slot_id,
                         message="Inputs will be shrunk",
                         level=NotificationLevel.WARNING,
-                        description=f"{slot.slot_name} won't receive all its inputs since it has a max input count of {real_slot._io._max_inputs}"
+                        description=f"{slot.slot_id} won't receive all its inputs since it has a max input count of {real_slot._io._max_connections}"
                     ))
 
                 continue
 
-            raw_inputs[slot.slot_name] = values[0]
+            raw_inputs[slot.slot_id] = values[0]
         
         return raw_inputs
 
 
     @classmethod
-    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}, type_name: Optional[str] = None) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
-        if type_name == None:
-            type_name = cls.__name__
+    def generate_types(cls, super_slot_types: dict[str, BaseSlotType] = {}, super_data_types: dict[str, BaseDataType] = {}, type_id: Optional[str] = None) -> tuple[dict[str, BaseSlotType], ConstructorModel]:
+        if type_id == None:
+            type_id = cls.__name__
         
-        super_types: dict[str, BaseSlotType] = super_slot_types
-        slot_types: dict[str, SlotData] = {}
+        data_types: dict[str, BaseDataType] = super_data_types
+        slot_types: dict[str, BaseSlotType] = super_slot_types
+        node_slots: dict[str, SlotData] = {}
         
-        cls._add_cls_slot_types(super_types, slot_types)
-        constructor = cls._generate_constructor(slot_types, type_name)
-        return (super_types, constructor)
+        cls._add_cls_slot_and_data_types(slot_types, data_types, node_slots)
+        constructor = cls._generate_constructor(node_slots, data_types, type_id)
+        return (slot_types, constructor)
 
     @classmethod
-    def _generate_constructor(cls, slot_types: dict[str, SlotData], type_name: str) -> ConstructorModel:
+    def _generate_constructor(cls, slot_types: dict[str, SlotData], data_types: dict[str, BaseDataType], type_id: str) -> ConstructorModel:
         param_data: dict[str, NodeParameterData] = {}
-        for param_name, spec in cls._params_spec.items():
-            param_data[param_name] = NodeParameterDataAdapter.validate_python(spec)
+        for param_id, spec in cls._params_spec.items():
+            param_data[param_id] = NodeParameterDataAdapter.validate_python(spec)
 
         constructor: ConstructorModel = ConstructorModel(
-            type_name=str(type_name),
+            type_id=str(type_id),
             node_data=NodeData(param_data),
+            base_node_metadata=cls._metadata.model_copy() if cls._metadata else None,
             slots=slot_types,
             parser=None,
         )
@@ -225,34 +236,45 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         return constructor
 
     @classmethod
-    def _add_cls_slot_types(cls, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
+    def _add_cls_slot_and_data_types(cls, slot_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], node_slots: dict[str, SlotData]):
         slot_hints = get_type_hints(cls.Slots, globalns=globals())
         for attribute_name, hint in slot_hints.items():
             if attribute_name.startswith("_"): continue
             slot_instance = cls._build_slot_instance(hint, None)
-            cls._add_slot_types(attribute_name, slot_instance, super_types, slot_types)
+            
+            cls._add_data_types(slot_instance, data_types)
+            cls._add_slot_types(attribute_name, slot_instance, slot_types, data_types, node_slots)
 
     @classmethod
-    def _add_slot_types(cls, key: str, slot_instance: NodeSlot, super_types: dict[str, BaseSlotType], slot_types: dict[str, SlotData]):
-        # FIXME: Improve DataTypes so it can make new DataTypes and pass it with the scene
-        raw_type = slot_instance._io.get_type()
+    def _add_data_types(cls, slot_instance: NodeSlot, data_types: dict[str, BaseDataType]):
+        data_type_id = slot_instance._io.make_datatype_id()
+        if not data_types.__contains__(data_type_id):
+            data_types[data_type_id] = BaseDataType(
+                data_type_id,
+                slot_instance._io.get_base_type(),
+                [],
+                [data_type_id],
+                renderer=slot_instance._io.get_renderer()
+            )
+    
 
-        data_type = slot_instance._io._datatype_override
-        if not data_type:
-            data_type = DataTypeUtils._match_data_type_str(raw_type.__name__)
+    @classmethod
+    def _add_slot_types(cls, key: str, slot_instance: NodeSlot, slot_types: dict[str, BaseSlotType], super_data_types: dict[str, BaseDataType], node_slots: dict[str, SlotData]):
+        raw_type = slot_instance._io.get_type()
+        data_type_id = slot_instance._io.make_datatype_id()
         
-        super_slot_name = f"{slot_instance.__class__.__name__}:{raw_type.__name__}:{"input" if slot_instance._io._is_input else "output"}"
-        if not super_types.__contains__(super_slot_name):
-            super_types[super_slot_name] = BaseSlotType(
-                type_name=super_slot_name, 
-                super_type=SuperSlotTypes.INPUT if slot_instance._io._is_input else SuperSlotTypes.OUTPUT,
-                data_type=data_type,
-                type_whitelist=[SuperSlotTypes.OUTPUT if slot_instance._io._is_input else SuperSlotTypes.INPUT], # type: ignore
-                # name_whitelist=[super_slot_name]
+        super_slot_name = f"{slot_instance.__class__.__name__}:{raw_type.__name__}"
+        if not slot_types.__contains__(super_slot_name):
+            data_type = super_data_types.get(data_type_id)
+            if not data_type: raise Exception(f"Incorrect DataType id or DataType wasn't parsed yet. {data_type_id} for {key}")
+            slot_types[super_slot_name] = BaseSlotType(
+                data_type=data_type
             )
         
-        slot_types[key] = SlotData(
+        node_slots[key] = SlotData(
             type=super_slot_name,
-            data_type=DataTypeUtils._match_super_type(raw_type.__name__)
+            data_type=DataTypeUtils._match_super_type(raw_type.__name__),
+            max_connections=slot_instance._io._max_connections,
+            is_input=slot_instance._io._is_input
         )
     

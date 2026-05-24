@@ -6,6 +6,7 @@ class WebsocketStatus(IntEnum, Enum):
     DISCONNECTED = 0
 
 class ServerMessages(str, Enum):
+    SYNC_VERSIONS = "version_sync"
     HANDSHAKE_SYNC = "handshake_sync"
     NODE_OUTPUT = "node_output"
     SYNC_CLIENT_SCENE = "sync_client_scene"
@@ -13,10 +14,12 @@ class ServerMessages(str, Enum):
     SYNC_ACTION = "sync_action"
     SYNC_FILES = "sync_files"
 
+    METADATA_UPDATED = "metadata_updated"
     NOTIFICATION = "notification"
     SYNC_NOTIFICATIONS = "sync_notifications"
 
 class ClientMessages(str, Enum):
+    SYNC_VERSIONS = "VERSION_SYNC"
     LOAD_SCENE = "LOAD_SCENE"
     SYNC_CLIENT_SCENE = "SYNC_CLIENT_SCENE"
     GET_TYPES = "GET_TYPES"

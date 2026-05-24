@@ -1,0 +1,28 @@
+{
+ "capitalized_name": "FileInputNode",
+ "description": "",
+ "category": "Input",
+ "tags": [
+  "output/file"
+ ],
+ "parameter_meta": {
+  "file_path": {
+   "capitalized_name": "file_path",
+   "description": ""
+  },
+  "test_parameter": {
+   "capitalized_name": "test_parameter",
+   "description": "Test"
+  },
+  "test_boolean": {
+   "capitalized_name": "test_boolean",
+   "description": "aaaa"
+  }
+ },
+ "slot_meta": {
+  "out_0": {
+   "capitalized_name": "out_0",
+   "description": "aaa"
+  }
+ }
+}
