@@ -1,13 +1,14 @@
 {
  "types_id": "MyCoolTypes",
  "types_version": 0,
- "meta_version": 4,
+ "meta_version": 8,
+ "last_modified": 1779638216.616423,
  "tags": {
   "input/parameter": {
    "description": "Most of the outputs of this node should come from a parameter"
   },
   "output/file": {
-   "description": ""
+   "description": "Test12aa"
   },
   "default": {
    "description": ""

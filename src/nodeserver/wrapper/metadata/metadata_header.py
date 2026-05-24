@@ -1,4 +1,6 @@
 
+from typing import Optional
+
 from pydantic import BaseModel, Field, field_serializer, model_validator
 
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
@@ -9,7 +11,8 @@ class MetadataFileHeader(BaseModel):
     types_id: str
     types_version: int
     meta_version: int # TODO: use hashing for versions
-    
+    last_modified: Optional[float] = None
+
     tags: dict[str, NodeTag] = Field(default_factory=dict)
     categories: dict[str, NodeCategory] = Field(default_factory=dict)
 

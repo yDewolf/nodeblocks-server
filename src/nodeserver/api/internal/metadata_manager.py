@@ -1,4 +1,6 @@
 
+from typing import Optional
+
 from nodeserver.wrapper.metadata.metadata_file import MetadataFile
 from nodeserver.wrapper.metadata.metadata_header import Metadata, MetadataVersion
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import TypeFile
@@ -45,3 +47,10 @@ class MetadataManager:
             types_version=metadata_file.metadata.types_version,
             meta_version=metadata_file.metadata.meta_version
         )
+
+    def get_metadata(self, type_id: str) -> Optional[Metadata]:
+        metadata_file = self.indexed_metadata.get(type_id)
+        if not metadata_file:
+            return None
+
+        return metadata_file.metadata 

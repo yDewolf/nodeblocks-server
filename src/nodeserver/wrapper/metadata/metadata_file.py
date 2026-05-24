@@ -1,6 +1,4 @@
-import datetime
 import os
-import time
 from typing import Optional
 
 from nodeserver.wrapper.metadata.helpers.metadata_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
@@ -30,7 +28,10 @@ class MetadataFile:
         metadata_file = MetadataFile()
         metadata_file.set_from_types(type_reader)
         if fetch_from_disk:
-            metadata_file.save_on_metadata()
+            meta_path = os.path.join(ROOT_METADATA_PATH, type_reader._node_types_id or "")
+            if not os.path.exists(meta_path): 
+                metadata_file.save_on_metadata()
+
             metadata_file.reload_from_disk()
 
         return metadata_file
@@ -85,8 +86,12 @@ class MetadataFile:
         if self.metadata.meta_version < current_version:
             self.metadata.meta_version = current_version
 
-        self.metadata.meta_version += 1
-        MetadataFileUtils.update_metadata_header(self.metadata, meta_path)
+        if self.last_update_timestamp != 0.0:
+            self.metadata.meta_version += 1
+            # FIXME: this won't be precise
+            self.metadata.last_modified = self.get_global_mtime()
+            MetadataFileUtils.update_metadata_header(self.metadata, meta_path)
+        
         self.last_update_timestamp = self.get_global_mtime()
 
     def get_global_mtime(self):
@@ -157,6 +162,7 @@ class MetadataFile:
         metadata = Metadata(
             types_id=type_reader._node_types_id,
             types_version=type_reader._node_types_version,
+            last_modified=None,
             meta_version=0,
             data_types=datatype_meta,
             node_types=nodetype_meta,

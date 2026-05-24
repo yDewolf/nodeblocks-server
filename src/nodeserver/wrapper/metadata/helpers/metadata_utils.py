@@ -179,9 +179,10 @@ class _MetadataSave:
                 logger.error("Failed to load metadata header.", e)
         
         merged_model = MetadataFileHeader.model_validate(merged_data)
-
         merged_model.types_version = metadata.types_version
         merged_model.meta_version = metadata.meta_version
+        merged_model.last_modified = metadata.last_modified
+
         with open(header_file_path, "w") as file:
             file.write(merged_model.model_dump_json(indent=METADATA_INDENT))
     
@@ -282,6 +283,7 @@ class MetadataFileUtils:
             types_id=header_metadata.types_id,
             types_version=header_metadata.types_version,
             meta_version=header_metadata.meta_version,
+            last_modified=header_metadata.last_modified,
             tags=header_metadata.tags,
             categories=header_metadata.categories,
             data_types=datatypes,

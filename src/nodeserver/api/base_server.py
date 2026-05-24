@@ -10,12 +10,13 @@ from nodeserver.api.internal.instance_manager import InstanceManager
 from nodeserver.api.internal.metadata_manager import MetadataManager
 from nodeserver.api.web.instance.special_instance import WsServerInstance
 from nodeserver.api.web.manager.session_manager import SessionManager
+from nodeserver.api.web.rest.metadata.metadata_api import MetadataHandler
 from nodeserver.api.web.rest.workspace.workspace_api import FileHandler
 from nodeserver.api.websocket_manager import WebsocketManager
 from nodeserver.wrapper.nodes.helpers.file.typing_file_reader import TypeFileReader
 
 SESSION_CLEANUP_INTERVAL = 3.0
-METADATA_LOOKUP_INTERVAL = 30.0
+METADATA_LOOKUP_INTERVAL = 20.0
 
 class NodeServer:
     instance_manager: InstanceManager
@@ -25,17 +26,20 @@ class NodeServer:
     session_manager: SessionManager
 
     file_handler: FileHandler
+    metadata_handler: MetadataHandler
 
     host: str
     port: int
+    client_port: int
     app: web.Application
 
-    def __init__(self, default_types: TypeFileReader | None = None, server_instance_type: type[WsServerInstance] = WsServerInstance, host="localhost", port=3001) -> None:
+    def __init__(self, default_types: TypeFileReader | None = None, server_instance_type: type[WsServerInstance] = WsServerInstance, host="localhost", port=3001, client_port=3000) -> None:
         self.app = web.Application()
         logging.basicConfig(level=logging.DEBUG)
         
         self.host = host
         self.port = port
+        self.client_port = client_port
         
         self.session_manager = SessionManager()
         self.file_handler = FileHandler(self.session_manager)
@@ -44,28 +48,21 @@ class NodeServer:
         self.metadata_manager = MetadataManager()
         if default_types:
             self.metadata_manager.index_metadata_for_type(default_types)
-
+        
+        self.metadata_handler = MetadataHandler(self.metadata_manager, self.session_manager)
         self.websocket_manager = WebsocketManager(self.instance_manager, self.metadata_manager, self.session_manager, server_instance_type, host, port)
         self._setup_routes()
 
     def _setup_routes(self):
         cors = aiohttp_cors.setup(self.app, defaults={
-            f"http://{self.host}:3000": aiohttp_cors.ResourceOptions(
+            f"http://{self.host}:{self.client_port}": aiohttp_cors.ResourceOptions(
                 allow_credentials=True,
                 expose_headers="*",
                 allow_headers="*",
             )
         })
-        resource_files = cors.add(self.app.router.add_get('/api/{user_id}/files', self.file_handler.list_files))
-        cors.add(self.app.router.add_get('/api/{user_id}/file/delete', self.file_handler.delete_file), {
-            f"http://{self.host}:3000": aiohttp_cors.ResourceOptions(allow_credentials=True)
-        })
-        cors.add(self.app.router.add_get('/api/{user_id}/file/download', self.file_handler.download_file))
-        cors.add(self.app.router.add_post('/api/{user_id}/file/upload', self.file_handler.upload_file),{
-            f"http://{self.host}:3000": aiohttp_cors.ResourceOptions(
-                allow_methods=("POST", "OPTIONS")
-            )
-        })
+        self.file_handler.setup_http_routes(self.app, self.host, cors)
+        self.metadata_handler.setup_http_routes(self.app, self.host, cors)
         # self.app.router.add_post('/api/{user_id}/upload', self.file_handler.upload)
         
         self.app.router.add_get('/ws/instance/{user_id}', self.handle_websocket)
