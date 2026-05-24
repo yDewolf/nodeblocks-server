@@ -16,4 +16,4 @@ class NodeCategory(BaseModel):
     
     @field_serializer("default_tags")
     def serialize_tags(self, default_tags: Optional[list[NodeTag]], _info):
-        return [tag.tag_id for tag in default_tags] if default_tags else []
+        return [(tag if isinstance(tag, str) else tag.tag_id) for tag in default_tags] if default_tags else []

@@ -2,7 +2,7 @@ import datetime
 import json
 import os
 
-from nodeserver.api.utils.file_utils import get_project_root
+from nodeserver.api.utils.env_variables import get_project_root
 from nodeserver.wrapper.metadata.metadata_header import Metadata, MetadataFileHeader
 from nodeserver.wrapper.metadata.nodes.datatype_metadata import DataTypeMeta
 from nodeserver.wrapper.metadata.nodes.node_metadata import NodeTypeMeta
@@ -12,7 +12,8 @@ logger = logging.getLogger("nds.metadata")
 METADATA_EXTENSION = ".json"
 METADATA_INDENT = 1
 
-ROOT_METADATA_PATH = os.path.join(get_project_root(), "metadata")
+METADATA_FOLDER_NAME = "metadata"
+ROOT_METADATA_PATH = os.path.join(get_project_root(), METADATA_FOLDER_NAME)
 
 class _MetadataLoad:
     """

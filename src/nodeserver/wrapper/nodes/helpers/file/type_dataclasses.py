@@ -33,6 +33,7 @@ class SlotData(DataModel):
 
 class BaseNodeParameter(DataModel):
     type: Literal[DefaultDataTypes.UNKNOWN] | Literal[DefaultDataTypes.CUSTOM] | Literal[DefaultDataTypes.ARRAY]
+    label: Optional[str] = Field(default=None, exclude=True)
     default: Optional[Any] = None
 
     def serialize(self) -> dict:
