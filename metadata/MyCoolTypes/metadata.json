@@ -1,8 +1,8 @@
 {
  "types_id": "MyCoolTypes",
  "types_version": 0,
- "meta_version": 8,
- "last_modified": 1779638216.616423,
+ "meta_version": 20,
+ "last_modified": 1779640177.1825218,
  "tags": {
   "input/parameter": {
    "description": "Most of the outputs of this node should come from a parameter"

@@ -62,10 +62,15 @@ class MetadataManager:
             return
         
         type_id: Optional[str] = file_path.parts[1] if len(file_path.parts) > 1 else None
-        if type_id:
-            self.last_reload_time = now
-            self._handle_metadata_update(type_id)
-            # print(f"Detected change on {file_path}. type_id: {type_id}")
+        if not type_id: return
+
+        metadata_file = self.indexed_metadata.get(type_id)
+        if not metadata_file: return
+        
+        metadata_file.reload_from_disk(only_if_modified=False)
+        self.last_reload_time = now
+        self._handle_metadata_update(type_id)
+        # print(f"Detected change on {file_path}. type_id: {type_id}")
 
     # Manual syncing
     def get_unsynced_metadata(self) -> list[str]:

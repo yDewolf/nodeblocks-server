@@ -46,15 +46,16 @@ class MetadataFile:
 
         return False
 
-    def reload_from_disk(self, only_if_modified: bool = False):
+    def reload_from_disk(self, only_if_modified: bool = False) -> bool:
         if only_if_modified:
             if not self.has_modifications_on_disk():
-                return
+                return False
         
         if not self.metadata:
             raise Exception("No metadata was loaded so it can't reload from disk")
         
         self.load_from_metadata(self.metadata.types_id)
+        return True
 
 
     def save_on_metadata(self):
