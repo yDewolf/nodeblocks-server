@@ -79,18 +79,10 @@ class MetadataFile:
                 :meth:`~nodeserver.MetadataFileUtils.load_from_folder`
         """
         meta_path = os.path.join(ROOT_METADATA_PATH, types_id)
-        current_version = self.metadata.meta_version if self.metadata else 0
         self.metadata = MetadataFileUtils.load_from_folder(meta_path)
-        if self.metadata.meta_version < current_version:
-            self.metadata.meta_version = current_version
-
-        if self.last_update_timestamp != 0.0:
-            self.metadata.meta_version += 1
-            # FIXME: this won't be precise
-            self.metadata.last_modified = self.get_global_mtime()
-            MetadataFileUtils.update_metadata_header(self.metadata, meta_path)
-        
-        self.last_update_timestamp = self.get_global_mtime()
+        MetadataFileUtils.update_content_hash(self.metadata, meta_path)
+        if self.metadata.last_modified:
+            self.last_update_timestamp = self.metadata.last_modified
 
     def get_global_mtime(self):
         if not self.metadata:

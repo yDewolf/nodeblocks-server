@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import json
 import os
 
@@ -182,6 +183,7 @@ class _MetadataSave:
                 logger.error("Failed to load metadata header.", e)
         
         merged_model = MetadataFileHeader.model_validate(merged_data)
+        merged_model.content_hash = metadata.content_hash
         merged_model.types_version = metadata.types_version
         merged_model.meta_version = metadata.meta_version
         merged_model.last_modified = metadata.last_modified
@@ -282,7 +284,8 @@ class MetadataFileUtils:
         datatypes: dict[str, DataTypeMeta] = _MetadataLoad._load_data_types(folder_path)
         node_types: dict[str, NodeTypeMeta] = _MetadataLoad._load_node_types(header_metadata, folder_path)
         
-        return Metadata(
+        metadata = Metadata(
+            content_hash=header_metadata.content_hash,
             types_id=header_metadata.types_id,
             types_version=header_metadata.types_version,
             meta_version=header_metadata.meta_version,
@@ -292,3 +295,23 @@ class MetadataFileUtils:
             data_types=datatypes,
             node_types=node_types
         )
+        return metadata
+    
+    @staticmethod
+    def update_content_hash(metadata: Metadata, folder_path: str) -> bool:
+        header_content = metadata.model_dump(mode="json", exclude={"meta_version", "content_hash", "last_modified"})
+        metadata_content = {
+            "header": header_content,
+            "datatypes": {id: datatype.model_dump(mode="json") for id, datatype in metadata.data_types.items()},
+            "node_types": {id: node_type.model_dump(mode="json") for id, node_type in metadata.node_types.items()}
+        }
+        current_hash = hashlib.md5(json.dumps(metadata_content).encode('utf-8')).hexdigest()
+        saved_hash = metadata.content_hash
+        if current_hash != saved_hash:
+            metadata.last_modified = MetadataFileUtils.get_global_mtime(metadata)
+            metadata.meta_version += 1
+            metadata.content_hash = current_hash
+            _MetadataSave._write_header(metadata, folder_path)
+            return True
+        
+        return False

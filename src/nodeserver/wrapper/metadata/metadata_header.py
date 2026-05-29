@@ -11,6 +11,8 @@ class MetadataFileHeader(BaseModel):
     types_id: str
     types_version: int
     meta_version: int # TODO: use hashing for versions
+    content_hash: Optional[str] = None
+ 
     # TODO: Add a iteration_version 
     # (so the actual meta_version updates only when metadata is saved from code)
     # (saved from code -> when server shuts or a less frequent update signal)

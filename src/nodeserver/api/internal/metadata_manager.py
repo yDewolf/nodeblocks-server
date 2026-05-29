@@ -19,7 +19,7 @@ class MetadataFolderWatchdog(FileSystemEventHandler):
     def on_modified(self, event):
         if event.is_directory:
             return
-            
+        
         if event.src_path.endswith(METADATA_EXTENSION): # type: ignore
             self.callback_on_change(Path(str(event.src_path)))
 
@@ -77,6 +77,8 @@ class MetadataManager:
         metadata_file = self.indexed_metadata.get(type_id)
         if not metadata_file: return
         
+        # FIXME: Reload from disk actually updates the file 
+        # so it might call disk update forever if it takes too long (more than threshold)
         metadata_file.reload_from_disk(only_if_modified=False)
         self.last_reload_time = now
         self._handle_metadata_update(type_id)
