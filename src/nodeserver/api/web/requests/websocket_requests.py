@@ -48,10 +48,14 @@ class SrvSyncFiles(BaseSocketModel):
     type: Literal[ServerMessages.SYNC_FILES] = ServerMessages.SYNC_FILES
 
 
+class SlotOutputWrapper(BaseSocketModel):
+    value: Any
+    value_meta: Optional[dict[str, Any]] = None
+
 class SrvNodeOutput(BaseSocketModel):
     type: Literal[ServerMessages.NODE_OUTPUT] = ServerMessages.NODE_OUTPUT
     node_id: str
-    value: dict[str, Any]
+    value: dict[str, SlotOutputWrapper] # slot_id: slot_output
 
 HandshakeMessage = Annotated[
     Union[SrvHandshakeSuccess, SrvHandshakeError], 

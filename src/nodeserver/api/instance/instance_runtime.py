@@ -1,6 +1,6 @@
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -110,16 +110,17 @@ class RuntimeContext(_ReadonlyContext):
         
         self._processed_nodes.append(node)
 
-    def _update_outputs(self, node: _Node, outputs: dict) -> dict[SlotMirror, _SlotIO]:
+    # TODO: update this to grab value_meta from outputs
+    def _update_outputs(self, node: _Node, outputs: dict[str, Any]) -> dict[SlotMirror, _SlotIO]:
         output_data: dict[SlotMirror, _SlotIO] = {}
         for slot_id in outputs:
             slot = node.slot(slot_id)
             if slot._mirror.is_input:
                 logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {node}")
-            
-            slot._io.value = outputs[slot_id]
-            output_data[slot._mirror] = slot._io
-            self._output_cache[slot._mirror] = slot._io
+
+            slot_io = slot.set_output_value(outputs[slot_id])
+            output_data[slot._mirror] = slot_io
+            self._output_cache[slot._mirror] = slot_io
 
         self._add_to_processed(node)
         return output_data
@@ -166,7 +167,7 @@ class InstanceRuntime:
             current_node.pre_forward(node_inputs) # Node might set bypass cache to True here
             
             node_output: BaseModel = current_node.forward(node_inputs)
-            output_model: dict = node_output.model_dump()
+            output_model: dict[str, Any] = node_output.model_dump()
             output_data = self.context._update_outputs(current_node, output_model)
 
             current_node.post_forward()

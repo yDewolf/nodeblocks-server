@@ -30,7 +30,7 @@ class NodeSlot(Generic[T_SlotIO]):
     def has_mirror(self) -> bool:
         return hasattr(self, "_mirror")
 
-    def make_output_from_value(self, value: Any):
+    def set_output_value(self, value: Any):
         self._io.value = value
         return self._io
 

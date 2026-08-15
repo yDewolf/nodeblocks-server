@@ -11,7 +11,7 @@ from nodeserver.api.instance.instance_states import InstanceCommands, InstanceSt
 from nodeserver.api.internal.instance_state import InstanceState, InternalNodeState, InternalState, StateFileUtils
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.api.web.requests.request_unions import AnyServerMessage
-from nodeserver.api.web.requests.websocket_requests import SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
+from nodeserver.api.web.requests.websocket_requests import SlotOutputWrapper, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus
 from nodeserver.api.instance.node_scene import NodeScene
 from nodeserver.wrapper.nodes.helpers.file.node_scene_dataclasses import SceneData
@@ -163,9 +163,15 @@ class ServerInstance:
         result_data = {}
         if slot_results != None:
             for slot, result in slot_results.items():
-                result_data[slot.slot_id] = result.value
+                result_data[slot.slot_id] = self._parse_slot_result(result, node)
         
         return result_data
+
+    def _parse_slot_result(self, result: _SlotIO, node: _Node) -> SlotOutputWrapper:
+        return SlotOutputWrapper(
+            value=result.value,
+            value_meta=result.value_meta
+        )
 
 
     def start_running(self):

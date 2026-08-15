@@ -1,5 +1,4 @@
 
-from types import get_original_bases
 from typing import Any, Optional, Type, Union, get_args
 from typing_extensions import get_origin
 
@@ -9,6 +8,7 @@ class _SlotIO[valueType: Any, is_input: bool]:
     _max_connections: int = 0
     _version: int
     _value: Optional[valueType] = None
+    _value_meta: Optional[dict[str, Any]] = None # TODO: this should be typesafe
 
     _raw_io_type: Type[Any] = Type
     _is_optional: Optional[bool] = None
@@ -31,7 +31,7 @@ class _SlotIO[valueType: Any, is_input: bool]:
     def _setup_type_variables(self):
         input_type = get_origin(self._raw_io_type)
         try:
-            is_collection = issubclass(input_type, (list, tuple))
+            is_collection = issubclass(input_type, (list, tuple)) # type: ignore
             if self._max_connections == -1:
                 if is_collection or not self._is_input:
                     self._max_connections = 0 # TODO: Can receive any amount of inputs
@@ -44,6 +44,16 @@ class _SlotIO[valueType: Any, is_input: bool]:
         
         self._type_args = get_args(self._raw_io_type) if not self._type_args else self._type_args
 
+
+    @property
+    def value_meta(self):
+        return self._value_meta
+
+    @value_meta.setter
+    def value_meta(self, new_value: dict):
+        if self._value_meta != new_value:
+            self._value_meta = new_value
+            self._version += 1
     
     @property
     def value(self):
@@ -53,7 +63,14 @@ class _SlotIO[valueType: Any, is_input: bool]:
     def value(self, new_value: valueType):
         if self._value != new_value:
             self._value = new_value
+            self._value_meta = self.update_value_meta(self._value)
             self._version += 1
+
+    # This method should be overriden by other SlotIO classes 
+    # to automatically generate meta from new values
+    @classmethod
+    def update_value_meta(cls, new_value: valueType) -> Optional[dict[str, Any]]:
+        return None
 
     # FIXME:
     def get_type(self) -> type[Any]:
