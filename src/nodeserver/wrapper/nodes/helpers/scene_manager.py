@@ -153,9 +153,6 @@ class MirrorSceneManager:
             results.append(self.connection_manager.remove_connection(uid))
 
         return results
-    
-    def get_scene_as_dict(self) -> dict:
-        return self.scene_reader.scene_data.serialize() if self.scene_reader.scene_data else {}
-    
+
     def get_scene(self) -> SceneData | None:
         return self.scene_reader.scene_data

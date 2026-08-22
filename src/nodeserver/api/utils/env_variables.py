@@ -6,13 +6,14 @@ from nodeserver.api.utils.file_utils import FileUtils
 dotenv_path = find_dotenv(raise_error_if_not_found=True)
 load_dotenv(dotenv_path)
 
+# TODO: Save project root path on env
 def get_project_root():
     if not FileUtils._project_root:
         project_root_path = os.getenv("PROJECT_ROOT_PATH")
         if project_root_path: 
             FileUtils.set_project_root(project_root_path)
         else:
-            FileUtils.select_project_root()
+            project_root_path = FileUtils.select_project_root()
 
     return str(FileUtils._project_root)
 

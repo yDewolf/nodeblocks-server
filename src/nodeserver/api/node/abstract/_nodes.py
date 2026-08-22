@@ -3,7 +3,7 @@ import logging
 import os
 from typing import Optional, get_args, get_origin, get_type_hints
 
-from nodeserver.api.node.node_exceptions import MissingSlotInput
+from nodeserver.api.node.node_exceptions import MissingSlotInput, ParameterException
 from pydantic import BaseModel
 
 from nodeserver.api.internal.instance_state import InternalNodeState
@@ -64,6 +64,8 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         for name, field in cls.Parameters.model_fields.items():
             param_info = {
                 "type": DataTypeUtils._match_super_type(field.annotation.__name__ if field.annotation else ""),
+                "raw_io_type": field.annotation,
+                "required": get_origin(field.annotation) != Optional,
                 "default": field.default,
                 "label": name.replace("_", " ").title(),
                 # "widget": "number"
@@ -106,12 +108,17 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         return slot
 
 
-    def _ensure_parameters_updated(self):
+    def _ensure_parameters_updated(self) -> tuple[Parameters, list[ParameterException]]:
+        errors: list[ParameterException] = []
         for name, param in self._mirror.data.parameters.items():
             if not hasattr(self._parameters, name):
-                raise Exception(f"Parameter {name} from node {self._mirror} doesn't exist in instance {self}")
+                raise ParameterException(param, f"Parameter {name} from node {self._mirror} doesn't exist in instance {self}")
 
             setattr(self._parameters, name, param.value)
+            error = param.self_validate()
+            if error: errors.append(error)
+
+        return self._parameters, errors
 
     @abstractmethod
     def _parse_inputs(self, raw_inputs: dict) -> BaseModel:

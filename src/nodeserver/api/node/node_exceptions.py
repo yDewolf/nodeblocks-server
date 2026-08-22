@@ -1,7 +1,7 @@
 
 
 
-from nodeserver.api.internal.node_protocols import NodeMirrorProtocol, SlotMirrorProtocol
+from nodeserver.api.internal.node_protocols import NodeMirrorProtocol, NodeParameterProtocol, SlotMirrorProtocol
 
 
 class NoOutputException(Exception):
@@ -28,3 +28,14 @@ class MissingSlotInput(Exception):
         super().__init__(*args)
         self.node = node
         self.slot = slot
+
+
+class ParameterException(Exception):
+    parameter: NodeParameterProtocol
+    def __init__(self, parameter: NodeParameterProtocol, *args: object) -> None:
+        super().__init__(*args)
+        self.parameter = parameter
+
+class MissingParameter(ParameterException):
+    def __str__(self) -> str:
+        return f"Missing value for parameter: {self.parameter._data_model.label or self.parameter._field_id}"

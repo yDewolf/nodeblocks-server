@@ -15,7 +15,7 @@ class FileUtils:
     _project_root: Optional[Path] = None
 
     @classmethod
-    def select_project_root(cls):
+    def select_project_root(cls) -> Optional[Path]:
         repos = get_git_repos()
         for idx, repo_path in enumerate(repos):
             print(f"[{idx}]-{repo_path}")
@@ -25,7 +25,7 @@ class FileUtils:
             idx = int(input("Select which repository should be the project root: "))
             if not idx < 0 and not idx > len(repos):
                 cls.set_project_root(repos[idx])
-                return
+                return repos[idx]
 
     @classmethod
     def set_project_root(cls, project_root: str | Path):

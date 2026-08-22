@@ -2,31 +2,22 @@
 from typing import Any, Optional, Type, Union, get_args
 from typing_extensions import get_origin
 
+from nodeserver.wrapper.abstract.abstract_types import BaseValueWrapper
 from nodeserver.wrapper.nodes.data.node_data_types import DataTypeUtils, DefaultDataTypes, DefaultRenderers, _match_renderer
 
-class _SlotIO[valueType: Any, is_input: bool]:
+class _SlotIO[valueType: Any, is_input: bool](BaseValueWrapper[valueType]) :
     _max_connections: int = 0
-    _version: int
-    _value: Optional[valueType] = None
     _value_meta: Optional[dict[str, Any]] = None # TODO: this should be typesafe
-
-    _raw_io_type: Type[Any] = Type
-    _is_optional: Optional[bool] = None
 
     _is_input: bool = False
     
-    _type_args: Optional[tuple[Any, ...]] = None
     _base_type: Optional[DefaultDataTypes] = None # Sets the respective generated DataType's Renderer
     _renderer: Optional[DefaultRenderers] = None
 
     def __init__(self, value: Optional[valueType] = None, max_connections: int = -1, raw_io_type: Type[Any] = Type, is_input: bool = False) -> None:
         self._max_connections = max_connections
-        self._value = value
-        self._version = 0
-
         self._is_input = is_input
-        self._raw_io_type = raw_io_type
-        self._setup_type_variables()
+        super().__init__(value, raw_io_type)
         
     def _setup_type_variables(self):
         input_type = get_origin(self._raw_io_type)
@@ -38,6 +29,7 @@ class _SlotIO[valueType: Any, is_input: bool]:
 
                 if not is_collection and self._is_input:
                     self._max_connections = 1
+            self._is_collection = is_collection
 
         except TypeError: 
             pass
@@ -54,43 +46,12 @@ class _SlotIO[valueType: Any, is_input: bool]:
         if self._value_meta != new_value:
             self._value_meta = new_value
             self._version += 1
-    
-    @property
-    def value(self):
-        return self._value
-    
-    @value.setter
-    def value(self, new_value: valueType):
-        if self._value != new_value:
-            self._value = new_value
-            self._value_meta = self.update_value_meta(self._value)
-            self._version += 1
 
     # This method should be overriden by other SlotIO classes 
     # to automatically generate meta from new values
     @classmethod
     def update_value_meta(cls, new_value: valueType) -> Optional[dict[str, Any]]:
         return None
-
-    # FIXME:
-    def get_type(self) -> type[Any]:
-        self._type_args = get_args(self._raw_io_type) if not self._type_args else self._type_args
-        if self._type_args:
-            return self._type_args[0]
-        
-        return self._raw_io_type
-
-    def is_optional(self) -> bool:
-        if self._is_optional != None:
-            return self._is_optional
-        
-        if get_origin(self._raw_io_type) is Union:
-            # Check if None (type(None)) is one of the arguments in the Union
-            self._is_optional = type(None) in get_args(self._raw_io_type)
-            return self._is_optional
-
-        self._is_optional = False
-        return self._is_optional
 
     def get_base_type(self) -> DefaultDataTypes:
         if self._base_type:
@@ -106,11 +67,8 @@ class _SlotIO[valueType: Any, is_input: bool]:
         
         return _match_renderer(self.get_base_type())
 
+    def make_datatype_id(self) -> str:
+        return f"{self.__class__.__name__}:{self.get_type().__name__}" + (f"_{self.get_base_type().value}" if self._base_type else "")
 
     def is_collection(self) -> bool:
         return self._max_connections == 0 or self._max_connections > 1
-
-
-    def make_datatype_id(self) -> str:
-        return f"{self.__class__.__name__}:{self.get_type().__name__}" + (f"_{self.get_base_type().value}" if self._base_type else "")
-    

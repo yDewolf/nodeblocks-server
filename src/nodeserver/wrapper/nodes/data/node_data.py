@@ -1,34 +1,29 @@
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
+from nodeserver.api.node.node_exceptions import MissingParameter, ParameterException
+from nodeserver.wrapper.abstract.abstract_types import BaseValueWrapper
 from nodeserver.wrapper.nodes.data.node_data_types import BaseDataType
 from nodeserver.wrapper.nodes.helpers.file.type_dataclasses import NodeParameterData
 
 
-class NodeParameter:
-    _version: int
+class NodeParameter[valueType: Any](BaseValueWrapper[valueType]):
     type: BaseDataType
     _field_id: str
-    
-    _value: Any
+
     _data_model: NodeParameterData
 
-    def __init__(self, field_data_model: NodeParameterData, field_id: str, value: Any):
-        self._version = 0
+    def __init__(self, field_data_model: NodeParameterData, field_id: str, value: Optional[valueType], raw_io_type: Type[Any] = Type):
+        super().__init__(value, raw_io_type)
         self._field_id = field_id
         self._data_model = field_data_model
 
-        self._value = value
-    
-    @property
-    def value(self):
-        return self._value
+    def self_validate(self) -> Optional[ParameterException]:
+        if not self.is_optional() and self._value == None:
+            return MissingParameter(self)
 
-    @value.setter
-    def value(self, new_value: Any):
-        if self._value != new_value:
-            self._value = new_value
-            self._version += 1
+        return None
+
     
 class NodeData:
     _version: int = 0
@@ -74,7 +69,7 @@ class NodeData:
                 continue
 
             parsed_params[key] = NodeParameter(
-                data_model, key, raw_parameters.get(key, None)
+                data_model, key, raw_parameters.get(key, None), data_model.raw_io_type or Type
             )
 
         return parsed_params

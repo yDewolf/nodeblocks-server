@@ -152,7 +152,18 @@ class InstanceRuntime:
             return
         self.context._current_idx += 1
         
-        current_node._ensure_parameters_updated()
+        node_parameters, errors = current_node._ensure_parameters_updated()
+        # FIXME: improve this error handling
+        if errors:
+            for error in errors:
+                instance_protocol.send_to_client(ServerNotification.param_notify(
+                    node_uid=current_node._mirror.uid,
+                    param_id=error.parameter._field_id,
+                    message="Parameter Error",
+                    level=NotificationLevel.ERROR,
+                    description=str(error)
+                ))
+            return
 
         current_hash = current_node.get_execution_hash(self.context._output_cache)
         last_hash = self.context._node_execution_cache.get(current_node._mirror.uid)
