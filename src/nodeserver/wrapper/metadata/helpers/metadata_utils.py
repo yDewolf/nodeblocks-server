@@ -75,7 +75,7 @@ class _MetadataLoad:
 
                     subtype_id = os.path.splitext(subtype_filename)[0]
                     datatype_id = MetadataFileUtils.make_slotio_id_filename(slotio_name, subtype_id)
-                    with open(subtype_path, "r") as file:
+                    with open(subtype_path, "r", encoding="utf-8") as file:
                         datatype_data = json.load(file)
                     
                     datatypes[datatype_id] = DataTypeMeta.model_validate(datatype_data)
