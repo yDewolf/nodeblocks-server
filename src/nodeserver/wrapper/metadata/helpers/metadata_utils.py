@@ -52,7 +52,7 @@ class _MetadataLoad:
 
                 # FIXME: use file path to get type id might not be safe
                 type_id = os.path.splitext(meta_filename)[0]
-                with open(meta_path, "r") as file:
+                with open(meta_path, "r", encoding="utf-8") as file:
                     node_json_data = json.load(file)
                 
                 node_types[type_id] = NodeTypeMeta.model_validate(node_json_data, context=header_context)
@@ -131,14 +131,14 @@ class _MetadataSave:
             merged_data = base_data
             if os.path.exists(file_path):
                 try:
-                    with open(file_path, "r") as file:
+                    with open(file_path, "r", encoding="utf-8") as file:
                         disk_data = json.load(file)
                     merged_data = _MetadataSave._deep_merge(base_data, disk_data)
                 except Exception as e:
                     logger.error("Failed to load node metadata.", e)
 
             merged_model = NodeTypeMeta.model_validate(merged_data, context=header_context)
-            with open(file_path, "w") as file:
+            with open(file_path, "w", encoding="utf-8") as file:
                 file.write(merged_model.model_dump_json(indent=METADATA_INDENT))
 
     @staticmethod
@@ -159,14 +159,14 @@ class _MetadataSave:
                 merged_data = base_data
                 if os.path.exists(subtype_file_path):
                     try:
-                        with open(subtype_file_path, "r") as file:
+                        with open(subtype_file_path, "r", encoding="utf-8") as file:
                             disk_data = json.load(file)
                         merged_data = _MetadataSave._deep_merge(base_data, disk_data)
                     except Exception as e:
                         logger.error("Failed to load subtype metadata.", e)
 
                 merged_model = DataTypeMeta.model_validate(merged_data)
-                with open(subtype_file_path, "w") as file:
+                with open(subtype_file_path, "w", encoding="utf-8") as file:
                     file.write(merged_model.model_dump_json(indent=METADATA_INDENT))    
 
     @staticmethod
@@ -176,7 +176,7 @@ class _MetadataSave:
         merged_data = base_data
         if os.path.exists(header_file_path):
             try:
-                with open(header_file_path, "r") as file:
+                with open(header_file_path, "r", encoding="utf-8") as file:
                     disk_data = json.load(file)
                 merged_data = _MetadataSave._deep_merge(base_data, disk_data)
             except Exception as e:
@@ -188,7 +188,7 @@ class _MetadataSave:
         merged_model.meta_version = metadata.meta_version
         merged_model.last_modified = metadata.last_modified
 
-        with open(header_file_path, "w") as file:
+        with open(header_file_path, "w", encoding="utf-8") as file:
             file.write(merged_model.model_dump_json(indent=METADATA_INDENT))
     
 

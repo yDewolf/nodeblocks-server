@@ -12,11 +12,11 @@ class BaseRequestRouter:
         self.session_manager = session_manager
 
     @abstractmethod
-    async def route_request(self, request: web.Request, request_type: Enum, cors: aiohttp_cors.CorsConfig) -> web.StreamResponse:
+    async def route_request(self, request: web.Request, request_type: Enum) -> web.StreamResponse:
         pass
     
     @abstractmethod
-    def setup_http_routes(self, app: web.Application, host: str):
+    def setup_http_routes(self, app: web.Application, host: str, cors: aiohttp_cors.CorsConfig):
         pass
 
 
