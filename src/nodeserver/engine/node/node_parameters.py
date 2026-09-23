@@ -1,6 +1,6 @@
 from typing import Optional, Type
 
-from nodeserver.protocols.enums.datatypes import DefaultDataTypes
+from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
 
 class ParamConfig:
     label: Optional[str]

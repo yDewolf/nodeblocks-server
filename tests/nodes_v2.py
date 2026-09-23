@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from nodeserver.engine.node.nodes import BaseNode
 from nodeserver.engine.protocols.datatype.node_data import NodeData
 from nodeserver.engine.protocols.datatype.node_data_types import INPUT_TYPE, OUTPUT_TYPE
-from nodeserver.protocols.enums.datatypes import DefaultDataTypes
+from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
 from nodeserver.protocols.manifest.node.datatypes import NodeNumberParameter, ParameterSpec
 from nodeserver.engine.protocols.node.base_nodes import NodeMirror, SlotMirror
 

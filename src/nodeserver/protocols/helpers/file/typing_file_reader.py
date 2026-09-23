@@ -6,7 +6,7 @@ from typing import Callable, Optional
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.protocols.manifest.node.node_manifest import ManifestPackage, NodeSlotSpec, NodeTypeSpec
-from nodeserver.protocols.manifest.node.datatypes import DataTypeData
+from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 
 # FIXME: protocols shouldn't import engine stuff
 from nodeserver.engine.protocols.datatype.custom_data_types import CustomDataType
@@ -18,7 +18,8 @@ from nodeserver.engine.helpers.scene.node_constructor import BaseMirrorConstruct
 from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror
 
 # TODO: separar parsing de DataTypes do leitor de NodeTypes
-# e avaliar como isso ainda vai ser usado depois de refatorar os nodes
+# e avaliar como isso ainda vai ser usado depois de refatorar os nodes]
+
 class TypeFileReader:
     _format: int = 2
     _node_types_version: int = -1
@@ -98,13 +99,13 @@ class TypeFileReader:
         for slot_type_id, slot_type in self.slot_types.items():
             _slot_types[slot_type_id] = slot_type.data_type.type_id
         
-        _data_types: dict[str, DataTypeData] = {}
+        _data_types: dict[str, DataTypeSpec] = {}
         for type_id, data_type in self.data_types.items():
             whitelist: list[str] = []
             for name in data_type._name_whitelist: whitelist.append(name)
             for super_type in data_type._type_whitelist: whitelist.append(f"#{super_type.value}")
             
-            type_data = DataTypeData(
+            type_data = DataTypeSpec(
                 base_id=data_type.base,
                 default_renderer=data_type.renderer,
                 whitelist=whitelist

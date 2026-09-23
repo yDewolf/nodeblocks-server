@@ -1,8 +1,8 @@
 from typing import Annotated, Literal, Optional, List, Type, Union, Any
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
-from nodeserver.protocols.enums.datatypes import DefaultDataTypes
-from nodeserver.protocols.enums.datatypes import DefaultRenderers
+from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
+from nodeserver.protocols.enums.datatype_enums import DefaultRenderers
 
 class DataModel(BaseModel):
     model_config = ConfigDict(
@@ -12,7 +12,10 @@ class DataModel(BaseModel):
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)
 
-class DataTypeData(DataModel):
+class DataTypeSpec(DataModel):
+    # TODO: implementar estilos de DataType com cor, etc (provavelmente nos baglh de metadata)
+    id: Optional[str] = Field(default=None, exclude=True)
+
     base_id: Optional[DefaultDataTypes] # FIXME on client: base -> base_id
     default_renderer: DefaultRenderers # TODO: Implement proper renderer solver
     whitelist: list[str] = Field(default_factory=list)

@@ -4,7 +4,7 @@ from pydantic import Field
 
 from nodeserver.protocols.enums.datatypes import DefaultDataTypes
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
-from nodeserver.protocols.manifest.node.datatypes import DataModel, DataTypeData, ParameterSpec
+from nodeserver.protocols.manifest.node.datatypes import DataModel, DataTypeSpec, ParameterSpec
 
 
 class NodeSlotSpec(DataModel):
@@ -12,6 +12,7 @@ class NodeSlotSpec(DataModel):
     data_type: Optional[DefaultDataTypes] = None
 
     max_connections: Optional[int] = None # 0 -> Doesn't have a max
+    required: bool = False # Defines if this slot must be connected to process the node
     is_input: bool
 
 
@@ -31,7 +32,7 @@ class ManifestPackage(DataModel):
     version: int
     package_id: str # FIXME on client: id -> package_id
     
-    data_types: Dict[str, DataTypeData]
+    data_types: Dict[str, DataTypeSpec]
     slot_types: Dict[str, str]
     node_types: Dict[str, NodeTypeSpec]
 
