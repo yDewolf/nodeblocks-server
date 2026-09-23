@@ -46,6 +46,9 @@ class ConnectionManager:
     def remove(self, connection_uid: str) -> Optional[ConnectionSceneData]:
         return self._connections.pop(connection_uid, None)
 
+    def get(self, connection_uid: str) -> Optional[ConnectionSceneData]:
+        return self._connections.get(connection_uid, None)
+
     def get_by_node(self, node_id: str) -> list[ConnectionSceneData]:
         return [
             conn for conn in self._connections.values()
