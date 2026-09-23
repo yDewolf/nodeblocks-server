@@ -55,10 +55,10 @@ class TypeFileReader:
 
 
     def is_scene_compatible(self, scene_data: SceneData):
-        if scene_data.node_types_id != self._node_types_id:
+        if scene_data.package_id != self._node_types_id:
             return False
         
-        if scene_data.node_types_version != self._node_types_version:
+        if scene_data.package_version != self._node_types_version:
             return False
         
         has_missing_constructor = False

@@ -2,7 +2,7 @@ import uuid
 
 class IDGenerator:
     @staticmethod
-    def generate_id() -> str:
+    def generate_generic_id() -> str:
         return str(uuid.uuid4())
 
     @staticmethod

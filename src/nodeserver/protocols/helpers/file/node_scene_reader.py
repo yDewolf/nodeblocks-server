@@ -19,9 +19,9 @@ class SceneFileReader:
 
     def new_scene(self, node_types_id: str, node_types_version: int):
         self.scene_data = SceneData(
-            uid=IDGenerator.generate_id(),
-            node_types_id=node_types_id,
-            node_types_version=node_types_version,
+            uid=IDGenerator.generate_generic_id(),
+            package_id=node_types_id,
+            package_version=node_types_version,
             nodes={}, connections={}
         )
 
@@ -41,10 +41,10 @@ class SceneFileReader:
             return False
 
         virtual_data = self._virtual_file.scene_data
-        if virtual_data.node_types_id != self.scene_data.node_types_id:
+        if virtual_data.package_id != self.scene_data.package_id:
             return False
         
-        if virtual_data.node_types_version != self.scene_data.node_types_version:
+        if virtual_data.package_version != self.scene_data.package_version:
             return False
 
         return True
@@ -76,7 +76,7 @@ class SceneFileReader:
             self._virtual_file.scene_data = json_data
             self._virtual_file.raw_data = json_data.serialize()
             return
-        scene_data = SceneData.from_dict(json_data)
+        scene_data = SceneData.model_validate(json_data)
         self._virtual_file.scene_data = scene_data
         self._virtual_file.raw_data = json_data
 

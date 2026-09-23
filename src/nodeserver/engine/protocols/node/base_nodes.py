@@ -190,9 +190,8 @@ class ConnectionMirror:
         return True
     
     def to_scene_data(self) -> ConnectionSceneData:
-        return ConnectionSceneData.from_dict({
-            "uid": self.uid,
-            "from": NodePathData(node_id=self.get_input().parent_node.uid, slot_id=self.get_input().slot_id),
-            "to": NodePathData(node_id=self.get_output().parent_node.uid, slot_id=self.get_output().slot_id)
-        })
-        
+        return ConnectionSceneData(
+            uid=self.uid,
+            from_slot=NodePathData(node_id=self.get_input().parent_node.uid, slot_id=self.get_input().slot_id),
+            to_slot=NodePathData(node_id=self.get_output().parent_node.uid, slot_id=self.get_output().slot_id)
+        )
