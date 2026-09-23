@@ -17,7 +17,8 @@ from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType, D
 from nodeserver.protocols.manifest.metadata.node_meta import DEFAULT_CATEGORY, NodeTypeMeta, MetaTag
 from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
 from nodeserver.engine.helpers.scene.connection_manager import ConnectionManager
-from nodeserver.protocols.manifest.node.type_data import DataTypeData, NodeParameterData, NodeParameterDataAdapter, SlotData
+from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec
+from nodeserver.protocols.manifest.node.datatypes import DataTypeData, ParameterSpec, ParameterSpecAdapter
 from nodeserver.protocols.helpers.file.typing_file_reader import ConstructorModel
 from nodeserver.engine.helpers.scene.node_manager import NodeMirrorManager
 from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
@@ -228,17 +229,17 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         
         data_types: dict[str, BaseDataType] = super_data_types
         slot_types: dict[str, BaseSlotType] = super_slot_types
-        node_slots: dict[str, SlotData] = {}
+        node_slots: dict[str, NodeSlotSpec] = {}
         
         cls._add_cls_slot_and_data_types(slot_types, data_types, node_slots)
         constructor = cls._generate_constructor(node_slots, data_types, type_id)
         return (slot_types, constructor)
 
     @classmethod
-    def _generate_constructor(cls, slot_types: dict[str, SlotData], data_types: dict[str, BaseDataType], type_id: str) -> ConstructorModel:
-        param_data: dict[str, NodeParameterData] = {}
+    def _generate_constructor(cls, slot_types: dict[str, NodeSlotSpec], data_types: dict[str, BaseDataType], type_id: str) -> ConstructorModel:
+        param_data: dict[str, ParameterSpec] = {}
         for param_id, spec in cls._params_spec.items():
-            param_data[param_id] = NodeParameterDataAdapter.validate_python(spec)
+            param_data[param_id] = ParameterSpecAdapter.validate_python(spec)
 
         constructor: ConstructorModel = ConstructorModel(
             type_id=str(type_id),
@@ -251,7 +252,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
         return constructor
 
     @classmethod
-    def _add_cls_slot_and_data_types(cls, slot_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], node_slots: dict[str, SlotData]):
+    def _add_cls_slot_and_data_types(cls, slot_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], node_slots: dict[str, NodeSlotSpec]):
         slot_hints = get_type_hints(cls.Slots, globalns=globals())
         for attribute_name, hint in slot_hints.items():
             if attribute_name.startswith("_"): continue
@@ -274,7 +275,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
     
 
     @classmethod
-    def _add_slot_types(cls, key: str, slot_instance: NodeSlot, slot_types: dict[str, BaseSlotType], super_data_types: dict[str, BaseDataType], node_slots: dict[str, SlotData]):
+    def _add_slot_types(cls, key: str, slot_instance: NodeSlot, slot_types: dict[str, BaseSlotType], super_data_types: dict[str, BaseDataType], node_slots: dict[str, NodeSlotSpec]):
         raw_type = slot_instance._io.get_type()
         data_type_id = slot_instance._io.make_datatype_id()
         
@@ -286,7 +287,7 @@ class _Node[inputType: BaseModel, outputType: BaseModel](_ParsedNode):
                 data_type=data_type
             )
         
-        node_slots[key] = SlotData(
+        node_slots[key] = NodeSlotSpec(
             type=super_slot_name,
             data_type=DataTypeUtils._match_super_type(raw_type.__name__),
             max_connections=slot_instance._io._max_connections,

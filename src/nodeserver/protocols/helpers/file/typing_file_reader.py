@@ -5,7 +5,8 @@ from typing import Callable, Optional
 
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.protocols.manifest.node.node_graph import SceneData
-from nodeserver.protocols.manifest.node.type_data import DataTypeData, NodeTypeData, SlotData, SlotTypeData, TypeFile
+from nodeserver.protocols.manifest.node.node_manifest import ManifestPackage, NodeSlotSpec, NodeTypeSpec
+from nodeserver.protocols.manifest.node.datatypes import DataTypeData
 
 # FIXME: protocols shouldn't import engine stuff
 from nodeserver.engine.protocols.datatype.custom_data_types import CustomDataType
@@ -62,7 +63,7 @@ class TypeFileReader:
         
         has_missing_constructor = False
         for node_data in scene_data.nodes.values():
-            if not self.node_constructors.__contains__(node_data.type):
+            if not self.node_constructors.__contains__(node_data.type_id):
                 has_missing_constructor = True
                 break
         
@@ -91,13 +92,11 @@ class TypeFileReader:
             self._load_json_data(json_data)
 
 
-    def serialize(self) -> TypeFile:
+    def serialize(self) -> ManifestPackage:
         # TODO:
-        _slot_types: dict[str, SlotTypeData] = {}
+        _slot_types: dict[str, str] = {}
         for slot_type_id, slot_type in self.slot_types.items():
-            _slot_types[slot_type_id] = SlotTypeData(
-                data_type_id=slot_type.data_type.type_id
-            )
+            _slot_types[slot_type_id] = slot_type.data_type.type_id
         
         _data_types: dict[str, DataTypeData] = {}
         for type_id, data_type in self.data_types.items():
@@ -112,18 +111,18 @@ class TypeFileReader:
             )
             _data_types[type_id] = type_data
 
-        _node_types: dict[str, NodeTypeData] = {}
+        _node_types: dict[str, NodeTypeSpec] = {}
         for type_id, constructor in self.node_constructors.items():
-            type_data = NodeTypeData(
+            type_data = NodeTypeSpec(
                 parameters=constructor._data_model.param_model,
                 default_metadata=constructor._base_metadata,
                 slots=constructor._slots
             )
             _node_types[type_id] = type_data
         
-        type_data = TypeFile(
+        type_data = ManifestPackage(
             format=self._format,
-            id=self._node_types_id if self._node_types_id else "unknown",
+            package_id=self._node_types_id if self._node_types_id else "unknown",
             version=self._node_types_version,
             data_types=_data_types,
             slot_types=_slot_types,
@@ -138,7 +137,7 @@ class TypeFileReader:
         
         self._raw_data = json_data
 
-        self._node_types_id = type_data.id
+        self._node_types_id = type_data.package_id
         self._node_types_version = type_data.version
         
         self.data_types = data_types
@@ -147,8 +146,8 @@ class TypeFileReader:
     
 
     @staticmethod
-    def _parse_json_data(json_data: dict) -> tuple[TypeFile, dict[str, BaseDataType], dict[str, BaseSlotType], dict[str, BaseMirrorConstructor]]:
-        type_data: TypeFile = TypeFile.model_validate(json_data)
+    def _parse_json_data(json_data: dict) -> tuple[ManifestPackage, dict[str, BaseDataType], dict[str, BaseSlotType], dict[str, BaseMirrorConstructor]]:
+        type_data: ManifestPackage = ManifestPackage.model_validate(json_data)
         
         constructors: dict[str, BaseMirrorConstructor] = {}
         data_types: dict[str, BaseDataType] = {}
@@ -161,9 +160,9 @@ class TypeFileReader:
             data_types[data_type_id] = custom_type
         
         slot_types: dict[str, BaseSlotType] = {}
-        for slot_type_id, slot_type in type_data.slot_types.items():
+        for slot_type_id, datatype_id in type_data.slot_types.items():
             slot_types[slot_type_id] = BaseSlotType(
-                data_types[slot_type.data_type_id]
+                data_types[datatype_id]
             )
         
         for type_id in type_data.node_types:
@@ -188,11 +187,11 @@ class ConstructorModel:
     node_data: Optional[NodeData]
     base_node_metadata: Optional[NodeTypeMeta]
 
-    slots: Optional[dict[str, SlotData]]
+    slots: Optional[dict[str, NodeSlotSpec]]
     parser: Optional[Callable[[NodeMirror], _ParsedNode]]
 
     @staticmethod
-    def new(type_id: str, node_data: Optional[NodeData] = None, base_metadata: Optional[NodeTypeMeta] = None, slots: Optional[dict[str, SlotData]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
+    def new(type_id: str, node_data: Optional[NodeData] = None, base_metadata: Optional[NodeTypeMeta] = None, slots: Optional[dict[str, NodeSlotSpec]] = None, parser: Optional[Callable[[NodeMirror], _ParsedNode]] = None) -> 'ConstructorModel':
         return ConstructorModel(
             type_id=type_id,
             node_data=node_data,

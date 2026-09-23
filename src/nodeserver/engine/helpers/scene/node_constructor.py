@@ -4,8 +4,8 @@ from typing import Any, Callable
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.engine.protocols.datatype.node_data import NodeData
 from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
-from nodeserver.protocols.manifest.node.type_data import SlotData
-from nodeserver.protocols.manifest.node.node_graph import Vector2
+from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec
+from nodeserver.protocols.manifest.structs.scene_structs import Vector2
 from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
 
 
@@ -17,7 +17,7 @@ class BaseMirrorConstructor:
 
     _data_model: NodeData
     _base_metadata: NodeTypeMeta
-    _slots: dict[str, SlotData]
+    _slots: dict[str, NodeSlotSpec]
     _slot_types: dict[str, BaseSlotType]
 
     _builder_func: Callable[[NodeMirror], _ParsedNode]
@@ -46,7 +46,7 @@ class BaseMirrorConstructor:
         return mirror
 
 
-    def make_slot_mirror(self, parent_node: NodeMirror, slot_id: str, slot_data: SlotData):
+    def make_slot_mirror(self, parent_node: NodeMirror, slot_id: str, slot_data: NodeSlotSpec):
         slot_type_str = slot_data.type if slot_data.type != None else ""
         slot_type = self._slot_types.get(slot_type_str)
         if not slot_type:
@@ -64,7 +64,7 @@ class BaseMirrorConstructor:
         return self._builder_func(mirror)
 
 class CustomMirrorConstructor(BaseMirrorConstructor):
-    def __init__(self, type_id: str, data: NodeData, metadata: NodeTypeMeta, slot_types: dict[str, BaseSlotType], slots: dict[str, SlotData], builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
+    def __init__(self, type_id: str, data: NodeData, metadata: NodeTypeMeta, slot_types: dict[str, BaseSlotType], slots: dict[str, NodeSlotSpec], builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
         super().__init__(type_id, metadata, builder_func)
 
         self._data_model = data

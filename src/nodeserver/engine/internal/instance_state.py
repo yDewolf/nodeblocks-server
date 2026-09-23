@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import logging
 
 from nodeserver.protocols.manifest.node.node_graph import SceneData
-from nodeserver.protocols.manifest.node.type_data import TypeFile
+from nodeserver.protocols.manifest.node.datatypes import ManifestPackage
 
 logger = logging.getLogger("nds.state_file")
 
@@ -41,7 +41,7 @@ class InstanceState(BaseModel):
     instance_version: str
 
     scene_data: SceneData
-    types_data: TypeFile # So it can check if current interpreter matches the original types
+    types_data: ManifestPackage # So it can check if current interpreter matches the original types
     
     internal_states: InternalState
 

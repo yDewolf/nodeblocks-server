@@ -3,15 +3,7 @@ import uuid
 from typing import Annotated, Any, Dict, Optional
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
-from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
-
-class Vector2(BaseModel):
-    x: float = 0.0
-    y: float = 0.0
-    
-    @classmethod
-    def from_dict(cls, data: dict, **kwargs):
-        return cls.model_validate({**data, **kwargs})
+from nodeserver.protocols.manifest.structs.scene_structs import Vector2
 
 class NodePathData(BaseModel):
     node_id: str = ""
@@ -43,7 +35,7 @@ NodePathSerialized = Annotated[
 
 class NodeSceneData(BaseModel):
     uid: Optional[str] = None
-    type: str = ""
+    type_id: str = ""
     position: Vector2
     data: Dict[str, Any] = Field(default_factory=dict)
 
@@ -53,6 +45,7 @@ class NodeSceneData(BaseModel):
     @classmethod
     def from_dict(cls, data: dict, **kwargs):
         return cls.model_validate({**data, **kwargs})
+
 
 class ConnectionSceneData(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -78,8 +71,10 @@ class ConnectionSceneData(BaseModel):
 
 class SceneData(BaseModel):
     uid: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
     node_types_id: str = "unknown"
-    node_types_version: int = 0
+    node_types_version: int = 0 # TODO: implement a better version control system
+
     nodes: Dict[str, NodeSceneData] = Field(default_factory=dict)
     connections: Dict[str, ConnectionSceneData] = Field(default_factory=dict)
 

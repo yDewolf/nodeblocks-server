@@ -7,7 +7,7 @@ from nodeserver.engine.protocols.datatype.node_data import NodeData
 from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType
 from nodeserver.protocols.manifest.metadata.node_meta import DEFAULT_CATEGORY, MetaCategory, NodeTypeMeta
 from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
-from nodeserver.protocols.manifest.node.type_data import SlotData
+from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec
 from nodeserver.protocols.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader
 from nodeserver.engine.helpers.scene.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
 from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror
@@ -15,7 +15,7 @@ from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror
 
 class TypeReaderUtils:
     @staticmethod
-    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], _ParsedNode], default_category: MetaCategory, models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
+    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, NodeSlotSpec], default_builder: Callable[[NodeMirror], _ParsedNode], default_category: MetaCategory, models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
         constructors: list[BaseMirrorConstructor] = []
         for model in models:
             metadata = model.base_node_metadata

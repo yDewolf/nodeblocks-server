@@ -10,7 +10,7 @@ from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType, SlotTypeUtils
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodePathData
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
-from nodeserver.protocols.manifest.node.node_graph import Vector2
+from nodeserver.protocols.manifest.structs.scene_structs import Vector2
 
 class NodeMirror:
     uid: str

@@ -9,7 +9,7 @@ from nodeserver.engine.node.abstract._nodes import _Node
 from nodeserver.engine.node.slots import NodeSlot
 from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType
 from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
-from nodeserver.protocols.manifest.node.type_data import SlotData
+from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec
 from nodeserver.engine.protocols.node.base_nodes import SlotMirror
 
 logger = logging.getLogger("nds.nodes")
@@ -75,7 +75,7 @@ class BaseNode[inputType: BaseModel, outputType: BaseModel](_Node[inputType, out
         return instance
 
     @classmethod
-    def _add_cls_slot_and_data_types(cls, super_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], slot_types: dict[str, SlotData]):
+    def _add_cls_slot_and_data_types(cls, super_types: dict[str, BaseSlotType], data_types: dict[str, BaseDataType], slot_types: dict[str, NodeSlotSpec]):
         for name, spec in cls._slot_definitions.items():
             slot_instance = cls._build_slot_instance_from_spec(spec, None)
 

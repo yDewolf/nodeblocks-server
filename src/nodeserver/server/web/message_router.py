@@ -34,7 +34,7 @@ class BaseMessagerouter:
             type_data = instance.mirror_manager.type_reader.serialize()
             mismatch_type = False
             
-            if type_data.id != message.msg.types_id:
+            if type_data.package_id != message.msg.types_id:
                 mismatch_type = True
 
             if message.msg.types_version:

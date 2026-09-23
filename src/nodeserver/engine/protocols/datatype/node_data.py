@@ -5,16 +5,16 @@ from typing import Any, Optional, Type
 from nodeserver.engine.node.node_exceptions import MissingParameter, ParameterException
 from nodeserver.protocols.abstract.abstract_types import BaseValueWrapper
 from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType
-from nodeserver.protocols.manifest.node.type_data import NodeParameterData
+from nodeserver.protocols.manifest.node.datatypes import ParameterSpec
 
 
 class NodeParameter[valueType: Any](BaseValueWrapper[valueType]):
     type: BaseDataType
     _field_id: str
 
-    _data_model: NodeParameterData
+    _data_model: ParameterSpec
 
-    def __init__(self, field_data_model: NodeParameterData, field_id: str, value: Optional[valueType], raw_io_type: Type[Any] = Type):
+    def __init__(self, field_data_model: ParameterSpec, field_id: str, value: Optional[valueType], raw_io_type: Type[Any] = Type):
         super().__init__(value, raw_io_type)
         self._field_id = field_id
         self._data_model = field_data_model
@@ -28,10 +28,10 @@ class NodeParameter[valueType: Any](BaseValueWrapper[valueType]):
     
 class NodeData:
     _version: int = 0
-    param_model: dict[str, NodeParameterData]
+    param_model: dict[str, ParameterSpec]
     parameters: dict[str, NodeParameter]
 
-    def __init__(self, raw_parameters: dict[str, NodeParameterData]):
+    def __init__(self, raw_parameters: dict[str, ParameterSpec]):
         self.param_model = raw_parameters
 
     @staticmethod
@@ -62,7 +62,7 @@ class NodeData:
         self.parameters = NodeData._parse_parameters(self.param_model, raw_parameters)
 
     @staticmethod
-    def _parse_parameters(param_model: dict[str, NodeParameterData], raw_parameters: dict[str, Any]) -> dict[str, NodeParameter]:
+    def _parse_parameters(param_model: dict[str, ParameterSpec], raw_parameters: dict[str, Any]) -> dict[str, NodeParameter]:
         parsed_params: dict[str, NodeParameter] = {}
         for key in param_model:
             data_model = param_model.get(key)

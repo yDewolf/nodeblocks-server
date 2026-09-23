@@ -81,7 +81,7 @@ class MirrorSceneManager:
 
 
     def add_node_mirror(self, scene_data: NodeSceneData, node_name: str, update_scene_data: bool = True) -> NodeMirror | None:
-        constructor = self.type_reader.get_constructor(scene_data.type)
+        constructor = self.type_reader.get_constructor(scene_data.type_id)
         if scene_data.uid == None or not constructor:
             return None
         

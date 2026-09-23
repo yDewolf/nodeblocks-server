@@ -1,12 +1,11 @@
 from typing import Annotated, Any, Dict, Literal, Optional, Union
 from pydantic import Field
 from nodeserver.engine.instance.instance_states import InstanceStates, LoopStates
+from nodeserver.protocols.manifest.node.node_manifest import ManifestPackage
 from nodeserver.server.web.requests.base_requests import BaseSocketModel
 from nodeserver.server.web.requests.notification_requests import ServerSyncNotifications
 from nodeserver.server.web.websocket_protocol import EditorActionStatus, ServerMessages, WebsocketStatus
 from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataVersion
-from nodeserver.protocols.manifest.node_scene_dataclasses import SceneData
-from nodeserver.protocols.manifest.type_dataclasses import TypeFile
 
 
 class SyncStatePayload(BaseSocketModel):
@@ -19,7 +18,7 @@ class SrvMetadataUpdated(BaseSocketModel):
 
 class SrvVersionSync(BaseSocketModel):
     type: Literal[ServerMessages.SYNC_VERSIONS] = ServerMessages.SYNC_VERSIONS
-    types: Optional[TypeFile]
+    types: Optional[ManifestPackage]
     metadata: Optional[Metadata] # FIXME: Don't send full metadata, client should request it
 
 class SrvHandshakeSuccess(BaseSocketModel):
