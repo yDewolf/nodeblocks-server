@@ -12,15 +12,15 @@ from nodeserver.engine.node.abstract._slots import _SlotIO
 from nodeserver.engine.node.node_parameters import ParamConfig
 from nodeserver.engine.node.slots import NodeSlot
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
-from nodeserver.protocols.nodes.data.node_data import NodeData
-from nodeserver.protocols.nodes.data.node_data_types import BaseDataType, DataTypeUtils, DefaultDataTypes
+from nodeserver.engine.protocols.datatype.node_data import NodeData
+from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType, DataTypeUtils, DefaultDataTypes
 from nodeserver.protocols.manifest.metadata.node_meta import DEFAULT_CATEGORY, NodeTypeMeta, MetaTag
-from nodeserver.protocols.nodes.data.slot_types import BaseSlotType
-from nodeserver.protocols.nodes.helpers.connection_manager import ConnectionManager
+from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
+from nodeserver.engine.helpers.scene.connection_manager import ConnectionManager
 from nodeserver.protocols.manifest.node.type_data import DataTypeData, NodeParameterData, NodeParameterDataAdapter, SlotData
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import ConstructorModel
-from nodeserver.protocols.nodes.helpers.node_manager import NodeMirrorManager
-from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
+from nodeserver.protocols.helpers.file.typing_file_reader import ConstructorModel
+from nodeserver.engine.helpers.scene.node_manager import NodeMirrorManager
+from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
 
 logger = logging.getLogger("nds.nodes")
 

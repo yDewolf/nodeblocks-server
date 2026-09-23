@@ -10,8 +10,8 @@ from nodeserver.engine.node.abstract._nodes import _Node
 from nodeserver.engine.node.abstract._slots import _SlotIO
 from nodeserver.engine.node.node_exceptions import ConnRecursionException
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
-from nodeserver.protocols.nodes.node.base_nodes import NodeMirror, SlotMirror
-from nodeserver.protocols.nodes.node.node_utils import NodeMirrorUtils
+from nodeserver.engine.protocols.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.engine.protocols.node.node_utils import NodeMirrorUtils
 
 logger = logging.getLogger("nds.instances")
 

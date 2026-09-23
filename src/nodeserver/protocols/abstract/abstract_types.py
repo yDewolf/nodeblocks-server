@@ -1,4 +1,5 @@
-
+# TODO: pensar sobre o que fazer com isso aqui
+# dependendo de como os nodes forem refatorados isso não vai mais ser necessário
 from typing import Any, Optional, Type, Union, get_args, get_origin
 
 

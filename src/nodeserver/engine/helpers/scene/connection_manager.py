@@ -1,6 +1,5 @@
-
-# TODO: mover isso aqui para engine
-from nodeserver.protocols.nodes.node.base_nodes import ConnectionMirror, SlotMirror
+# TODO: Refatorar os nodes, slots e conexões
+from nodeserver.engine.protocols.node.base_nodes import ConnectionMirror, SlotMirror
 
 
 class ConnectionManager:

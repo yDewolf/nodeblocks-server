@@ -7,9 +7,9 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_EXTENSION, METADATA_FOLDER_NAME, ROOT_METADATA_PATH, MetadataFileUtils
-from nodeserver.protocols.metadata.metadata_file import MetadataFile
+from nodeserver.engine.helpers.metadata.metadata_file import MetadataFile
 from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataVersion
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
 
 class MetadataFolderWatchdog(FileSystemEventHandler):
     def __init__(self, callback_on_change: Callable[[Path], None]):

@@ -1,12 +1,12 @@
-# TODO: mover isso aqui para engine
+# TODO: Refatorar os nodes, slots e conexões
 
 from typing import Any, Callable
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
-from nodeserver.protocols.nodes.data.node_data import NodeData
-from nodeserver.protocols.nodes.data.slot_types import BaseSlotType
+from nodeserver.engine.protocols.datatype.node_data import NodeData
+from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
 from nodeserver.protocols.manifest.node.type_data import SlotData
 from nodeserver.protocols.manifest.node.node_graph import Vector2
-from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
+from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
 
 
 def _default_build_func(mirror: NodeMirror) -> _ParsedNode:

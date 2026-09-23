@@ -1,5 +1,5 @@
-from nodeserver.protocols.nodes.helpers.scene_manager import MirrorSceneManager
-from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror
+from nodeserver.engine.helpers.scene.scene_manager import MirrorSceneManager
+from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror
 
 import logging
 logger = logging.getLogger("nds.mirrors")

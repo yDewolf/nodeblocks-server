@@ -1,13 +1,13 @@
+# TODO: Refatorar os nodes, slots e conexões
 
-# TODO: mover isso aqui para engine
 from nodeserver.engine.node.node_exceptions import ReachedMaxConnections
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
-from nodeserver.protocols.nodes.helpers.connection_manager import ConnectionManager
+from nodeserver.engine.helpers.scene.connection_manager import ConnectionManager
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodeSceneData, SceneData
-from nodeserver.protocols.nodes.helpers.file.node_scene_reader import SceneFileReader
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
-from nodeserver.protocols.nodes.helpers.node_manager import NodeMirrorManager
-from nodeserver.protocols.nodes.node.base_nodes import ConnectionMirror, NodeMirror
+from nodeserver.protocols.helpers.file.node_scene_reader import SceneFileReader
+from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.engine.helpers.scene.node_manager import NodeMirrorManager
+from nodeserver.engine.protocols.node.base_nodes import ConnectionMirror, NodeMirror
 
 class MirrorSceneManager:
     type_reader: TypeFileReader

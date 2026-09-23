@@ -1,6 +1,6 @@
 from typing import Optional, Type
 
-from nodeserver.protocols.nodes.data.node_data_types import DefaultDataTypes
+from nodeserver.engine.protocols.datatype.node_data_types import DefaultDataTypes
 
 class ParamConfig:
     label: Optional[str]

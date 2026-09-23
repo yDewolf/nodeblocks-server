@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 from nodeserver.engine.node.abstract._slots import _SlotIO
 from nodeserver.engine.node.slots import InputSlotIO, NodeSlot, OutputSlotIO, SlotConfig
-from nodeserver.protocols.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.nodes.node.base_nodes import NodeMirror
+from nodeserver.engine.protocols.datatype.node_data_types import DefaultDataTypes, DefaultRenderers
+from nodeserver.engine.protocols.node.base_nodes import NodeMirror
 
 class NodeUtils:
     @staticmethod

@@ -1,8 +1,8 @@
-# TODO: mover isso aqui para engine
+# TODO: Refatorar a forma como os nodes são interpretados/instânciados
 from collections import deque
 
 from nodeserver.engine.node.node_exceptions import ConnRecursionException
-from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror
+from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror
 
 class NodeMirrorUtils:
     @staticmethod

@@ -1,7 +1,7 @@
 
 from typing import Any, Generic, Optional, Type, TypeVar, get_args
-from nodeserver.protocols.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.nodes.node.base_nodes import SlotMirror
+from nodeserver.engine.protocols.datatype.node_data_types import DefaultDataTypes, DefaultRenderers
+from nodeserver.engine.protocols.node.base_nodes import SlotMirror
 from nodeserver.engine.node.abstract._slots import _SlotIO
 
 class InputSlotIO[inputType: Any](_SlotIO[inputType, True]):

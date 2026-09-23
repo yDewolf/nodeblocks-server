@@ -1,10 +1,10 @@
-# TODO: mover isso aqui para engine
+# TODO: refatorar os parâmetros
 from __future__ import annotations
 from typing import Any, Optional, Type
 
 from nodeserver.engine.node.node_exceptions import MissingParameter, ParameterException
 from nodeserver.protocols.abstract.abstract_types import BaseValueWrapper
-from nodeserver.protocols.nodes.data.node_data_types import BaseDataType
+from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType
 from nodeserver.protocols.manifest.node.type_data import NodeParameterData
 
 

@@ -1,8 +1,7 @@
-# TODO: mover isso aqui para engine
-
+# TODO: refatorar os DataTypes
 from typing import Optional
 
-from nodeserver.protocols.nodes.data.node_data_types import UNKNOWN_TYPE, BaseDataType, DataTypeUtils
+from nodeserver.engine.protocols.datatype.node_data_types import UNKNOWN_TYPE, BaseDataType, DataTypeUtils
 
 
 class CustomDataType(BaseDataType):

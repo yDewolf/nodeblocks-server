@@ -1,6 +1,5 @@
-# TODO: mover isso aqui para engine
-from nodeserver.protocols.nodes.data.node_data_types import BaseDataType, DataTypeUtils
-
+# TODO: refatorar os Slots
+from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType, DataTypeUtils
 
 class BaseSlotType:
     data_type: BaseDataType

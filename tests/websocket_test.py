@@ -13,8 +13,8 @@ import logging.config
 
 from nodeserver.server.web.instance.special_instance import WorkspaceAwareInput
 from nodeserver.protocols.manifest.metadata.node_meta import INPUT_CATEGORY, MetaCategory, MetaTag, NodeTypeMeta
-from nodeserver.protocols.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.nodes.node.base_nodes import NodeMirror
+from nodeserver.engine.protocols.datatype.node_data_types import DefaultDataTypes, DefaultRenderers
+from nodeserver.engine.protocols.node.base_nodes import NodeMirror
 from nodeserver.protocols.utils.type_reader_utils import TypeReaderUtils
 
 logging.config.fileConfig("logging.conf")

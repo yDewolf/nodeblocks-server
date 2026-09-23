@@ -13,7 +13,7 @@ from nodeserver.server.web.manager.session_manager import SessionManager
 from nodeserver.server.web.rest.metadata.metadata_api import MetadataHandler
 from nodeserver.server.web.rest.workspace.workspace_api import FileHandler
 from nodeserver.server.websocket_manager import WebsocketManager
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
 
 USE_WATCHDOG: bool = True
 SESSION_CLEANUP_INTERVAL = 3.0

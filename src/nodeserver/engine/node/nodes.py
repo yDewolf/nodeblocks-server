@@ -7,10 +7,10 @@ from pydantic import BaseModel
 from nodeserver.engine.node.node_utils import NodeUtils
 from nodeserver.engine.node.abstract._nodes import _Node
 from nodeserver.engine.node.slots import NodeSlot
-from nodeserver.protocols.nodes.data.node_data_types import BaseDataType
-from nodeserver.protocols.nodes.data.slot_types import BaseSlotType
+from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType
+from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
 from nodeserver.protocols.manifest.node.type_data import SlotData
-from nodeserver.protocols.nodes.node.base_nodes import SlotMirror
+from nodeserver.engine.protocols.node.base_nodes import SlotMirror
 
 logger = logging.getLogger("nds.nodes")
 

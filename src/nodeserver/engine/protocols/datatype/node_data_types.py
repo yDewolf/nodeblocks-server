@@ -1,4 +1,4 @@
-# TODO: mover isso aqui para engine
+# TODO: refatorar os DataTypes
 from enum import Enum
 
 class DefaultDataTypes(str, Enum):

@@ -1,7 +1,7 @@
 import logging
 from threading import Thread, Lock, Event
 from nodeserver.engine.instance.server_instance import ServerInstance
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
 
 MANAGER_LOGGER = logging.getLogger("InstanceLogger")
 

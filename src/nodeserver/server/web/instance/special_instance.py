@@ -4,7 +4,7 @@ from nodeserver.engine.instance.instance_runtime import InstanceRuntime
 from nodeserver.engine.instance.server_instance import ServerInstance
 from nodeserver.server.web.session.user_session import UserSession
 from nodeserver.server.web.session.user_workspace import UserWorkspace
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
 
 class WorkspaceAwareInput(BaseModel):
     class Config:

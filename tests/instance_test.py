@@ -4,12 +4,12 @@ import logging
 from nodeserver.engine.instance.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.engine.internal.instance_manager import InstanceManager
 from nodeserver.engine.instance.server_instance import ServerInstance
-from nodeserver.protocols.nodes.data.node_data import NodeData
-from nodeserver.protocols.nodes.data.node_data_types import FLOAT_TYPE, INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
+from nodeserver.engine.protocols.datatype.node_data import NodeData
+from nodeserver.engine.protocols.datatype.node_data_types import FLOAT_TYPE, INPUT_TYPE, OUTPUT_TYPE, BaseSlotType, SuperSlotTypes
 from nodeserver.protocols.manifest.node.type_data import NodeParameterData, SlotData
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
-from nodeserver.protocols.nodes.helpers.node_constructor import CustomMirrorConstructor
-from nodeserver.protocols.nodes.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.engine.helpers.scene.node_constructor import CustomMirrorConstructor
+from nodeserver.engine.protocols.node.base_nodes import NodeMirror, SlotMirror
 
 logger = logging.getLogger("root")
 manager = InstanceManager()

@@ -6,7 +6,7 @@ from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_EXTENS
 from nodeserver.protocols.manifest.metadata.metadata_header import Metadata
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.node_meta import MetaCategory, MetaTag, NodeTypeMeta, ParameterMeta, SlotMeta
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
 
 
 class MetadataFile:

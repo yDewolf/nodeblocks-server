@@ -1,8 +1,7 @@
-# TODO: mover isso aqui para engine?
 from __future__ import annotations
 import json
 from nodeserver.protocols.manifest.node.node_graph import SceneData
-from nodeserver.protocols.nodes.node.base_nodes import NodeMirror
+from nodeserver.engine.protocols.node.base_nodes import NodeMirror
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
 

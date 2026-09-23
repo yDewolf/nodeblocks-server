@@ -1,7 +1,7 @@
 import logging
 
 from nodeserver.engine.node.nodes import BaseNode
-from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from test_data import TYPE_FILE_JSON
 
