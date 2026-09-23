@@ -3,16 +3,21 @@ from dataclasses import dataclass
 import json
 from typing import Callable, Optional
 
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
+from nodeserver.protocols.manifest.node.node_graph import SceneData
+from nodeserver.protocols.manifest.node.type_data import DataTypeData, NodeTypeData, SlotData, SlotTypeData, TypeFile
+
+# FIXME: protocols shouldn't import engine stuff
 from nodeserver.engine.protocols.datatype.custom_data_types import CustomDataType
 from nodeserver.engine.protocols.datatype.node_data import NodeData
 from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType
-from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
+
 from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
-from nodeserver.protocols.manifest.node.node_graph import SceneData
-from nodeserver.protocols.manifest.node.type_data import DataTypeData, NodeTypeData, SlotData, SlotTypeData, TypeFile
 from nodeserver.engine.helpers.scene.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
 from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror
 
+# TODO: separar parsing de DataTypes do leitor de NodeTypes
+# e avaliar como isso ainda vai ser usado depois de refatorar os nodes
 class TypeFileReader:
     _format: int = 2
     _node_types_version: int = -1

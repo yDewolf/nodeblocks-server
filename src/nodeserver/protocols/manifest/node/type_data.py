@@ -1,6 +1,7 @@
 from typing import Annotated, Literal, Optional, Dict, List, Type, Union, Any
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_serializer, model_validator
 
+# FIXME: Avaliar como refatorar os parâmetros para não depender da engine
 from nodeserver.engine.protocols.datatype.node_data_types import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 

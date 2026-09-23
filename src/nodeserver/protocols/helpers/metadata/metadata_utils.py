@@ -3,7 +3,11 @@ import hashlib
 import json
 import os
 
+# FIXME: as utilidades não devem depender de variáveis de ambiente
+# as classes desse arquivo devem ser estáticas e o servidor ou engine
+# passam as variáveis adequadas, por exemplo, as de ambiente.
 from nodeserver.server.utils.env_variables import get_project_root
+
 from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataFileHeader
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
