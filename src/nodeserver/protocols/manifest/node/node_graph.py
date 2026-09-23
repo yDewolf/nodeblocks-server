@@ -1,6 +1,5 @@
 import re
-import uuid
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Any, Dict
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, PlainSerializer, field_validator
 
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator

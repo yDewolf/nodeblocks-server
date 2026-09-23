@@ -3,7 +3,8 @@ from typing import Any, Optional, Type, Union, get_args
 from typing_extensions import get_origin
 
 from nodeserver.protocols.abstract.abstract_types import BaseValueWrapper
-from nodeserver.engine.protocols.datatype.node_data_types import DataTypeUtils, DefaultDataTypes, DefaultRenderers, _match_renderer
+from nodeserver.engine.protocols.datatype.node_data_types import DataTypeUtils, _match_renderer
+from nodeserver.protocols.enums.datatypes import DefaultDataTypes, DefaultRenderers
 
 class _SlotIO[valueType: Any, is_input: bool](BaseValueWrapper[valueType]) :
     _max_connections: int = 0

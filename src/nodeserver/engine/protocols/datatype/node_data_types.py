@@ -1,23 +1,7 @@
 # TODO: refatorar os DataTypes
-from enum import Enum
 
-class DefaultDataTypes(str, Enum):
-    FLOAT = "float"
-    UINT = "uint"
-    INT = "int"
-    BOOLEAN = "boolean"
-    ARRAY = "array"
-    FILE = "file"
-    CUSTOM = "custom"
-    TEXT = "text"
-    OPTIONS = "options"
-    UNKNOWN = "unknown"
-
-class DefaultRenderers(str, Enum):
-    SCALAR = "scalar"
-    ARRAY = "array"
-    TEXT = "text"
-    NOT_IMPLEMENTED = "not_implemented"
+from nodeserver.protocols.enums.datatypes import DefaultRenderers
+from nodeserver.protocols.enums.datatypes import DefaultDataTypes
 
 def _match_renderer(base_type: DefaultDataTypes) -> DefaultRenderers:
     match base_type:
@@ -48,7 +32,6 @@ class BaseDataType:
         self._type_whitelist = type_whitelist
         self._name_whitelist = name_whitelist
 
-# FIXME: Refatorar esse BaseNodeType para virar algo como um ParameterType ou algo do tipo
 FLOAT_TYPE = BaseDataType("float", DefaultDataTypes.FLOAT, [DefaultDataTypes.FLOAT])
 INT_TYPE = BaseDataType("int" , DefaultDataTypes.INT, [DefaultDataTypes.INT])
 UINT_TYPE = BaseDataType("uint" , DefaultDataTypes.UINT, [DefaultDataTypes.UINT])

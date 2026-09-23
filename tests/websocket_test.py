@@ -3,6 +3,7 @@ from typing import Annotated, Optional
 
 from pydantic import BaseModel
 
+from nodeserver.protocols.enums.datatypes import DefaultRenderers
 from nodeserver.server.base_server import NodeServer
 from nodeserver.engine.node.node_parameters import BooleanParam, FileParam, OptionParam, Param
 from nodeserver.engine.node.nodes import BaseNode
@@ -13,7 +14,7 @@ import logging.config
 
 from nodeserver.server.web.instance.special_instance import WorkspaceAwareInput
 from nodeserver.protocols.manifest.metadata.node_meta import INPUT_CATEGORY, MetaCategory, MetaTag, NodeTypeMeta
-from nodeserver.engine.protocols.datatype.node_data_types import DefaultDataTypes, DefaultRenderers
+from nodeserver.protocols.enums.datatypes import DefaultDataTypes
 from nodeserver.engine.protocols.node.base_nodes import NodeMirror
 from nodeserver.protocols.utils.type_reader_utils import TypeReaderUtils
 

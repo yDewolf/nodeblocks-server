@@ -13,7 +13,8 @@ from nodeserver.engine.node.node_parameters import ParamConfig
 from nodeserver.engine.node.slots import NodeSlot
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.engine.protocols.datatype.node_data import NodeData
-from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType, DataTypeUtils, DefaultDataTypes
+from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType, DataTypeUtils
+from nodeserver.protocols.enums.datatypes import DefaultDataTypes
 from nodeserver.protocols.manifest.metadata.node_meta import DEFAULT_CATEGORY, NodeTypeMeta, MetaTag
 from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
 from nodeserver.engine.helpers.scene.connection_manager import ConnectionManager

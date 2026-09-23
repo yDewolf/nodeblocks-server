@@ -2,7 +2,7 @@ from typing import Dict, Optional
 
 from pydantic import Field
 
-from nodeserver.engine.protocols.datatype.node_data_types import DefaultDataTypes
+from nodeserver.protocols.enums.datatypes import DefaultDataTypes
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.protocols.manifest.node.datatypes import DataModel, DataTypeData, ParameterSpec
 

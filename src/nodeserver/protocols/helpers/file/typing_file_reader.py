@@ -105,7 +105,7 @@ class TypeFileReader:
             for super_type in data_type._type_whitelist: whitelist.append(f"#{super_type.value}")
             
             type_data = DataTypeData(
-                base=data_type.base,
+                base_id=data_type.base,
                 default_renderer=data_type.renderer,
                 whitelist=whitelist
             )
@@ -154,7 +154,7 @@ class TypeFileReader:
         for data_type_id, data_type in type_data.data_types.items():
             custom_type = CustomDataType(
                 data_type_id,
-                data_type.base,
+                data_type.base_id,
                 _type_whitelist=data_type.whitelist
             )
             data_types[data_type_id] = custom_type

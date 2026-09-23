@@ -1,9 +1,8 @@
-from typing import Annotated, Literal, Optional, Dict, List, Type, Union, Any
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_serializer, model_validator
+from typing import Annotated, Literal, Optional, List, Type, Union, Any
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
-# FIXME: Avaliar como refatorar os parâmetros para não depender da engine
-from nodeserver.engine.protocols.datatype.node_data_types import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
+from nodeserver.protocols.enums.datatypes import DefaultDataTypes
+from nodeserver.protocols.enums.datatypes import DefaultRenderers
 
 class DataModel(BaseModel):
     model_config = ConfigDict(
@@ -14,7 +13,7 @@ class DataModel(BaseModel):
         return self.model_dump(by_alias=True)
 
 class DataTypeData(DataModel):
-    base: Optional[DefaultDataTypes]
+    base_id: Optional[DefaultDataTypes] # FIXME on client: base -> base_id
     default_renderer: DefaultRenderers # TODO: Implement proper renderer solver
     whitelist: list[str] = Field(default_factory=list)
 
