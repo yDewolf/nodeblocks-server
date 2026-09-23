@@ -2,16 +2,17 @@ from typing import Dict, Optional
 
 from pydantic import Field
 
-from nodeserver.protocols.enums.datatypes import DefaultDataTypes
+from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.protocols.manifest.node.datatypes import DataModel, DataTypeSpec, ParameterSpec
 
 
 class NodeSlotSpec(DataModel):
-    type: str
-    data_type: Optional[DefaultDataTypes] = None
+    # type: str # FIXME on client: remove this  
+    data_type_id: str # FIXME on client: data_type -> data_type_id
 
-    max_connections: Optional[int] = None # 0 -> Doesn't have a max
+    # TODO: output slots should default to max_connections = 0
+    max_connections: int = Field(default=1) # 0 -> Doesn't have a max
     required: bool = False # Defines if this slot must be connected to process the node
     is_input: bool
 

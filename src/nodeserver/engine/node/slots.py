@@ -1,7 +1,7 @@
 
 from typing import Any, Generic, Optional, Type, TypeVar, get_args
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
-from nodeserver.engine.protocols.node.base_nodes import SlotMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import SlotMirror
 from nodeserver.engine.node.abstract._slots import _SlotIO
 from nodeserver.protocols.enums.datatype_enums import DefaultRenderers
 

@@ -10,12 +10,12 @@ from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 
 # FIXME: protocols shouldn't import engine stuff
 from nodeserver.engine.protocols.datatype.custom_data_types import CustomDataType
-from nodeserver.engine.protocols.datatype.node_data import NodeData
+from nodeserver.engine.protocols.deprecated.datatype.node_data import NodeData
 from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType
 
-from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
+from nodeserver.engine.protocols.deprecated.datatype.slot_types import BaseSlotType
 from nodeserver.engine.helpers.scene.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
-from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import _ParsedNode, NodeMirror
 
 # TODO: separar parsing de DataTypes do leitor de NodeTypes
 # e avaliar como isso ainda vai ser usado depois de refatorar os nodes]

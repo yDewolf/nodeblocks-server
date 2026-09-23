@@ -17,7 +17,7 @@ from nodeserver.engine.instance.node_scene import NodeScene
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.engine.helpers.scene.scene_manager import MirrorSceneManager
-from nodeserver.engine.protocols.node.base_nodes import SlotMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import SlotMirror
 from nodeserver.engine.node.abstract._nodes import _Node
 from nodeserver.engine.node.abstract._slots import _SlotIO
 

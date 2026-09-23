@@ -1,5 +1,5 @@
 # TODO: Refatorar os nodes, slots e conexões
-from nodeserver.engine.protocols.node.base_nodes import ConnectionMirror, SlotMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import ConnectionMirror, SlotMirror
 
 
 class ConnectionManager:

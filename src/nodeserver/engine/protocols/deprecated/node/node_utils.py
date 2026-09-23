@@ -2,7 +2,7 @@
 from collections import deque
 
 from nodeserver.engine.node.node_exceptions import ConnRecursionException
-from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import _ParsedNode, NodeMirror
 
 class NodeMirrorUtils:
     @staticmethod

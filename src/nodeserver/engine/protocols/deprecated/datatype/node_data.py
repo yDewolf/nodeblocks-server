@@ -7,7 +7,6 @@ from nodeserver.protocols.abstract.abstract_types import BaseValueWrapper
 from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType
 from nodeserver.protocols.manifest.node.datatypes import ParameterSpec
 
-
 class NodeParameter[valueType: Any](BaseValueWrapper[valueType]):
     type: BaseDataType
     _field_id: str

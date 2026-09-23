@@ -41,10 +41,10 @@ NodePathSerialized = Annotated[
 
 class NodeSceneData(BaseModel):
     uid: str = Field(default_factory=IDGenerator.generate_node_id)
-    type_id: str = ""
-    position: Vector2
+    type_id: str
+    position: Vector2 = Field(default=Vector2())
     data: Dict[str, Any] = Field(default_factory=dict)
-    
+
 class ConnectionSceneData(BaseModel):
     model_config = ConfigDict(validate_by_name=True)
 
@@ -54,7 +54,7 @@ class ConnectionSceneData(BaseModel):
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)
-    
+
 
 class SceneData(BaseModel):
     uid: str = Field(default_factory=IDGenerator.generate_generic_id)

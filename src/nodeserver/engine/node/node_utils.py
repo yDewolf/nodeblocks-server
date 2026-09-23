@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from nodeserver.engine.node.abstract._slots import _SlotIO
 from nodeserver.engine.node.slots import InputSlotIO, NodeSlot, OutputSlotIO, SlotConfig
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
-from nodeserver.engine.protocols.node.base_nodes import NodeMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import NodeMirror
 from nodeserver.protocols.enums.datatype_enums import DefaultRenderers
 
 class NodeUtils:

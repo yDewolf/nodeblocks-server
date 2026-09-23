@@ -2,11 +2,11 @@
 
 from typing import Any, Callable
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
-from nodeserver.engine.protocols.datatype.node_data import NodeData
-from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType
+from nodeserver.engine.protocols.deprecated.datatype.node_data import NodeData
+from nodeserver.engine.protocols.deprecated.datatype.slot_types import BaseSlotType
 from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec
 from nodeserver.protocols.manifest.structs.scene_structs import Vector2
-from nodeserver.engine.protocols.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
 
 
 def _default_build_func(mirror: NodeMirror) -> _ParsedNode:

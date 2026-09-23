@@ -15,7 +15,7 @@ import logging.config
 from nodeserver.server.web.instance.special_instance import WorkspaceAwareInput
 from nodeserver.protocols.manifest.metadata.node_meta import INPUT_CATEGORY, MetaCategory, MetaTag, NodeTypeMeta
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
-from nodeserver.engine.protocols.node.base_nodes import NodeMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import NodeMirror
 from nodeserver.protocols.utils.type_reader_utils import TypeReaderUtils
 
 logging.config.fileConfig("logging.conf")

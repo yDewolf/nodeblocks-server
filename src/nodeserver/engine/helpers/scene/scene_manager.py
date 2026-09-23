@@ -7,7 +7,7 @@ from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, N
 from nodeserver.protocols.helpers.file.node_scene_reader import SceneFileReader
 from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.engine.helpers.scene.node_manager import NodeMirrorManager
-from nodeserver.engine.protocols.node.base_nodes import ConnectionMirror, NodeMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import ConnectionMirror, NodeMirror
 
 class MirrorSceneManager:
     type_reader: TypeFileReader

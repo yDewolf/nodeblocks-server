@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 # FIXME: protocols shouldn't import engine stuff
-from nodeserver.engine.protocols.node.base_nodes import NodeMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import NodeMirror
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
 

@@ -4,10 +4,10 @@ from abc import abstractmethod
 from typing import Any, Optional
 
 from nodeserver.engine.node.node_exceptions import ReachedMaxConnections
-from nodeserver.engine.protocols.datatype.node_data import NodeData
+from nodeserver.engine.protocols.deprecated.datatype.node_data import NodeData
 from nodeserver.engine.protocols.datatype.node_data_types import BaseDataType, DataTypeUtils
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
-from nodeserver.engine.protocols.datatype.slot_types import BaseSlotType, SlotTypeUtils
+from nodeserver.engine.protocols.deprecated.datatype.slot_types import BaseSlotType, SlotTypeUtils
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodePathData
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.protocols.manifest.structs.scene_structs import Vector2

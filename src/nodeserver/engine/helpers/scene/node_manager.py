@@ -1,6 +1,6 @@
 # TODO: Refatorar os nodes, slots e conexões
 from typing import Optional
-from nodeserver.engine.protocols.node.base_nodes import NodeMirror
+from nodeserver.engine.protocols.deprecated.node.base_nodes import NodeMirror
 
 
 class NodeMirrorManager:
