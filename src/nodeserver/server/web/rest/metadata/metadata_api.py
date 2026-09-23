@@ -8,7 +8,7 @@ import aiohttp_cors
 from nodeserver.engine.internal.metadata_manager import MetadataManager
 from nodeserver.server.web.manager.session_manager import SessionManager
 from nodeserver.server.web.rest.rest_utils import BaseRequestRouter, RestUtils
-from nodeserver.protocols.metadata.metadata_header import Metadata, MetadataFileHeader
+from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataFileHeader
 
 class MetadataRequests(Enum):
     GET_HEADER = 0

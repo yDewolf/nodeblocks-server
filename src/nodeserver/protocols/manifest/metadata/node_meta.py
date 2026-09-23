@@ -1,8 +1,8 @@
 
 from pydantic import field_serializer
-from nodeserver.protocols.metadata.base_metadata import BaseMetadata
-from nodeserver.protocols.metadata.helpers.category_solvers import ResolvedCategory, ResolvedTags
-from nodeserver.protocols.metadata.nodes.node_filters import NodeCategory, NodeTag
+from nodeserver.protocols.manifest.metadata.base_meta import BaseMetadata
+from nodeserver.protocols.helpers.metadata.category_solvers import ResolvedCategory, ResolvedTags
+from nodeserver.protocols.manifest.metadata.meta_filter import MetaCategory, MetaTag
 
 class ParameterMeta(BaseMetadata):
     pass
@@ -30,18 +30,18 @@ class NodeTypeMeta(BaseMetadata):
     slot_meta: dict[str, SlotMeta] = {}
     
     @field_serializer("category")
-    def serialize_category(self, category: NodeCategory, _info):
+    def serialize_category(self, category: MetaCategory, _info):
         return category.category_id
 
     @field_serializer("tags")
-    def serialize_tags(self, tags: list[NodeTag], _info):
+    def serialize_tags(self, tags: list[MetaTag], _info):
         tag_ids = [(tag if isinstance(tag, str) else tag.tag_id) for tag in tags]
         return tag_ids
 
-DEFAULT_NODE_TAG = NodeTag(tag_id="default")
-USER_INPUT_TAG = NodeTag(tag_id="input/parameter")
+DEFAULT_NODE_TAG = MetaTag(tag_id="default")
+USER_INPUT_TAG = MetaTag(tag_id="input/parameter")
 
-DEFAULT_CATEGORY = NodeCategory(category_id="Any", description="Every node that doesn't fit in a category", default_tags=[DEFAULT_NODE_TAG])
-INPUT_CATEGORY = NodeCategory(category_id="Input", description="Nodes that receives user input", default_tags=[USER_INPUT_TAG])
-END_CATEGORY = NodeCategory(category_id="End", description="Nodes that only receives inputs and don't output anything")
+DEFAULT_CATEGORY = MetaCategory(category_id="Any", description="Every node that doesn't fit in a category", default_tags=[DEFAULT_NODE_TAG])
+INPUT_CATEGORY = MetaCategory(category_id="Input", description="Nodes that receives user input", default_tags=[USER_INPUT_TAG])
+END_CATEGORY = MetaCategory(category_id="End", description="Nodes that only receives inputs and don't output anything")
 

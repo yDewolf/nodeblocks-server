@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
 from pydantic import BeforeValidator, PlainSerializer, ValidationInfo
-from nodeserver.protocols.metadata.nodes.node_filters import NodeCategory, NodeTag
+from nodeserver.protocols.manifest.metadata.meta_filter import MetaCategory, MetaTag
 
 def solve_category(cat_value: Any, info: ValidationInfo) -> Any:
     if isinstance(cat_value, str) and info.context:
@@ -11,7 +11,7 @@ def solve_category(cat_value: Any, info: ValidationInfo) -> Any:
     
     return cat_value
 
-def serialize_category(category: NodeCategory) -> str:
+def serialize_category(category: MetaCategory) -> str:
     return category.category_id
 
 def solve_tags_list(tag_value: Any, info: ValidationInfo) -> Any:
@@ -30,17 +30,17 @@ def solve_tags_list(tag_value: Any, info: ValidationInfo) -> Any:
     
     return tag_value
 
-def serialize_tag_list(tags: list[NodeTag]) -> list[str]:
+def serialize_tag_list(tags: list[MetaTag]) -> list[str]:
     return [tag.tag_id for tag in tags]
 
 ResolvedCategory = Annotated[
-    NodeCategory,
+    MetaCategory,
     BeforeValidator(solve_category),
     PlainSerializer(serialize_category)
 ]
 
 ResolvedTags = Annotated[
-    list[NodeTag],
+    list[MetaTag],
     BeforeValidator(solve_tags_list),
     PlainSerializer(serialize_tag_list)
 ]

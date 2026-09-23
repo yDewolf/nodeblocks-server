@@ -4,9 +4,9 @@ from nodeserver.engine.instance.instance_states import InstanceStates, LoopState
 from nodeserver.server.web.requests.base_requests import BaseSocketModel
 from nodeserver.server.web.requests.notification_requests import ServerSyncNotifications
 from nodeserver.server.web.websocket_protocol import EditorActionStatus, ServerMessages, WebsocketStatus
-from nodeserver.protocols.metadata.metadata_header import Metadata, MetadataVersion
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import SceneData
-from nodeserver.protocols.nodes.helpers.file.type_dataclasses import TypeFile
+from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataVersion
+from nodeserver.protocols.manifest.node_scene_dataclasses import SceneData
+from nodeserver.protocols.manifest.type_dataclasses import TypeFile
 
 
 class SyncStatePayload(BaseSocketModel):

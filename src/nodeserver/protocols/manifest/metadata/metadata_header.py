@@ -3,9 +3,9 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_serializer, model_validator
 
-from nodeserver.protocols.metadata.nodes.datatype_metadata import DataTypeMeta
-from nodeserver.protocols.metadata.nodes.node_filters import NodeCategory, NodeTag
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
+from nodeserver.protocols.manifest.metadata.meta_filter import MetaCategory, MetaTag
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 
 class MetadataFileHeader(BaseModel):
     types_id: str
@@ -18,8 +18,8 @@ class MetadataFileHeader(BaseModel):
     # (saved from code -> when server shuts or a less frequent update signal)
     last_modified: Optional[float] = None
 
-    tags: dict[str, NodeTag] = Field(default_factory=dict)
-    categories: dict[str, NodeCategory] = Field(default_factory=dict)
+    tags: dict[str, MetaTag] = Field(default_factory=dict)
+    categories: dict[str, MetaCategory] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def resolve_internal_references(self) -> 'MetadataFileHeader':

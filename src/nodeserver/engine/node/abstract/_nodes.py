@@ -14,10 +14,10 @@ from nodeserver.engine.node.slots import NodeSlot
 from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
 from nodeserver.protocols.nodes.data.node_data import NodeData
 from nodeserver.protocols.nodes.data.node_data_types import BaseDataType, DataTypeUtils, DefaultDataTypes
-from nodeserver.protocols.metadata.nodes.node_metadata import DEFAULT_CATEGORY, NodeTypeMeta, NodeTag
+from nodeserver.protocols.manifest.metadata.node_meta import DEFAULT_CATEGORY, NodeTypeMeta, MetaTag
 from nodeserver.protocols.nodes.data.slot_types import BaseSlotType
 from nodeserver.protocols.nodes.helpers.connection_manager import ConnectionManager
-from nodeserver.protocols.nodes.helpers.file.type_dataclasses import DataTypeData, NodeParameterData, NodeParameterDataAdapter, SlotData
+from nodeserver.protocols.manifest.node.type_data import DataTypeData, NodeParameterData, NodeParameterDataAdapter, SlotData
 from nodeserver.protocols.nodes.helpers.file.typing_file_reader import ConstructorModel
 from nodeserver.protocols.nodes.helpers.node_manager import NodeMirrorManager
 from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror

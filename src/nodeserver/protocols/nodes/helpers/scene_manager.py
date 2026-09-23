@@ -1,10 +1,9 @@
 
-from pydantic import ValidationError
-
+# TODO: mover isso aqui para engine
 from nodeserver.engine.node.node_exceptions import ReachedMaxConnections
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.protocols.nodes.helpers.connection_manager import ConnectionManager
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData, SceneData
+from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodeSceneData, SceneData
 from nodeserver.protocols.nodes.helpers.file.node_scene_reader import SceneFileReader
 from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.protocols.nodes.helpers.node_manager import NodeMirrorManager

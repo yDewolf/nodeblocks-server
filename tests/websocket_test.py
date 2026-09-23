@@ -12,7 +12,7 @@ import logging
 import logging.config
 
 from nodeserver.server.web.instance.special_instance import WorkspaceAwareInput
-from nodeserver.protocols.metadata.nodes.node_metadata import INPUT_CATEGORY, NodeCategory, NodeTag, NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import INPUT_CATEGORY, MetaCategory, MetaTag, NodeTypeMeta
 from nodeserver.protocols.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.nodes.node.base_nodes import NodeMirror
 from nodeserver.protocols.utils.type_reader_utils import TypeReaderUtils
@@ -20,7 +20,7 @@ from nodeserver.protocols.utils.type_reader_utils import TypeReaderUtils
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("root")
 
-MATH_CATEGORY = NodeCategory(
+MATH_CATEGORY = MetaCategory(
     super_category=None, 
     category_id="Math", 
     description=""
@@ -79,7 +79,7 @@ class FileInputNode(BaseNode):
     _metadata: NodeTypeMeta = NodeTypeMeta(
         category=INPUT_CATEGORY,
         capitalized_name="FileInputNode",
-        tags=[NodeTag(tag_id="output/file")]
+        tags=[MetaTag(tag_id="output/file")]
     )
 
     def forward(self, input: WorkspaceAwareInput) -> _FileInput_Out:

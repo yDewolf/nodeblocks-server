@@ -1,4 +1,5 @@
 
+# TODO: mover isso aqui para engine
 from nodeserver.protocols.nodes.node.base_nodes import ConnectionMirror, SlotMirror
 
 

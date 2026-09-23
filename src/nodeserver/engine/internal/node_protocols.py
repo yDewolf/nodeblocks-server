@@ -1,7 +1,7 @@
 
 from typing import Optional, Protocol
 
-from nodeserver.protocols.nodes.helpers.file.type_dataclasses import NodeParameterData
+from nodeserver.protocols.manifest.node.type_data import NodeParameterData
 
 
 class NodeMirrorProtocol(Protocol):

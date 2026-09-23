@@ -1,10 +1,11 @@
+# TODO: mover isso aqui para engine
 import os
 from typing import Optional
 
-from nodeserver.protocols.metadata.helpers.metadata_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
-from nodeserver.protocols.metadata.metadata_header import Metadata
-from nodeserver.protocols.metadata.nodes.datatype_metadata import DataTypeMeta
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeCategory, NodeTag, NodeTypeMeta, ParameterMeta, SlotMeta
+from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
+from nodeserver.protocols.manifest.metadata.metadata_header import Metadata
+from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import MetaCategory, MetaTag, NodeTypeMeta, ParameterMeta, SlotMeta
 from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
 
 
@@ -99,8 +100,8 @@ class MetadataFile:
         if not type_reader._node_types_id: 
             raise Exception(f"TypeFile is missing node type id. Referred reader: {type_reader}")
         
-        node_categories: dict[str, NodeCategory] = {}
-        node_tags: dict[str, NodeTag] = {}
+        node_categories: dict[str, MetaCategory] = {}
+        node_tags: dict[str, MetaTag] = {}
         for type_id, constructor in type_reader.node_constructors.items():
             category = constructor._base_metadata.category
             if isinstance(category, str): continue

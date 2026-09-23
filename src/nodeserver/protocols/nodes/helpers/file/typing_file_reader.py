@@ -1,3 +1,4 @@
+# TODO: mover isso aqui para engine?
 from __future__ import annotations
 from dataclasses import dataclass
 import json
@@ -6,10 +7,10 @@ from typing import Callable, Optional
 from nodeserver.protocols.nodes.data.custom_data_types import CustomDataType
 from nodeserver.protocols.nodes.data.node_data import NodeData
 from nodeserver.protocols.nodes.data.node_data_types import BaseDataType
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.protocols.nodes.data.slot_types import BaseSlotType
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import SceneData
-from nodeserver.protocols.nodes.helpers.file.type_dataclasses import DataTypeData, NodeTypeData, SlotData, SlotTypeData, TypeFile
+from nodeserver.protocols.manifest.node.node_graph import SceneData
+from nodeserver.protocols.manifest.node.type_data import DataTypeData, NodeTypeData, SlotData, SlotTypeData, TypeFile
 from nodeserver.protocols.nodes.helpers.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
 from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror
 

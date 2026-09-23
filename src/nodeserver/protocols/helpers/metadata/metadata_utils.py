@@ -4,9 +4,9 @@ import json
 import os
 
 from nodeserver.server.utils.env_variables import get_project_root
-from nodeserver.protocols.metadata.metadata_header import Metadata, MetadataFileHeader
-from nodeserver.protocols.metadata.nodes.datatype_metadata import DataTypeMeta
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataFileHeader
+from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 import logging
 logger = logging.getLogger("nds.metadata")
 

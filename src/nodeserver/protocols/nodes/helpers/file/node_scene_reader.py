@@ -1,8 +1,9 @@
+# TODO: mover isso aqui para engine?
 from __future__ import annotations
 import json
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.protocols.nodes.node.base_nodes import NodeMirror
-from nodeserver.protocols.utils.uuid_utils import IDGenerator
+from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
 
 class SceneFileReader:

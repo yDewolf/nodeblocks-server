@@ -1,10 +1,11 @@
+# TODO: mover isso aqui para engine
 
 from typing import Any, Callable
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.protocols.nodes.data.node_data import NodeData
 from nodeserver.protocols.nodes.data.slot_types import BaseSlotType
-from nodeserver.protocols.nodes.helpers.file.type_dataclasses import SlotData
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import Vector2
+from nodeserver.protocols.manifest.node.type_data import SlotData
+from nodeserver.protocols.manifest.node.node_graph import Vector2
 from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
 
 

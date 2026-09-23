@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from nodeserver.engine.node.nodes import BaseNode
 from nodeserver.protocols.nodes.data.node_data import NodeData
 from nodeserver.protocols.nodes.data.node_data_types import INPUT_TYPE, OUTPUT_TYPE, DefaultDataTypes
-from nodeserver.protocols.nodes.helpers.file.type_dataclasses import NodeNumberParameter, NodeParameterData
+from nodeserver.protocols.manifest.node.type_data import NodeNumberParameter, NodeParameterData
 from nodeserver.protocols.nodes.node.base_nodes import NodeMirror, SlotMirror
 
 class NoInput(BaseModel):

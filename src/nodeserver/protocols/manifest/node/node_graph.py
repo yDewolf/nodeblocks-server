@@ -3,7 +3,7 @@ import uuid
 from typing import Annotated, Any, Dict, Optional
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 
 class Vector2(BaseModel):
     x: float = 0.0

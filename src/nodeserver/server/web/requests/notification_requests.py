@@ -6,7 +6,7 @@ from pydantic import Field, model_validator
 from nodeserver.server.web.requests.base_requests import BaseSocketModel
 from nodeserver.server.web.requests.client_requests import MsgSimple
 from nodeserver.server.web.websocket_protocol import ClientMessages, ServerMessages
-from nodeserver.protocols.utils.uuid_utils import IDGenerator
+from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
 class NotificationLevel(str, Enum):
     INFO = "info"

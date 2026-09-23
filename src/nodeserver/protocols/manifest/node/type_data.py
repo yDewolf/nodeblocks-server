@@ -2,7 +2,7 @@ from typing import Annotated, Literal, Optional, Dict, List, Type, Union, Any
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_serializer, model_validator
 
 from nodeserver.protocols.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 
 class DataModel(BaseModel):
     model_config = ConfigDict(

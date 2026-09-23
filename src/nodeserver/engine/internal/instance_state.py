@@ -4,8 +4,8 @@ from typing import Any, Optional
 from pydantic import BaseModel
 import logging
 
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import SceneData
-from nodeserver.protocols.nodes.helpers.file.type_dataclasses import TypeFile
+from nodeserver.protocols.manifest.node.node_graph import SceneData
+from nodeserver.protocols.manifest.node.type_data import TypeFile
 
 logger = logging.getLogger("nds.state_file")
 

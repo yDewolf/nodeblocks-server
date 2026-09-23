@@ -6,9 +6,9 @@ from typing import Callable, Optional
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from nodeserver.protocols.metadata.helpers.metadata_utils import METADATA_EXTENSION, METADATA_FOLDER_NAME, ROOT_METADATA_PATH, MetadataFileUtils
+from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_EXTENSION, METADATA_FOLDER_NAME, ROOT_METADATA_PATH, MetadataFileUtils
 from nodeserver.protocols.metadata.metadata_file import MetadataFile
-from nodeserver.protocols.metadata.metadata_header import Metadata, MetadataVersion
+from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataVersion
 from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
 
 class MetadataFolderWatchdog(FileSystemEventHandler):

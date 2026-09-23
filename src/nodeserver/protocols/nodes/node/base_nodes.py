@@ -1,3 +1,4 @@
+# TODO: mover isso aqui para engine
 from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Optional
@@ -5,11 +6,11 @@ from typing import Any, Optional
 from nodeserver.engine.node.node_exceptions import ReachedMaxConnections
 from nodeserver.protocols.nodes.data.node_data import NodeData
 from nodeserver.protocols.nodes.data.node_data_types import BaseDataType, DataTypeUtils
-from nodeserver.protocols.metadata.nodes.node_metadata import NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.protocols.nodes.data.slot_types import BaseSlotType, SlotTypeUtils
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodePathData
-from nodeserver.protocols.utils.uuid_utils import IDGenerator
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import Vector2
+from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodePathData
+from nodeserver.protocols.helpers.uuid_utils import IDGenerator
+from nodeserver.protocols.manifest.node.node_graph import Vector2
 
 class NodeMirror:
     uid: str

@@ -14,7 +14,7 @@ from nodeserver.api.web.requests.request_unions import AnyServerMessage
 from nodeserver.api.web.requests.websocket_requests import SlotOutputWrapper, SrvNodeOutput, SrvSyncAction, SrvSyncState, SyncStatePayload
 from nodeserver.api.web.websocket_protocol import ClientMessages, EditorActionStatus
 from nodeserver.engine.instance.node_scene import NodeScene
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.protocols.nodes.helpers.file.typing_file_reader import TypeFileReader
 from nodeserver.protocols.nodes.helpers.scene_manager import MirrorSceneManager
 from nodeserver.protocols.nodes.node.base_nodes import SlotMirror

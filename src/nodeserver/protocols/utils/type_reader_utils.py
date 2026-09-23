@@ -1,12 +1,13 @@
-
+# TODO: pensar no que fazer com isso aqui, talvez ele não seja mais necessário
+# se a gente implementar o registro dos Nodes usando decorators e Plugins
 from typing import Callable
 
 from nodeserver.engine.node.nodes import BaseNode
 from nodeserver.protocols.nodes.data.node_data import NodeData
 from nodeserver.protocols.nodes.data.node_data_types import BaseDataType
-from nodeserver.protocols.metadata.nodes.node_metadata import DEFAULT_CATEGORY, NodeCategory, NodeTypeMeta
+from nodeserver.protocols.manifest.metadata.node_meta import DEFAULT_CATEGORY, MetaCategory, NodeTypeMeta
 from nodeserver.protocols.nodes.data.slot_types import BaseSlotType
-from nodeserver.protocols.nodes.helpers.file.type_dataclasses import SlotData
+from nodeserver.protocols.manifest.node.type_data import SlotData
 from nodeserver.protocols.nodes.helpers.file.typing_file_reader import ConstructorModel, TypeFileReader
 from nodeserver.protocols.nodes.helpers.node_constructor import BaseMirrorConstructor, CustomMirrorConstructor
 from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror
@@ -14,7 +15,7 @@ from nodeserver.protocols.nodes.node.base_nodes import _ParsedNode, NodeMirror
 
 class TypeReaderUtils:
     @staticmethod
-    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], _ParsedNode], default_category: NodeCategory, models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
+    def make_constructors(base_types: TypeFileReader, default_slots: dict[str, SlotData], default_builder: Callable[[NodeMirror], _ParsedNode], default_category: MetaCategory, models: list[ConstructorModel]) -> list[BaseMirrorConstructor]:
         constructors: list[BaseMirrorConstructor] = []
         for model in models:
             metadata = model.base_node_metadata

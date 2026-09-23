@@ -1,3 +1,4 @@
+# TODO: mover isso aqui para engine
 from enum import Enum
 
 class DefaultDataTypes(str, Enum):

@@ -6,7 +6,7 @@ from nodeserver.engine.instance.instance_states import InstanceCommands, Instanc
 from nodeserver.server.web.requests.action_requests import ConnectionActionPayload, NodeActionPayload
 from nodeserver.server.web.requests.base_requests import BaseSocketModel
 from nodeserver.server.web.websocket_protocol import ClientMessages
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import SceneData
+from nodeserver.protocols.manifest.node_scene_dataclasses import SceneData
 
 class InstanceCommandPayload(BaseSocketModel):
     action: InstanceCommands

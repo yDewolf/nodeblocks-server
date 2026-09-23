@@ -1,3 +1,4 @@
+# TODO: mover isso aqui para engine
 from collections import deque
 
 from nodeserver.engine.node.node_exceptions import ConnRecursionException

@@ -3,7 +3,7 @@ from pydantic import Field, TypeAdapter
 
 from nodeserver.server.web.requests.base_requests import BaseSocketModel
 from nodeserver.server.web.websocket_protocol import SceneActionTypes
-from nodeserver.protocols.nodes.helpers.file.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
+from nodeserver.protocols.manifest.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
 
 # Node Action Payloads
 class NodeActionAddUpdate(BaseSocketModel):
