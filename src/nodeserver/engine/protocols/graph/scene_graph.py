@@ -3,7 +3,7 @@ from typing import Optional
 
 from nodeserver.engine.protocols.graph.connection_manager import ConnectionManager
 from nodeserver.engine.protocols.graph.node_manager import NodeManager
-from nodeserver.engine.protocols.node_instance import NodeInstance, SlotInstance
+from nodeserver.engine.protocols.node.node_instance import NodeInstance, SlotInstance
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData
 

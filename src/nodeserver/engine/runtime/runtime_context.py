@@ -2,7 +2,7 @@ import uuid
 from typing import Any, Optional
 from enum import Enum
 
-from nodeserver.engine.protocols.node_scene import NodeScene
+from nodeserver.engine.protocols.node.node_scene import NodeScene
 
 class JobStatus(Enum):
     PENDING = "pending"

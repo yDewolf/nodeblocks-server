@@ -1,7 +1,7 @@
 import hashlib
 import json
 
-from nodeserver.engine.protocols.node_instance import NodeInstance
+from nodeserver.engine.protocols.node.node_instance import NodeInstance
 from nodeserver.engine.runtime.runtime_context import GraphRunContext, NodeExecutionStatus
 
 

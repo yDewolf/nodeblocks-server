@@ -3,8 +3,8 @@ from typing import Any
 
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
 from nodeserver.engine.helpers.graph_helper import NodeGraphHelper
-from nodeserver.engine.protocols.logic_nodes import BaseNode
-from nodeserver.engine.protocols.node_instance import NodeInstance
+from nodeserver.engine.protocols.node.logic_nodes import BaseNode
+from nodeserver.engine.protocols.node.node_instance import NodeInstance
 from nodeserver.engine.runtime.extra_node_io import ContextAwareInput
 from nodeserver.engine.runtime.runtime_context import GraphRunContext, JobStatus, NodeExecutionStatus
 

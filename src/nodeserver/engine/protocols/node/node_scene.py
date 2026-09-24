@@ -2,8 +2,8 @@ from typing import Optional
 
 from nodeserver.engine.helpers.node_builder import NodeBuilder
 from nodeserver.engine.protocols.graph.scene_graph import SceneGraph
-from nodeserver.engine.protocols.logic_nodes import BaseNode
-from nodeserver.engine.protocols.node_instance import NodeInstance
+from nodeserver.engine.protocols.node.logic_nodes import BaseNode
+from nodeserver.engine.protocols.node.node_instance import NodeInstance
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData

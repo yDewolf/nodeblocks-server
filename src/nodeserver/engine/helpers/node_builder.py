@@ -2,9 +2,9 @@ from types import NoneType
 from typing import Any, Optional, Union
 import typing
 
-from nodeserver.engine.protocols.logic_nodes import BaseNode, NodeIO
-from nodeserver.engine.protocols.node_instance import NodeInstance, SlotInstance
-from nodeserver.engine.protocols.slot_spec_meta import SlotSpecMeta
+from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeIO
+from nodeserver.engine.protocols.node.node_instance import NodeInstance, SlotInstance
+from nodeserver.engine.protocols.spec_dataclasses import SlotSpecMeta
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec

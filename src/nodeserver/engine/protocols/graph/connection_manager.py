@@ -1,7 +1,7 @@
 
 from typing import Optional
 
-from nodeserver.engine.protocols.node_instance import SlotInstance
+from nodeserver.engine.protocols.node.node_instance import SlotInstance
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodePathData

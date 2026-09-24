@@ -1,7 +1,7 @@
 from collections import deque
 
-from nodeserver.engine.protocols.node_instance import NodeInstance
-from nodeserver.engine.protocols.node_scene import NodeScene
+from nodeserver.engine.protocols.node.node_instance import NodeInstance
+from nodeserver.engine.protocols.node.node_scene import NodeScene
 
 class NodeGraphHelper:
     @staticmethod

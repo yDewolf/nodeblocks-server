@@ -3,7 +3,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from nodeserver.engine.protocols.logic_node_config import LogicNodeConfig
+from nodeserver.engine.protocols.spec_dataclasses import LogicNodeConfig
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 

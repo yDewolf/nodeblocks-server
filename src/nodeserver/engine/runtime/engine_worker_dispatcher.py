@@ -1,7 +1,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
-from nodeserver.engine.protocols.node_scene import NodeScene
+from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
 from nodeserver.engine.runtime.runtime_context import GraphRunContext, JobStatus
 

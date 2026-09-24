@@ -1,6 +1,6 @@
 from typing import Type
 
-from nodeserver.engine.protocols.logic_nodes import BaseNode
+from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
