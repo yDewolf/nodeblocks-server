@@ -9,4 +9,4 @@ class SlotSpecMeta:
     max_connections: Optional[int] = None
 
 # Usage:
-# Annotated[type, SlotMeta(...)]
+# Annotated[type, SlotSpecMeta(...)]

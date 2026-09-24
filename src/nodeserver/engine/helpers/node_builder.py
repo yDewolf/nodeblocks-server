@@ -1,4 +1,5 @@
-from typing import Optional
+from types import NoneType
+from typing import Any, Optional, Union
 import typing
 
 from nodeserver.engine.protocols.logic_nodes import BaseNode, NodeIO
@@ -11,6 +12,13 @@ from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec, NodeTypeSpec
 
 class NodeBuilder:
+    TYPE_MAP = {
+        int: "core:int",
+        float: "core:float",
+        str: "core:string",
+        bool: "core:bool",
+    }
+    
     @staticmethod
     def build(type_spec: NodeTypeSpec, type_registry: TypeRegistry, node_scene_data: Optional[NodeSceneData]) -> tuple[NodeInstance, BaseNode]:
         node_scene_data = node_scene_data or NodeSceneData(uid=IDGenerator.generate_node_id(), type_id=type_spec.fqn)
@@ -43,13 +51,16 @@ class NodeBuilder:
         for field_name, field_info in model_cls.model_fields.items():
             meta, is_default = NodeBuilder._extract_slot_meta(field_info)
 
-            datatype = meta.datatype
-            max_connections = meta.max_connections or (0 if (is_collection or not is_input) else 1)
-            # TODO:
-            # if is_default:
-                # datatype = NodeBuilder._infer_datatype_from_type(field_info.annotation)
+            datatype = meta.datatype if not is_default else NodeBuilder._infer_datatype_from_type(field_info.annotation)
 
             is_collection = typing.get_origin(field_info.annotation) is list
+            max_connections: int = (
+                meta.max_connections if meta.max_connections is not None 
+                else (0 if (is_collection or not is_input) else 1)
+            )
+
+            # TODO:
+           
             slots[field_name] = SlotInstance(
                 slot_id=field_name,
                 node_id=node_uid,
@@ -61,6 +72,21 @@ class NodeBuilder:
             )
             
         return slots
+
+    @staticmethod
+    def _infer_datatype_from_type(annotation: Any) -> str:
+        origin = typing.get_origin(annotation)
+        
+        if origin is list:
+            args = typing.get_args(annotation)
+            annotation = args[0] if args else Any
+        
+        # Se for Optional[T] / Union[T, None], extrai T
+        elif origin is Union:
+            args = [arg for arg in typing.get_args(annotation) if arg is not NoneType]
+            if args: annotation = args[0]
+
+        return NodeBuilder.TYPE_MAP.get(annotation, "core:unknown") # FIXME: substituir o fqn por enum value
 
     @staticmethod
     def _extract_slot_meta(field_info) -> tuple[SlotSpecMeta, bool]:
