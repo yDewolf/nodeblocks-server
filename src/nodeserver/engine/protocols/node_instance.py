@@ -34,11 +34,11 @@ class NodeInstance:
     slots: dict[str, SlotInstance]
 
     # TODO: implementar os NodeParameters com typesafety !!
-    def __init__(self, scene_data: NodeSceneData, uid: Optional[str] = None):
+    def __init__(self, scene_data: NodeSceneData, uid: Optional[str] = None, slots: dict[str, SlotInstance] = {}):
         self.node_data = scene_data
         if uid: self.node_data.uid = uid
 
-        self.slots = {}
+        self.slots = slots
 
     @property
     def uid(self): return self.node_data.uid

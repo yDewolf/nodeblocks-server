@@ -41,7 +41,7 @@ NodePathSerialized = Annotated[
 
 class NodeSceneData(BaseModel):
     uid: str = Field(default_factory=IDGenerator.generate_node_id)
-    type_id: str
+    type_id: str # Fully qualified name
     position: Vector2 = Field(default=Vector2())
     data: Dict[str, Any] = Field(default_factory=dict) # node parameters
 

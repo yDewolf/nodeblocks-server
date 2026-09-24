@@ -1,3 +1,6 @@
+from typing import Type
+
+from nodeserver.engine.protocols.logic_nodes import BaseNode
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
@@ -8,9 +11,12 @@ class TypeRegistry:
     data_types: dict[str, DataTypeSpec]
     node_types: dict[str, NodeTypeSpec]
 
+    node_logic_classes: dict[str, Type[BaseNode]]
+
     def __init__(self):
         self.data_types = {}
         self.node_types = {}
+        self.node_logic_classes = {}
         
         self._register_core_types()
 
@@ -26,11 +32,17 @@ class TypeRegistry:
 
     # TODO: implementar os plugins para registrar automaticamente os specs aqui
     def register_data_type(self, spec: DataTypeSpec):
-        if spec.id in self.data_types:
-            raise ValueError(f"DataType '{spec.id}' is already registered")
+        if spec.fqn in self.data_types:
+            raise ValueError(f"DataType '{spec.fqn}' is already registered")
 
-        self.data_types[spec.id] = spec
+        self.data_types[spec.fqn] = spec
 
+    def register_node_type(self, spec: NodeTypeSpec, logic_class: Type[BaseNode]):
+        if spec.fqn in self.data_types:
+            raise ValueError(f"NodeType '{spec.fqn}' is already registered")
+
+        self.node_types[spec.fqn] = spec
+        self.node_logic_classes[spec.fqn] = logic_class
 
     def are_types_compatible(self, source_type: str, target_type: str) -> bool:
         source_spec = self.data_types.get(source_type)
@@ -39,3 +51,9 @@ class TypeRegistry:
             return False
 
         return DatatypeHelper.are_types_compatible(source_spec, target_spec)
+
+    def get_logic_class(self, fqn: str) -> Type[BaseNode]:
+        if not fqn in self.node_logic_classes:
+            raise KeyError(f"No logic class is registered for {fqn}")
+        
+        return self.node_logic_classes[fqn]

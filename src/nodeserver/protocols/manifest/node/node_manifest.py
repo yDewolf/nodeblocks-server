@@ -3,8 +3,9 @@ from typing import Dict, Optional
 from pydantic import Field
 
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
+from nodeserver.protocols.manifest.base_manifest import DataModel, NamespaceModel
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
-from nodeserver.protocols.manifest.node.datatypes import DataModel, DataTypeSpec, ParameterSpec
+from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec, ParameterSpec
 
 
 class NodeSlotSpec(DataModel):
@@ -17,7 +18,7 @@ class NodeSlotSpec(DataModel):
     is_input: bool
 
 
-class NodeTypeSpec(DataModel):
+class NodeTypeSpec(NamespaceModel):
     # FIXME: talvez isso aqui seja desnecessário
     default_metadata: Optional[NodeTypeMeta] = Field(default=None, exclude=True)
 

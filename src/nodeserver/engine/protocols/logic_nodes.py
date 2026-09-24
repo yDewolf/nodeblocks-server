@@ -1,12 +1,25 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict
+
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 
+class NodeIO(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 class BaseNode(ABC):
     scene_data: NodeSceneData # Should be a reference to a NodeInstance.node_data
+    class Inputs(NodeIO):
+        pass
+
+    class Outputs(NodeIO):
+        pass
+
+    InputModel: type[NodeIO] = Inputs
+    OutputModel: type[NodeIO] = Outputs
+
     class Parameters(NodeParameters):
         pass
 
@@ -18,11 +31,11 @@ class BaseNode(ABC):
         self.params = self.Parameters(**scene_data.data)
         self.params.bind_sync(self._on_param_changed)
 
-    # TODO: implementar typesafety nos inputs e outpus de novo
     @abstractmethod
-    def forward(self, inputs: dict[str, Any]) -> dict[str, Any]:
+    def forward(self, inputs: Inputs) -> Outputs:
         pass
 
+    # TODO: reimplementar o sistema de estados
     def load_state(self, state: dict[str, Any]) -> None:
         pass
 
@@ -44,3 +57,6 @@ class BaseNode(ABC):
 
     def _on_param_changed(self, param_name: str, new_value: Any) -> None:
         self.scene_data.data[param_name] = new_value
+
+    # TODO: implementar os geradores de specs para datatypes, slots e parâmetros
+    # para popular os registros dos plugins
