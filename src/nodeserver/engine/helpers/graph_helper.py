@@ -3,7 +3,6 @@ from collections import deque
 from nodeserver.engine.protocols.node_instance import NodeInstance
 from nodeserver.engine.protocols.node_scene import NodeScene
 
-
 class NodeGraphHelper:
     @staticmethod
     def _get_execution_order(scene: NodeScene) -> list[NodeInstance]:

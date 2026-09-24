@@ -1,12 +1,10 @@
-import hashlib
 import logging
-import json
 from typing import Any
 
+from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
 from nodeserver.engine.helpers.graph_helper import NodeGraphHelper
 from nodeserver.engine.protocols.logic_nodes import BaseNode
 from nodeserver.engine.protocols.node_instance import NodeInstance
-from nodeserver.engine.protocols.node_scene import NodeScene
 from nodeserver.engine.runtime.extra_node_io import ContextAwareInput
 from nodeserver.engine.runtime.runtime_context import GraphRunContext, JobStatus, NodeExecutionStatus
 
@@ -19,7 +17,7 @@ class StatelessGraphEngine:
         try:
             execution_order = NodeGraphHelper._get_execution_order(context.scene)
             for node_instance in execution_order:
-                if self._has_failed_dependencies(node_instance.uid, context):
+                if EngineRuntimeHelper._has_failed_dependencies(node_instance.uid, context):
                     context.node_status[node_instance.uid] = NodeExecutionStatus.SKIPPED
                     continue
                 
@@ -48,7 +46,7 @@ class StatelessGraphEngine:
             return False
 
         try:
-            current_hash = self._compute_node_hash(node_instance, context)
+            current_hash = EngineRuntimeHelper._compute_node_hash(node_instance, context)
             context.node_hashes[node_instance.uid] = current_hash
 
             if not logic_node.config.bypass_cache:
@@ -93,6 +91,9 @@ class StatelessGraphEngine:
             return False
     
     # Utility
+
+    # TODO: talvez implementar um registro de funções que injetam informações
+    # nos inputs do node
     def _inject_context_inputs(self, raw_inputs: dict[str, Any], logic_instance: BaseNode, context: GraphRunContext):
         if isinstance(logic_instance.InputModel, ContextAwareInput):
             raw_inputs["context"] = context
@@ -124,51 +125,3 @@ class StatelessGraphEngine:
             raw_inputs[slot_id] = values[0] if values else None
         
         return raw_inputs
-
-    def _has_failed_dependencies(self, node_uid: str, context: GraphRunContext) -> bool:
-        incoming_connections = [
-            conn for conn in context.scene.graph.all_connections.values() 
-            if conn.to_slot.node_id == node_uid
-        ]
-        
-        for conn in incoming_connections:
-            source_node_id = conn.from_slot.node_id
-            source_status = context.node_status.get(source_node_id)
-            if source_status in (NodeExecutionStatus.FAILED, NodeExecutionStatus.SKIPPED):
-                return True
-        return False
-
-
-    def _compute_node_hash(self, node_instance: NodeInstance, context: GraphRunContext) -> str:
-        state_dict = {
-            "type_id": node_instance.type_id,
-            "params": node_instance.node_data.data,
-            "input_hashes": {}
-        }
-
-        incoming_connections = context.scene.graph.get_node_connections(node_instance.uid)
-        for slot_id, slot in node_instance.slots.items():
-            if not slot.is_input:
-                continue
-            
-            slot_connections = [conn for conn in incoming_connections if conn.to_slot.slot_id == slot_id]
-            if slot.spec.max_connections == 0:  # Lista de conexões
-                # Para listas, a ordem importa, então criamos uma lista de hashes
-                hashes = []
-                # Idealmente as conexões precisam ter uma garantia de ordem (ex: conn.order_index)
-                # Assumindo que a lista incoming mantém a ordem de criação:
-                for conn in slot_connections:
-                    upstream_uid = conn.from_slot.node_id
-                    hashes.append(context.node_hashes.get(upstream_uid, "none"))
-                
-                state_dict["input_hashes"][slot_id] = hashes
-            else:
-                # Conexão única
-                if slot_connections:
-                    upstream_uid = slot_connections[0].from_slot.node_id
-                    state_dict["input_hashes"][slot_id] = context.node_hashes.get(upstream_uid, "none")
-                else:
-                    state_dict["input_hashes"][slot_id] = None
-
-        state_json = json.dumps(state_dict, sort_keys=True)
-        return hashlib.sha256(state_json.encode('utf-8')).hexdigest()
