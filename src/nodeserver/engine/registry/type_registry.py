@@ -15,20 +15,21 @@ class TypeRegistry:
         self._register_core_types()
 
     def _register_core_types(self):
-        self.register_data_type("core.int", DatatypeHelper.create_spec(DefaultDataTypes.INT, DefaultRenderers.SCALAR, ["core.float", "core.int"]))
-        self.register_data_type("core.float", DatatypeHelper.create_spec(DefaultDataTypes.FLOAT, DefaultRenderers.SCALAR))
-        self.register_data_type("core.bool", DatatypeHelper.create_spec(DefaultDataTypes.BOOLEAN, DefaultRenderers.TEXT))
-        self.register_data_type("core.array", DatatypeHelper.create_spec(DefaultDataTypes.ARRAY, DefaultRenderers.ARRAY))
-        self.register_data_type("core.file", DatatypeHelper.create_spec(DefaultDataTypes.FILE, DefaultRenderers.NOT_IMPLEMENTED))
-        self.register_data_type("core.unknown", DatatypeHelper.create_spec(DefaultDataTypes.UNKNOWN, DefaultRenderers.NOT_IMPLEMENTED))
+        # TODO: remover isso daqui e criar um plugin core
+        self.register_data_type(DatatypeHelper.create_spec("core", "int", DefaultDataTypes.INT, DefaultRenderers.SCALAR, ["core.float", "core.int"]))
+        self.register_data_type(DatatypeHelper.create_spec("core", "float", DefaultDataTypes.FLOAT, DefaultRenderers.SCALAR))
+        self.register_data_type(DatatypeHelper.create_spec("core", "bool", DefaultDataTypes.BOOLEAN, DefaultRenderers.TEXT))
+        self.register_data_type(DatatypeHelper.create_spec("core", "array", DefaultDataTypes.ARRAY, DefaultRenderers.ARRAY))
+        self.register_data_type(DatatypeHelper.create_spec("core", "file", DefaultDataTypes.FILE, DefaultRenderers.NOT_IMPLEMENTED))
+        self.register_data_type(DatatypeHelper.create_spec("core", "unknown", DefaultDataTypes.UNKNOWN, DefaultRenderers.NOT_IMPLEMENTED))
 
 
     # TODO: implementar os plugins para registrar automaticamente os specs aqui
-    def register_data_type(self, type_id: str, spec: DataTypeSpec):
-        if type_id in self.data_types:
-            raise ValueError(f"DataType '{type_id}' is already registered")
+    def register_data_type(self, spec: DataTypeSpec):
+        if spec.id in self.data_types:
+            raise ValueError(f"DataType '{spec.id}' is already registered")
 
-        self.data_types[type_id] = spec
+        self.data_types[spec.id] = spec
 
 
     def are_types_compatible(self, source_type: str, target_type: str) -> bool:

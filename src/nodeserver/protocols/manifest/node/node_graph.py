@@ -43,7 +43,7 @@ class NodeSceneData(BaseModel):
     uid: str = Field(default_factory=IDGenerator.generate_node_id)
     type_id: str
     position: Vector2 = Field(default=Vector2())
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: Dict[str, Any] = Field(default_factory=dict) # node parameters
 
 class ConnectionSceneData(BaseModel):
     model_config = ConfigDict(validate_by_name=True)

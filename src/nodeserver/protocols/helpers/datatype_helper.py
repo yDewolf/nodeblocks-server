@@ -7,8 +7,10 @@ from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 
 class DatatypeHelper:
     @staticmethod
-    def create_spec(base_id: DefaultDataTypes, renderer: DefaultRenderers, whitelist: Optional[list[str]] = None) -> DataTypeSpec:
+    def create_spec(namespace: str, id: str, base_id: DefaultDataTypes, renderer: DefaultRenderers, whitelist: Optional[list[str]] = None) -> DataTypeSpec:
         return DataTypeSpec(
+            namespace=namespace,
+            id=id,
             base_id=base_id,
             default_renderer=renderer,
             whitelist=whitelist or [base_id]

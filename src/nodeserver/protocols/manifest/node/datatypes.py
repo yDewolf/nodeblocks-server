@@ -14,12 +14,16 @@ class DataModel(BaseModel):
 
 class DataTypeSpec(DataModel):
     # TODO: implementar estilos de DataType com cor, etc (provavelmente nos baglh de metadata)
-    id: Optional[str] = Field(default=None, exclude=True)
+    id: str
+    namespace: str
 
     base_id: Optional[DefaultDataTypes] # FIXME on client: base -> base_id
     default_renderer: DefaultRenderers # TODO: Implement proper renderer solver
     whitelist: list[str] = Field(default_factory=list)
 
+    @property
+    def fqn(self) -> str:
+        return f"{self.namespace}:{self.id}"
 
 # Parameter Spec Definition
 
