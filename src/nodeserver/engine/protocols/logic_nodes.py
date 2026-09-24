@@ -3,6 +3,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
+from nodeserver.engine.protocols.logic_node_config import LogicNodeConfig
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 
@@ -11,6 +12,8 @@ class NodeIO(BaseModel):
 
 # FIXME: arrumar typesafety dos forwards usando generics aqui
 class BaseNode(ABC):
+    config: LogicNodeConfig
+
     scene_data: NodeSceneData # Should be a reference to a NodeInstance.node_data
     class Inputs(NodeIO):
         pass
@@ -66,6 +69,9 @@ class BaseNode(ABC):
 
     def _on_param_changed(self, param_name: str, new_value: Any) -> None:
         self.scene_data.data[param_name] = new_value
+
+    def _ensure_parameters_updated(self):
+        self.update_parameters(self.scene_data.data)
 
     # TODO: implementar os geradores de specs para datatypes, slots e parâmetros
     # para popular os registros dos plugins
