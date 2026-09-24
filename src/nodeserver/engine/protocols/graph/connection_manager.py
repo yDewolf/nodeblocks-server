@@ -50,6 +50,7 @@ class ConnectionManager:
         return self._connections.get(connection_uid, None)
 
     def get_by_node(self, node_id: str) -> list[ConnectionSceneData]:
+        # FIXME: talvez fazer um cache disso aqui
         return [
             conn for conn in self._connections.values()
             if conn.from_slot.node_id == node_id or conn.to_slot.node_id == node_id

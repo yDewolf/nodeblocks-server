@@ -9,6 +9,7 @@ from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 class NodeIO(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+# FIXME: arrumar typesafety dos forwards usando generics aqui
 class BaseNode(ABC):
     scene_data: NodeSceneData # Should be a reference to a NodeInstance.node_data
     class Inputs(NodeIO):
@@ -32,7 +33,15 @@ class BaseNode(ABC):
         self.params.bind_sync(self._on_param_changed)
 
     @abstractmethod
+    def pre_forward(self, inputs: Inputs) -> None:
+        pass
+
+    @abstractmethod
     def forward(self, inputs: Inputs) -> Outputs:
+        pass
+
+    @abstractmethod
+    def post_forward_cleanup(self):
         pass
 
     # TODO: reimplementar o sistema de estados
