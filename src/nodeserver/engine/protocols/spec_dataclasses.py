@@ -8,8 +8,12 @@ from typing import Optional, Union
 
 @dataclass
 class SlotSpecMeta:
+    # Usage inside a NodeIO:
+    # slot_name = Annotated[type, SlotSpecMeta(...)]
+    
     datatype: Union[str, DataTypeSpec]
     max_connections: Optional[int] = None
+    required: bool = False
 
 
 @dataclass
