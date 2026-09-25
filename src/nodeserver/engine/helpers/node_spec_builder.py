@@ -10,6 +10,9 @@ from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec, ParameterSpec, ParameterSpecAdapter
 from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec, NodeTypeSpec
+import logging
+
+logger = logging.getLogger("nds.spec")
 
 # Importante considerar: essa classe não gera datatypes
 # na implementação anterior a gente gerava os datatypes 
@@ -97,8 +100,8 @@ class NodeSpecBuilder:
                 # "label": field_info.title or field_name,
                 "default": field_info.default if not field_info.is_required() else None,
                 "required": field_info.is_required(),
-                "datatype_fqn": datatype_spec.fqn,
                 **args.model_dump(exclude_none=True),
+                "datatype_fqn": datatype_spec.fqn,
             }
 
             param_specs[field_name] = ParameterSpecAdapter.validate_python(spec_data)
@@ -131,8 +134,13 @@ class NodeSpecBuilder:
 
             return self._infer_datatype_from_type(args[0])
 
-        return self.registry.get_datatype_by_annotation(annotation)
-    
+        try:
+            return self.registry.get_datatype_by_annotation(annotation)
+        except KeyError as e:
+            logger.error(f"Couldn't find datatype for {annotation}")
+
+        return None
+
     @classmethod
     def _extract_slot_meta(cls, field_info: FieldInfo) -> tuple[SlotSpecMeta, bool]:
         for meta in field_info.metadata:

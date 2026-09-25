@@ -11,10 +11,6 @@ class DataTypeSpec(NamespaceModel):
     default_renderer: DefaultRenderers # TODO: Implement proper renderer solver
     whitelist: list[str] = Field(default_factory=list)
 
-    @property
-    def fqn(self) -> str:
-        return f"{self.namespace}:{self.id}"
-
 # Parameter Spec Definition
 
 class BaseParameterSpec(DataModel):
@@ -57,7 +53,7 @@ class FileParam(BaseParameterSpec):
 
 
 class GenericParameterSpec(BaseParameterSpec):
-    type: Literal[DefaultDataTypes.UNKNOWN] | Literal[DefaultDataTypes.CUSTOM] | Literal[DefaultDataTypes.ARRAY]
+    type: Literal[DefaultDataTypes.UNKNOWN] | Literal[DefaultDataTypes.CUSTOM] | Literal[DefaultDataTypes.ARRAY] | Literal[DefaultDataTypes.TEXT]
 
 
 ParameterSpec = Annotated[

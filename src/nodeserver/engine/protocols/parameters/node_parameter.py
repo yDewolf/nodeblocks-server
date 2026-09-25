@@ -1,13 +1,14 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, TypedDict
 
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel, ConfigDict, PrivateAttr
 
 
 # Any BaseNode's Parameters class should inherit this
 class NodeParameters(BaseModel):
-    _on_change: Optional[Callable[[str, Any], None]] = PrivateAttr(default=None)
+    model_config: ConfigDict = ConfigDict(arbitrary_types_allowed=True)
 
+    _on_change: Optional[Callable[[str, Any], None]] = PrivateAttr(default=None)
     def bind_sync(self, callback: Callable[[str, Any], None]) -> None:
         self._on_change = callback
 

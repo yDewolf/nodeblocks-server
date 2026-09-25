@@ -24,13 +24,14 @@ class TypeRegistry:
         self._register_core_types()
 
     def _register_core_types(self):
+        pass
         # TODO: remover isso daqui e criar um plugin core
-        self.register_data_type(DatatypeHelper.create_spec("core", "int", DefaultDataTypes.INT, DefaultRenderers.SCALAR, ["core.float", "core.int"]))
-        self.register_data_type(DatatypeHelper.create_spec("core", "float", DefaultDataTypes.FLOAT, DefaultRenderers.SCALAR))
-        self.register_data_type(DatatypeHelper.create_spec("core", "bool", DefaultDataTypes.BOOLEAN, DefaultRenderers.TEXT))
-        self.register_data_type(DatatypeHelper.create_spec("core", "array", DefaultDataTypes.ARRAY, DefaultRenderers.ARRAY))
-        self.register_data_type(DatatypeHelper.create_spec("core", "file", DefaultDataTypes.FILE, DefaultRenderers.NOT_IMPLEMENTED))
-        self.register_data_type(DatatypeHelper.create_spec("core", "unknown", DefaultDataTypes.UNKNOWN, DefaultRenderers.NOT_IMPLEMENTED))
+        # self.register_data_type(DatatypeHelper.create_spec("core", "int", DefaultDataTypes.INT, DefaultRenderers.SCALAR, ["core.float", "core.int"]))
+        # self.register_data_type(DatatypeHelper.create_spec("core", "float", DefaultDataTypes.FLOAT, DefaultRenderers.SCALAR))
+        # self.register_data_type(DatatypeHelper.create_spec("core", "bool", DefaultDataTypes.BOOLEAN, DefaultRenderers.TEXT))
+        # self.register_data_type(DatatypeHelper.create_spec("core", "array", DefaultDataTypes.ARRAY, DefaultRenderers.ARRAY))
+        # self.register_data_type(DatatypeHelper.create_spec("core", "file", DefaultDataTypes.FILE, DefaultRenderers.NOT_IMPLEMENTED))
+        # self.register_data_type(DatatypeHelper.create_spec("core", "unknown", DefaultDataTypes.UNKNOWN, DefaultRenderers.NOT_IMPLEMENTED))
 
 
     # TODO: implementar os plugins para registrar automaticamente os specs aqui
@@ -77,7 +78,7 @@ class TypeRegistry:
         return self.data_types[fqn]
 
     def get_datatype_by_annotation(self, py_type: type) -> Optional[DataTypeSpec]:
-        if not py_type in self.data_types:
+        if not py_type in self.python_type_map:
             raise KeyError(f"No DataTypeSpec is registered as {py_type}")
         
         return self.python_type_map.get(py_type)
