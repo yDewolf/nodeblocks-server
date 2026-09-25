@@ -1,0 +1,83 @@
+from enum import Enum
+import json
+import logging
+
+from nodeserver.engine.instance.actions.action_controller import Action
+from nodeserver.server.web.requests.notification_requests import ClientSyncNotifications, MsgUpdateNotification, ServerSyncNotifications
+from nodeserver.server.web.requests.request_unions import AnyServerMessage
+from nodeserver.server.web.requests.websocket_requests import SrvSyncScene, SrvVersionSync
+from nodeserver.server.web.session.user_session import UserSession
+from nodeserver.server.web.websocket_messages import ClientMessageWrapper
+from nodeserver.server.web.requests.client_requests import MsgConnectionAction, MsgInstanceCommand, MsgInstanceState, MsgLoadScene, MsgLoopState, MsgNodeAction, MsgSimple, MsgSyncVersions
+from nodeserver.server.web.websocket_protocol import ClientMessages
+from nodeserver.engine.instance.server_instance import ServerInstance
+
+COMMAND_LOGGER = logging.getLogger("nds.commands")
+class BaseMessagerouter:
+    def route_message(self, message: ClientMessageWrapper, instance: ServerInstance, session: UserSession) -> AnyServerMessage | None:
+        COMMAND_LOGGER.info(f"Routing command: {message.msg.type}")
+
+        if isinstance(message.msg, MsgSimple):
+            if message.msg.type == ClientMessages.SYNC_CLIENT_SCENE:
+                scene_data = instance._scene.mirror_manager.get_scene()
+                return SrvSyncScene(
+                    payload=scene_data
+                )
+            
+            if message.msg.type == ClientMessages.SYNC_NOTIFICATIONS:
+                notification_data = session.workspace.notification_controller.get_unread_notifications()
+                if len(notification_data) > 0:
+                    return ServerSyncNotifications(
+                        notifications=notification_data
+                    )
+        elif isinstance(message.msg, MsgSyncVersions):
+            type_data = instance.mirror_manager.type_reader.serialize()
+            mismatch_type = False
+            
+            if type_data.package_id != message.msg.types_id:
+                mismatch_type = True
+
+            if message.msg.types_version:
+                if type_data.version > message.msg.types_version:
+                    mismatch_type = True
+
+            metadata = None # TODO:
+            return SrvVersionSync(
+                types=type_data if mismatch_type else None,
+                metadata=metadata
+            )
+            
+        elif isinstance(message.msg, MsgInstanceState):
+            instance.state_controller.queue_state(message.msg.payload.state)
+
+        elif isinstance(message.msg, MsgLoopState):
+            instance.state_controller.queue_loop_state(message.msg.payload.state)
+        
+        elif isinstance(message.msg, MsgInstanceCommand):
+            instance.state_controller.queue_command(message.msg.payload.action)
+
+        elif isinstance(message.msg, MsgNodeAction):
+            action = Action(
+                uid=message.msg.action_uid,
+                message=message,
+                type=message.msg.payload.action,
+                target_type=message.msg.type
+            )
+            instance.action_controller.queue_action(action)
+
+        elif isinstance(message.msg, MsgConnectionAction):
+            action = Action(
+                uid=message.msg.action_uid,
+                message=message,
+                type=message.msg.payload.action,
+                target_type=message.msg.type
+            )
+            instance.action_controller.queue_action(action)
+
+        elif isinstance(message.msg, MsgLoadScene):
+            instance.load_new_scene(message.msg.payload)
+
+        elif isinstance(message.msg, MsgUpdateNotification):
+            session.workspace.notification_controller.update_notification(message.msg.payload)
+
+        return None

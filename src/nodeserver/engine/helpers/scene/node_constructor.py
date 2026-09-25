@@ -1,0 +1,72 @@
+# TODO: Refatorar os nodes, slots e conexões
+
+from typing import Any, Callable
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
+from nodeserver.engine.protocols.deprecated.datatype.node_data import NodeData
+from nodeserver.engine.protocols.deprecated.datatype.slot_types import BaseSlotType
+from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec
+from nodeserver.protocols.manifest.structs.scene_structs import Vector2
+from nodeserver.engine.protocols.deprecated.node.base_nodes import _ParsedNode, NodeMirror, SlotMirror
+
+
+def _default_build_func(mirror: NodeMirror) -> _ParsedNode:
+    return _ParsedNode(mirror)
+
+class BaseMirrorConstructor:
+    type_id: str
+
+    _data_model: NodeData
+    _base_metadata: NodeTypeMeta
+    _slots: dict[str, NodeSlotSpec]
+    _slot_types: dict[str, BaseSlotType]
+
+    _builder_func: Callable[[NodeMirror], _ParsedNode]
+
+    def __init__(self, type_id: str, base_metadata: NodeTypeMeta, builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
+        self.type_id = type_id
+        self._base_metadata = base_metadata
+        self._builder_func = builder_func
+
+        self._data_model = NodeData({})
+        self._slots = {}
+        self._slot_types = {}
+    
+    def make_node_mirror(self, node_name: str, id: str, node_data: dict[str, Any], metadata: NodeTypeMeta, _position: Vector2) -> NodeMirror | None:
+        mirror = NodeMirror(node_name, NodeData.from_model(self._data_model), metadata, id, self.type_id, _position)
+        mirror.data.parse_parameters(node_data)
+
+        for slot_id in self._slots:
+            slot_data = self._slots[slot_id]
+            new_slot = self.make_slot_mirror(mirror, slot_id, slot_data)
+            if not new_slot:
+                return None
+
+            mirror.add_slot(new_slot)
+        
+        return mirror
+
+
+    def make_slot_mirror(self, parent_node: NodeMirror, slot_id: str, slot_data: NodeSlotSpec):
+        slot_type_str = slot_data.type if slot_data.type != None else ""
+        slot_type = self._slot_types.get(slot_type_str)
+        if not slot_type:
+            raise Exception(f"Slot Type isn't indexed in Node Constructor. SlotType: {slot_type}; Parent Node: {parent_node}")
+
+        return SlotMirror(
+            parent_node,
+            slot_id,
+            slot_type,
+            slot_data.is_input,
+            slot_data.max_connections if slot_data.max_connections else 0
+        )
+
+    def build_node(self, mirror: NodeMirror) -> _ParsedNode:
+        return self._builder_func(mirror)
+
+class CustomMirrorConstructor(BaseMirrorConstructor):
+    def __init__(self, type_id: str, data: NodeData, metadata: NodeTypeMeta, slot_types: dict[str, BaseSlotType], slots: dict[str, NodeSlotSpec], builder_func: Callable[[NodeMirror], _ParsedNode] = _default_build_func) -> None:
+        super().__init__(type_id, metadata, builder_func)
+
+        self._data_model = data
+        self._slots = slots
+        self._slot_types = slot_types

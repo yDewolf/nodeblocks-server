@@ -2,12 +2,11 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where=["src"]
-
 [project]
 name = "nodeserver"
-version = "0.0.1"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.13"
 dependencies = [
     "aiohttp>=3.13.5",
     "aiohttp_cors>=0.8.1",
@@ -17,3 +16,20 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "watchdog>=6.0.0"
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest]
+pythonpath = ["src"]
+testpaths = ["tests/nodeserver"] 
+addopts = [
+    "--import-mode=importlib",
+]
+
+
+
+[tool.setuptools.packages.find]
+where=["src"]

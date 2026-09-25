@@ -1,0 +1,226 @@
+
+import logging
+from typing import Any, Optional
+
+from pydantic import BaseModel
+
+from nodeserver.engine.instance.node_scene import NodeScene
+from nodeserver.engine.internal.internal_protocols import InstanceProtocol
+from nodeserver.engine.node.abstract._nodes import _Node
+from nodeserver.engine.node.abstract._slots import _SlotIO
+from nodeserver.engine.node.node_exceptions import ConnRecursionException
+from nodeserver.api.web.requests.notification_requests import NotificationLevel, ServerNotification
+from nodeserver.engine.protocols.deprecated.node.base_nodes import NodeMirror, SlotMirror
+from nodeserver.engine.protocols.deprecated.node.node_utils import NodeMirrorUtils
+
+logger = logging.getLogger("nds.instances")
+
+class _ReadonlyContext:
+    _scene: Optional[NodeScene] = None
+    _current_idx: int
+    _process_order: list[NodeMirror]
+    _output_cache: dict[SlotMirror, _SlotIO]
+
+    _node_execution_cache: dict[str, int]
+
+    _processed_nodes: list[_Node]
+    @property
+    def processed_nodes(self) -> list[_Node]:
+        return self._processed_nodes
+
+    def __init__(
+            self, 
+            scene: Optional[NodeScene], 
+            current_idx: int = 0, 
+            output_cache: dict[SlotMirror, _SlotIO] = {}, 
+            execution_cache: dict[str, int] = {}, 
+            process_order: list[NodeMirror] = [], 
+            processed_nodes: list[_Node] = [],
+    ) -> None:
+        self._scene = scene
+        
+        self._current_idx = current_idx
+        self._output_cache = output_cache
+        self._node_execution_cache = execution_cache
+        self._process_order = process_order
+        self._processed_nodes = processed_nodes
+    
+    def _get_current_node(self, scene: NodeScene) -> Optional[_Node]:
+        if self._current_idx == None or not self._process_order:
+            return None
+        
+        if self.finished_loop():
+            return None
+        
+        current_node = scene.get_node(self._process_order[self._current_idx].uid)
+        if not isinstance(current_node, _Node):
+            raise Exception(f"Node {current_node} doesn't extend {_Node}")
+        
+        if current_node == None:
+            return None
+    
+        return current_node
+
+    def _get_cached_outputs(self, node: _Node) -> dict[SlotMirror, _SlotIO]:
+        return {
+            slot: self._output_cache[slot]
+            for slot in node._mirror.outputs
+            if slot in self._output_cache
+        }
+
+    def finished_loop(self) -> bool:
+        return self._current_idx >= len(self._process_order)
+
+    def readonly(self):
+        return self
+
+class ContextAwareInput(BaseModel):
+    class Config:
+        arbitrary_types_allowed=True
+
+    _context: Optional[_ReadonlyContext] = None
+
+class RuntimeContext(_ReadonlyContext):
+    def __init__(self, scene: NodeScene) -> None:
+        super().__init__(
+            scene,
+            process_order=NodeMirrorUtils.get_node_execution_order(scene.nodes)
+        )
+
+    def update_scene(self, scene: NodeScene):
+        self._scene = scene
+        new_process_order = NodeMirrorUtils.get_node_execution_order(scene.nodes)
+        if new_process_order != self._process_order:
+            self._reset_cache()
+            self._process_order = new_process_order
+            self._current_idx = 0
+    
+    def loop(self):
+        self._current_idx = 0
+        self._processed_nodes.clear()
+
+    def _reset_cache(self):
+        self._node_execution_cache.clear()
+        self._output_cache.clear()
+        self._processed_nodes.clear()
+    
+    def _add_to_processed(self, node: _Node):
+        if self._processed_nodes.__contains__(node):
+            raise Exception(f"Node was already processed {node._mirror.uid}")
+        
+        self._processed_nodes.append(node)
+
+    # TODO: update this to grab value_meta from outputs
+    def _update_outputs(self, node: _Node, outputs: dict[str, Any]) -> dict[SlotMirror, _SlotIO]:
+        output_data: dict[SlotMirror, _SlotIO] = {}
+        for slot_id in outputs:
+            slot = node.slot(slot_id)
+            if slot._mirror.is_input:
+                logger.error(f"ERROR: Outputs should always come from an Output slot | Slot: {slot} | Node: {node}")
+
+            slot_io = slot.set_output_value(outputs[slot_id])
+            output_data[slot._mirror] = slot_io
+            self._output_cache[slot._mirror] = slot_io
+
+        self._add_to_processed(node)
+        return output_data
+
+    def readonly(self):
+        return _ReadonlyContext(
+            scene=self._scene,
+            current_idx=self._current_idx,
+            output_cache=self._output_cache,
+            execution_cache=self._node_execution_cache,
+            process_order=self._process_order,
+            processed_nodes=self.processed_nodes
+        )
+
+class InstanceRuntime:
+    context: Optional[RuntimeContext] = None
+    waiting_to_continue: bool
+    def __init__(self):
+        self.waiting_to_continue = False
+        
+    def process_next(self, node_scene: NodeScene, instance_protocol: InstanceProtocol) -> Optional[tuple[dict[SlotMirror, _SlotIO] | None, _Node, bool]]:
+        if not self.context: return
+        if self.context.finished_loop():
+            self.waiting_to_continue = True
+            return
+
+        current_node = self.context._get_current_node(node_scene)
+        if not current_node or self.context._current_idx == None: 
+            return
+        self.context._current_idx += 1
+        
+        node_parameters, errors = current_node._ensure_parameters_updated()
+        # FIXME: improve this error handling
+        if errors:
+            for error in errors:
+                instance_protocol.send_to_client(ServerNotification.param_notify(
+                    node_uid=current_node._mirror.uid,
+                    param_id=error.parameter._field_id,
+                    message="Parameter Error",
+                    level=NotificationLevel.ERROR,
+                    description=str(error)
+                ))
+            return
+
+        current_hash = current_node.get_execution_hash(self.context._output_cache)
+        last_hash = self.context._node_execution_cache.get(current_node._mirror.uid)
+        if current_hash == last_hash and not current_node.bypass_cache:
+            return (self.context._get_cached_outputs(current_node), current_node, True)
+
+        try:
+            raw_node_inputs = current_node.resolve_inputs(self.context._output_cache, instance_protocol)
+            node_inputs: BaseModel = current_node._parse_inputs(raw_node_inputs)
+            self.insert_extra_input_data(node_inputs)
+            
+            current_node.pre_forward(node_inputs) # Node might set bypass cache to True here
+            
+            node_output: BaseModel = current_node.forward(node_inputs)
+            output_model: dict[str, Any] = node_output.model_dump()
+            output_data = self.context._update_outputs(current_node, output_model)
+
+            current_node.post_forward()
+            self.context._node_execution_cache[current_node._mirror.uid] = current_hash
+            return (output_data, current_node, False)
+
+        except Exception as e:
+            logger.error(e)
+            instance_protocol.send_to_client(ServerNotification.node_notify(
+                node_uid=current_node._mirror.uid,
+                message="Something went wrong",
+                level=NotificationLevel.ERROR,
+                description=str(e)
+            ))
+
+    def continue_process(self, scene: NodeScene, instance_protocol: InstanceProtocol):
+        self.waiting_to_continue = False
+        if self.context:
+            self.on_scene_update(scene, instance_protocol)
+            self.context.loop()
+
+    
+    def validate_scene(self, node_scene: NodeScene):
+        pass
+
+    def on_scene_update(self, scene: NodeScene, instance_protocol: InstanceProtocol):
+        try:
+            if not self.context:
+                self.context = RuntimeContext(
+                    scene=scene,
+                )
+            self.context.update_scene(scene)
+        except ConnRecursionException as e:
+            logger.error(f"Recursion error for nodes {e.problematic_nodes}")
+            for mirror in e.problematic_nodes:
+                instance_protocol.send_to_client(ServerNotification.node_notify(
+                    node_uid=mirror.uid,
+                    message="Node is causing recursion",
+                    level=NotificationLevel.ERROR
+                ))
+    
+    def insert_extra_input_data(self, node_inputs: BaseModel) -> None:
+        if isinstance(node_inputs, ContextAwareInput) and self.context:
+            node_inputs._context = self.context.readonly()
+        

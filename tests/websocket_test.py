@@ -3,24 +3,25 @@ from typing import Annotated, Optional
 
 from pydantic import BaseModel
 
-from nodeserver.api.base_server import NodeServer
-from nodeserver.api.node.node_parameters import BooleanParam, FileParam, OptionParam, Param
-from nodeserver.api.node.nodes import BaseNode
-from nodeserver.api.node.slots import Input, Output
+from nodeserver.protocols.enums.datatype_enums import DefaultRenderers
+from nodeserver.server.base_server import NodeServer
+from nodeserver.engine.node.node_parameters import BooleanParam, FileParam, OptionParam, Param
+from nodeserver.engine.node.nodes import BaseNode
+from nodeserver.engine.node.slots import Input, Output
 
 import logging
 import logging.config
 
-from nodeserver.api.web.instance.special_instance import WorkspaceAwareInput
-from nodeserver.wrapper.metadata.nodes.node_metadata import INPUT_CATEGORY, NodeCategory, NodeTag, NodeTypeMeta
-from nodeserver.wrapper.nodes.data.node_data_types import DefaultDataTypes, DefaultRenderers
-from nodeserver.wrapper.nodes.node.base_nodes import NodeMirror
-from nodeserver.wrapper.utils.type_reader_utils import TypeReaderUtils
+from nodeserver.server.web.instance.special_instance import WorkspaceAwareInput
+from nodeserver.protocols.manifest.metadata.node_meta import INPUT_CATEGORY, MetaCategory, MetaTag, NodeTypeMeta
+from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
+from nodeserver.engine.protocols.deprecated.node.base_nodes import NodeMirror
+from nodeserver.protocols.utils.type_reader_utils import TypeReaderUtils
 
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("root")
 
-MATH_CATEGORY = NodeCategory(
+MATH_CATEGORY = MetaCategory(
     super_category=None, 
     category_id="Math", 
     description=""
@@ -79,7 +80,7 @@ class FileInputNode(BaseNode):
     _metadata: NodeTypeMeta = NodeTypeMeta(
         category=INPUT_CATEGORY,
         capitalized_name="FileInputNode",
-        tags=[NodeTag(tag_id="output/file")]
+        tags=[MetaTag(tag_id="output/file")]
     )
 
     def forward(self, input: WorkspaceAwareInput) -> _FileInput_Out:
