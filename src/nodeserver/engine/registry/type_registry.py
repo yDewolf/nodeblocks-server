@@ -45,7 +45,7 @@ class TypeRegistry:
     
 
     def register_node_type(self, spec: NodeTypeSpec, logic_class: Type[BaseNode]):
-        if spec.fqn in self.data_types:
+        if spec.fqn in self.node_types:
             raise ValueError(f"NodeType '{spec.fqn}' is already registered")
 
         self.node_types[spec.fqn] = spec
@@ -59,7 +59,7 @@ class TypeRegistry:
 
         return DatatypeHelper.are_types_compatible(source_spec, target_spec)
 
-    def get_node_spec(self, fqn: str) -> NodeTypeSpec:
+    def get_node_type_spec(self, fqn: str) -> NodeTypeSpec:
         if not fqn in self.node_types:
             raise KeyError(f"No NodeTypeSpec is registerd as {fqn}")
         

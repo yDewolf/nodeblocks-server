@@ -18,7 +18,7 @@ logger = logging.getLogger("nds.spec")
 # na implementação anterior a gente gerava os datatypes 
 # usando os próprios slots do BaseNode. Agora os datatypes
 # devem ser declarados obrigatoriamente pelos Plugins (TODO)
-class NodeSpecBuilder:
+class  NodeSpecBuilder:
     CORE_UNKNOWN_FQN = "core:unknown"
 
     def __init__(self, registry: TypeRegistry) -> None:

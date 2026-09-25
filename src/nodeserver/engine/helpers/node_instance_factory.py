@@ -17,7 +17,7 @@ class NodeInstanceFactory:
         node_fqn: str, 
         node_scene_data: Optional[NodeSceneData] = None
     ) -> tuple[NodeInstance, BaseNode]:
-        spec = self.registry.get_node_spec(node_fqn)
+        spec = self.registry.get_node_type_spec(node_fqn)
         if not spec: raise ValueError(f"Unknown node type: {node_fqn}")
 
         node_scene_data = node_scene_data or NodeSceneData(
