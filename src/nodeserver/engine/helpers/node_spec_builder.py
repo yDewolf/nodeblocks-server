@@ -11,6 +11,10 @@ from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec, ParameterSpec, ParameterSpecAdapter
 from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec, NodeTypeSpec
 
+# Importante considerar: essa classe não gera datatypes
+# na implementação anterior a gente gerava os datatypes 
+# usando os próprios slots do BaseNode. Agora os datatypes
+# devem ser declarados obrigatoriamente pelos Plugins (TODO)
 class NodeSpecBuilder:
     CORE_UNKNOWN_FQN = "core:unknown"
 
@@ -18,8 +22,8 @@ class NodeSpecBuilder:
         self.registry = registry
 
     def build_node_spec(self, namespace: str, id: str, node_cls: type[BaseNode]) -> NodeTypeSpec:
-        inputs = self._generate_specs_for_slots(node_cls.Inputs, is_input=True)
-        outputs = self._generate_specs_for_slots(node_cls.Outputs, is_input=False)
+        inputs = self._generate_specs_for_slots(node_cls.InputModel, is_input=True)
+        outputs = self._generate_specs_for_slots(node_cls.OutputModel, is_input=False)
         parameters = self._generate_specs_for_parameters(node_cls.Parameters)
 
         return NodeTypeSpec(

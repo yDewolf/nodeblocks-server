@@ -10,19 +10,16 @@ from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 class NodeIO(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+class NodeInputs(NodeIO): pass
+class NodeOutputs(NodeIO): pass
+
 # FIXME: arrumar typesafety dos forwards usando generics aqui
 class BaseNode(ABC):
     config: LogicNodeConfig
 
     scene_data: NodeSceneData # Should be a reference to a NodeInstance.node_data
-    class Inputs(NodeIO):
-        pass
-
-    class Outputs(NodeIO):
-        pass
-
-    InputModel: type[NodeIO] = Inputs
-    OutputModel: type[NodeIO] = Outputs
+    InputModel: type[NodeIO] = NodeInputs
+    OutputModel: type[NodeIO] = NodeOutputs
 
     class Parameters(NodeParameters):
         pass
@@ -36,11 +33,11 @@ class BaseNode(ABC):
         self.params.bind_sync(self._on_param_changed)
 
     @abstractmethod
-    def pre_forward(self, inputs: Inputs) -> None:
+    def pre_forward(self, inputs: NodeInputs) -> None:
         pass
 
     @abstractmethod
-    def forward(self, inputs: Inputs) -> Outputs:
+    def forward(self, inputs: NodeInputs) -> NodeOutputs:
         pass
 
     @abstractmethod
@@ -72,6 +69,3 @@ class BaseNode(ABC):
 
     def _ensure_parameters_updated(self):
         self.update_parameters(self.scene_data.data)
-
-    # TODO: implementar os geradores de specs para datatypes, slots e parâmetros
-    # para popular os registros dos plugins

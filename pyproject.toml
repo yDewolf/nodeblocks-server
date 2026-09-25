@@ -17,5 +17,19 @@ dependencies = [
     "watchdog>=6.0.0"
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest]
+pythonpath = ["src"]
+testpaths = ["tests/nodeserver"] 
+addopts = [
+    "--import-mode=importlib",
+]
+
+
+
 [tool.setuptools.packages.find]
 where=["src"]
