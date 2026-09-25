@@ -23,12 +23,16 @@ class BaseParameterSpec(DataModel):
     default: Optional[Any] = None
     required: bool = False
 
+    datatype_fqn: str
     # FIXME: this field should be excluded only when sending to client
     raw_io_type: Optional[Type[Any]] = Field(default=None, exclude=True)
 
 class _NumberParameter(BaseParameterSpec):
     type: Literal[DefaultDataTypes.FLOAT] | Literal[DefaultDataTypes.UINT] | Literal[DefaultDataTypes.INT]
-    range: Optional[List[Union[float, int]]] = None
+    # range: Optional[List[Union[float, int]]] = None # FIXME on client: range -> min, max
+    min: Optional[float] = None
+    max: Optional[float] = None
+
     step: Optional[float] = None
 
 
@@ -44,7 +48,7 @@ class BooleanParam(BaseParameterSpec):
 class OptionParam(BaseParameterSpec):
     type: Literal[DefaultDataTypes.OPTIONS]
 
-    option_type: DefaultDataTypes
+    # option_type: DefaultDataTypes # FIXME on client: assume options are of type: datatype_fqn
     options: list[Any]
 
 class FileParam(BaseParameterSpec):

@@ -17,13 +17,15 @@ class NodeScene:
     graph: SceneGraph
 
     _logic_nodes: dict[str, BaseNode] # TODO?: talvez fazer um submanager para isso
+    _node_builder: NodeBuilder
 
     def __init__(self, registry: TypeRegistry):
         self.scene_id = str(IDGenerator.generate_generic_id())
-        self.registry = registry
         self.graph = SceneGraph(registry)
-
         self._logic_nodes = {}
+        
+        self.registry = registry
+        self._node_builder = NodeBuilder(registry)
 
 
     # TODO: talvez passar só a posição do node, etc.
@@ -33,7 +35,7 @@ class NodeScene:
         if not spec:
             raise ValueError(f"Unknown node type: {node_fqn}")
 
-        node_instance, logic_node = NodeBuilder.build(spec, self.registry, node_scene_data)
+        node_instance, logic_node = self._node_builder.build_instance(spec, node_scene_data)
         
         self._logic_nodes[node_instance.uid] = logic_node
         self.graph.add_node(node_instance)

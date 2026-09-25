@@ -1,4 +1,5 @@
-from typing import Any, Callable, Optional
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, TypedDict
 
 from pydantic import BaseModel, PrivateAttr
 
@@ -15,3 +16,15 @@ class NodeParameters(BaseModel):
         
         if not name.startswith("_") and self._on_change:
             self._on_change(name, getattr(self, name))
+
+
+class ParamArguments(BaseModel):
+    datatype_fqn: str
+    required: bool = True
+
+    step: Optional[float] = None
+    min: Optional[float] = None
+    max: Optional[float] = None
+
+    options: Optional[list] = None
+    extension_filter: Optional[list[str]] = None
