@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import ClassVar, Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -13,17 +13,17 @@ class NodeIO(BaseModel):
 class NodeInputs(NodeIO): pass
 class NodeOutputs(NodeIO): pass
 
-# FIXME: arrumar typesafety dos forwards usando generics aqui
-class BaseNode(ABC):
+
+class BaseNode[inputModel: NodeInputs, outputModel: NodeOutputs](ABC):
     config: LogicNodeConfig
 
     scene_data: NodeSceneData # Should be a reference to a NodeInstance.node_data
-    InputModel: type[NodeIO] = NodeInputs
-    OutputModel: type[NodeIO] = NodeOutputs
-
+    InputModel: ClassVar[type[NodeInputs]] = NodeInputs
+    OutputModel: ClassVar[type[NodeOutputs]] = NodeOutputs
+    
     class Parameters(NodeParameters):
         pass
-
+    
     params: Parameters
 
     def __init__(self, scene_data: NodeSceneData) -> None:
@@ -33,11 +33,11 @@ class BaseNode(ABC):
         self.params.bind_sync(self._on_param_changed)
 
     @abstractmethod
-    def pre_forward(self, inputs: NodeInputs) -> None:
+    def pre_forward(self, inputs: inputModel) -> None:
         pass
 
     @abstractmethod
-    def forward(self, inputs: NodeInputs) -> NodeOutputs:
+    def forward(self, inputs: inputModel) -> outputModel:
         pass
 
     @abstractmethod

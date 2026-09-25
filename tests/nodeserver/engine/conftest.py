@@ -25,21 +25,23 @@ class MockOutputModel(NodeOutputs):
     result: str
 
 
-class MockParametersModel(NodeParameters):
-    title: str = Field(default="Default Title", title="Node Title")
-    factor: float = Field(default=1.0)
-    unregistered_param: Optional[CustomType] = None
 
 
-class MockNode(BaseNode):
+
+class MockNode(BaseNode[MockInputModel, MockOutputModel]):
     InputModel = MockInputModel
     OutputModel = MockOutputModel
-    Parameters = MockParametersModel
+    class Parameters(NodeParameters):
+        title: str = Field(default="Default Title", title="Node Title")
+        factor: float = Field(default=1.0)
+        unregistered_param: Optional[CustomType] = None
 
-    def pre_forward(self, inputs: NodeInputs) -> None:
+    params: Parameters
+
+    def pre_forward(self, inputs: MockInputModel) -> None:
         pass
 
-    def forward(self, inputs: NodeInputs) -> NodeOutputs:
+    def forward(self, inputs: MockInputModel) -> MockOutputModel:
         return MockOutputModel(result="ok")
 
     def post_forward_cleanup(self):

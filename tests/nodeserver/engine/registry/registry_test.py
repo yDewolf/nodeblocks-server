@@ -2,7 +2,7 @@ import pytest
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
 from tests.nodeserver.engine.conftest import CustomType
-from tests.nodeserver.engine.node_spec_builder_test import MockNode
+from tests.nodeserver.engine.helpers.node_spec_builder_test import MockNode
 
 
 class TestNodeSpecBuilderCustomTypeRegistration:
@@ -45,7 +45,7 @@ class TestTypeRegistryCustomNodeRegistration:
     def test_register_duplicate_node_type_raises_value_error(self, default_registry, default_builder):
         node_spec = default_builder.build_node_spec("custom", "transform_node", MockNode)
         default_registry.register_node_type(node_spec, logic_class=MockNode)
-
+        
         with pytest.raises(ValueError):
             default_registry.register_node_type(node_spec, logic_class=MockNode)
 
