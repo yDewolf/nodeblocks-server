@@ -58,6 +58,12 @@ class TypeRegistry:
 
         return DatatypeHelper.are_types_compatible(source_spec, target_spec)
 
+    def get_node_spec(self, fqn: str) -> NodeTypeSpec:
+        if not fqn in self.node_types:
+            raise KeyError(f"No NodeTypeSpec is registerd as {fqn}")
+        
+        return self.node_types[fqn]
+
     def get_logic_class(self, fqn: str) -> Type[BaseNode]:
         if not fqn in self.node_logic_classes:
             raise KeyError(f"No logic class is registered for {fqn}")

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from nodeserver.engine.helpers.node_builder import NodeBuilder
+from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
 from nodeserver.engine.protocols.graph.scene_graph import SceneGraph
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
@@ -17,25 +17,21 @@ class NodeScene:
     graph: SceneGraph
 
     _logic_nodes: dict[str, BaseNode] # TODO?: talvez fazer um submanager para isso
-    _node_builder: NodeBuilder
+    _factory: NodeInstanceFactory
 
-    def __init__(self, registry: TypeRegistry):
+    def __init__(self, registry: TypeRegistry, factory: Optional[NodeInstanceFactory] = None):
         self.scene_id = str(IDGenerator.generate_generic_id())
         self.graph = SceneGraph(registry)
         self._logic_nodes = {}
         
         self.registry = registry
-        self._node_builder = NodeBuilder(registry)
+        self._factory = factory or NodeInstanceFactory(self.registry)
 
 
     # TODO: talvez passar só a posição do node, etc.
     # para certificar de que os parâmetros vão ser definidos corretamente
     def create_node(self, node_fqn: str, node_scene_data: NodeSceneData) -> NodeInstance:
-        spec = self.registry.node_types.get(node_fqn)
-        if not spec:
-            raise ValueError(f"Unknown node type: {node_fqn}")
-
-        node_instance, logic_node = self._node_builder.build_instance(spec, node_scene_data)
+        node_instance, logic_node = self._factory.create(node_fqn, node_scene_data)
         
         self._logic_nodes[node_instance.uid] = logic_node
         self.graph.add_node(node_instance)
