@@ -30,7 +30,7 @@ class NodeScene:
 
     # TODO: talvez passar só a posição do node, etc.
     # para certificar de que os parâmetros vão ser definidos corretamente
-    def create_node(self, node_fqn: str, node_scene_data: NodeSceneData) -> NodeInstance:
+    def create_node(self, node_fqn: str, node_scene_data: Optional[NodeSceneData] = None) -> NodeInstance:
         node_instance, logic_node = self._factory.create(node_fqn, node_scene_data)
         
         self._logic_nodes[node_instance.uid] = logic_node

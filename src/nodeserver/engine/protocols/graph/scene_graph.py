@@ -1,6 +1,8 @@
 
+from collections import deque
 from typing import Optional
 
+from nodeserver.engine.exceptions.graph_exceptions import CyclicGraphError
 from nodeserver.engine.protocols.graph.connection_manager import ConnectionManager
 from nodeserver.engine.protocols.graph.node_manager import NodeManager
 from nodeserver.engine.protocols.node.node_instance import NodeInstance, SlotInstance
@@ -91,3 +93,42 @@ class SceneGraph:
     @property
     def all_connections(self) -> dict[str, ConnectionSceneData]:
         return self._connections.all()
+
+
+    # Utility:
+    def get_topological_order(self) -> list[str]:
+        in_degree: dict[str, int] = {uid: 0 for uid in self.all_nodes.keys()}
+        adjacency: dict[str, list[str]] = {uid: [] for uid in self.all_nodes.keys()}
+
+        for conn in self.all_connections.values():
+            node_id = conn.from_slot.node_id
+            target_node_id = conn.to_slot.node_id
+
+            if target_node_id not in adjacency[node_id]:
+                adjacency[node_id].append(target_node_id)
+
+            in_degree[target_node_id] += 1
+
+        queue = deque([uid for uid, deg in in_degree.items() if deg == 0])
+        order: list[str] = []
+
+        while queue:
+            current_id = queue.popleft()
+            order.append(current_id)
+
+            for dependent_node in adjacency[current_id]:
+                in_degree[dependent_node] -= 1
+                if in_degree[dependent_node] == 0:
+                    queue.append(dependent_node)
+
+        if len(order) != len(self.all_nodes):
+            raise CyclicGraphError("Circular dependency detected between nodes")
+
+        return order
+
+    def get_execution_order(self) -> list[NodeInstance]:
+        topological_uids = self.get_topological_order()
+        # FIXME: isso aqui é menos eficiente do que pegar os uids
+        # dentro do while queue:
+        # mas vamos analisar depois se compensa mexer com isso
+        return [self.all_nodes[uid] for uid in topological_uids]

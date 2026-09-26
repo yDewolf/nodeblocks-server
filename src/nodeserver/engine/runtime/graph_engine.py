@@ -2,7 +2,6 @@ import logging
 from typing import Any
 
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
-from nodeserver.engine.helpers.graph_helper import NodeGraphHelper
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
 from nodeserver.engine.runtime.extra_node_io import ContextAwareInput
@@ -15,7 +14,7 @@ class StatelessGraphEngine:
         context.status = JobStatus.RUNNING
         
         try:
-            execution_order = NodeGraphHelper._get_execution_order(context.scene)
+            execution_order = context.scene.graph.get_execution_order()
             for node_instance in execution_order:
                 if EngineRuntimeHelper._has_failed_dependencies(node_instance.uid, context):
                     context.node_status[node_instance.uid] = NodeExecutionStatus.SKIPPED

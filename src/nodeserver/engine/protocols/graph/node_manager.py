@@ -5,6 +5,15 @@ from nodeserver.engine.protocols.node.node_instance import NodeInstance
 
 class NodeManager:
     _nodes: dict[str, NodeInstance]
+    
+    @property
+    def node_index(self): return self._nodes
+
+    @property
+    def node_instances(self): return self._nodes.values()
+    @property
+    def node_ids(self): return self._nodes.keys()
+
     def __init__(self) -> None:
         self._nodes = {}
 

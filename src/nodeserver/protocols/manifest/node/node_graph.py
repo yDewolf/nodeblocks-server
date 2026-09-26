@@ -55,6 +55,13 @@ class ConnectionSceneData(BaseModel):
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)
 
+    @classmethod
+    def from_ids(cls, from_node_id: str, from_slot_id: str, to_node_id: str, to_slot_id: str):
+        return cls(
+            from_slot=NodePathData(node_id=from_node_id, slot_id=from_slot_id),
+            to_slot=NodePathData(node_id=to_node_id, slot_id=to_slot_id)
+        )
+
 
 class SceneData(BaseModel):
     uid: str = Field(default_factory=IDGenerator.generate_generic_id)
