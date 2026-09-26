@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Annotated, Optional
 
 from pydantic import Field
 import pytest
@@ -7,6 +7,7 @@ from nodeserver.engine import NodeInputs, NodeOutputs, BaseNode
 from nodeserver.engine import NodeParameters
 from nodeserver.engine import TypeRegistry
 from nodeserver.engine import NodeSpecBuilder
+from nodeserver.engine.protocols.spec_dataclasses import SlotSpecMeta
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
 
@@ -15,7 +16,7 @@ class CustomType:
 
 
 class MockInputModel(NodeInputs):
-    text_input: str
+    text_input: Annotated[str, SlotSpecMeta(max_connections=1)]
     number_list: list[int]
     optional_float: Optional[float] = None
     custom_type_field: CustomType

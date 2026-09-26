@@ -11,7 +11,7 @@ class SlotSpecMeta:
     # Usage inside a NodeIO:
     # slot_name = Annotated[type, SlotSpecMeta(...)]
     
-    datatype: Union[str, DataTypeSpec]
+    datatype: Optional[Union[str, DataTypeSpec]] = None
     max_connections: Optional[int] = None
     required: bool = False
 
