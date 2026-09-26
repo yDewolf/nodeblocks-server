@@ -23,9 +23,7 @@ class MockInputModel(NodeInputs):
 
 class MockOutputModel(NodeOutputs):
     result: str
-
-
-
+    number_result: int
 
 
 class MockNode(BaseNode[MockInputModel, MockOutputModel]):
@@ -42,7 +40,7 @@ class MockNode(BaseNode[MockInputModel, MockOutputModel]):
         pass
 
     def forward(self, inputs: MockInputModel) -> MockOutputModel:
-        return MockOutputModel(result="ok")
+        return MockOutputModel(result="ok", number_result=1)
 
     def post_forward_cleanup(self):
         pass

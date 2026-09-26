@@ -1,6 +1,6 @@
 import pytest
 
-from nodeserver.engine.exceptions.graph_exceptions import CyclicConnectionError, CyclicGraphError, MaxConnectionReached
+from nodeserver.engine.exceptions.graph_exceptions import CyclicConnectionError, CyclicGraphError, DuplicateConnectionError, MaxConnectionReached
 from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from tests.nodeserver.engine.conftest import MockNode
@@ -61,19 +61,19 @@ class TestSceneGraphConnections:
 
         node_a = scene.create_node(node_fqn)
         node_b = scene.create_node(node_fqn)
-        scene.graph.connect(
+        conn = scene.graph.connect(
             from_node_id=node_a.uid,
-            from_slot_id="result",
+            from_slot_id="number_result",
             to_node_id=node_b.uid,
-            to_slot_id="text_input",
+            to_slot_id="number_list",
         )
 
-        with pytest.raises((ValueError, KeyError)):
+        with pytest.raises(DuplicateConnectionError):
             scene.graph.connect(
                 from_node_id=node_a.uid,
-                from_slot_id="result",
+                from_slot_id="number_result",
                 to_node_id=node_b.uid,
-                to_slot_id="text_input",
+                to_slot_id="number_list",
             )
 
     def test_max_connections_limit_validation(self, scene_setup):
@@ -129,12 +129,13 @@ class TestSceneGraphTopology:
         node_b = scene.create_node(node_fqn)
 
         scene.graph.connect(
-            from_node_id=node_a.uid, from_slot_id="result",
-            to_node_id=node_b.uid, to_slot_id="text_input"
+            from_node_id=node_a.uid, from_slot_id="number_result",
+            to_node_id=node_b.uid, to_slot_id="number_list"
         )
 
         with pytest.raises(CyclicConnectionError):
             scene.graph.connect(
-                from_node_id=node_b.uid, from_slot_id="result",
-                to_node_id=node_a.uid, to_slot_id="text_input"
+                from_node_id=node_b.uid, from_slot_id="number_result",
+                to_node_id=node_a.uid, to_slot_id="number_list"
             )
+

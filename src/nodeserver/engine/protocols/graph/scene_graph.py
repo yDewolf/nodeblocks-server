@@ -122,7 +122,11 @@ class SceneGraph:
                     queue.append(dependent_node)
 
         if len(order) != len(self.all_nodes):
-            raise CyclicGraphError("Circular dependency detected between nodes")
+            unprocessed_nodes = [uid for uid, deg in in_degree.items() if deg > 0]
+
+            raise CyclicGraphError(
+                unprocessed_nodes=unprocessed_nodes,
+            )
 
         return order
 
