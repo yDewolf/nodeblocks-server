@@ -7,6 +7,7 @@ from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
 from nodeserver.engine.runtime.runtime_context import GraphRunContext, JobStatus, NodeExecutionStatus
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
+from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 
 
 class ValueInput(NodeInputs):
@@ -61,25 +62,48 @@ class ConfigurableInput(NodeInputs):
 
 class OutputModel(NodeOutputs):
     result: int
-    text: str
 
-class ParamTestNode(BaseNode[ConfigurableInput, OutputModel]):
+class InputTestNode(BaseNode[ConfigurableInput, OutputModel]):
     InputModel = ConfigurableInput
     OutputModel = OutputModel
+
+    def __init__(self, scene_data: NodeSceneData) -> None:
+        super().__init__(scene_data)
+        self.execution_count = 0
+
+    def forward(self, inputs: ConfigurableInput) -> OutputModel:
+        self.execution_count += 1
+        computed = (inputs.required_val + inputs.default_val)
+        return OutputModel(
+            result=computed,
+        )
+
+
+class ParamTestOut(NodeOutputs):
+    result: int
+    text: str
+
+class ParamTestNode(BaseNode[NodeInputs, ParamTestOut]):
+    OutputModel = ParamTestOut
 
     class Parameters(NodeParameters):
         multiplier: int = 2
         mode: str = "standard"
 
     params: Parameters
+    execution_count: int
 
-    def forward(self, inputs: ConfigurableInput) -> OutputModel:
-        computed = (inputs.required_val + inputs.default_val) * self.params.multiplier
-        return OutputModel(
+    def __init__(self, scene_data: NodeSceneData) -> None:
+        super().__init__(scene_data)
+        self.execution_count = 0
+
+    def forward(self, inputs: NodeInputs) -> ParamTestOut:
+        self.execution_count += 1
+        computed = 5 * self.params.multiplier
+        return ParamTestOut(
             result=computed,
-            text=f"{inputs.optional_text or 'fallback'}_{self.params.mode}"
+            text=f"mode_{self.params.mode}_run_{self.execution_count}"
         )
-
 
 @pytest.fixture
 def engine():
@@ -93,6 +117,7 @@ def scene(default_registry):
     default_registry.register_node_type(spec_builder.build_node_spec("test", "failing", FailingNode), FailingNode)
     default_registry.register_node_type(spec_builder.build_node_spec("test", "sum_list", SumListNode), SumListNode)
     default_registry.register_node_type(spec_builder.build_node_spec("test", "string_node", StringNode), StringNode)
+    default_registry.register_node_type(spec_builder.build_node_spec("test", "input_test", InputTestNode), InputTestNode)
     default_registry.register_node_type(spec_builder.build_node_spec("test", "param_test", ParamTestNode), ParamTestNode)
     
     scene = NodeScene(registry=default_registry)
@@ -184,7 +209,7 @@ class TestStatelessGraphEngineRealNodes:
 class TestNodeParametersAndDefaults:
     def test_default_inputs_and_default_parameters(self, engine, scene):
         node_source = scene.create_node("test:increment") # out = 0 + step(1) = 1
-        node_target = scene.create_node("test:param_test")
+        node_target = scene.create_node("test:input_test")
 
         scene.graph.connect(
             from_node_id=node_source.uid, from_slot_id="out",
@@ -198,55 +223,15 @@ class TestNodeParametersAndDefaults:
         assert result_context.node_status[node_target.uid] == NodeExecutionStatus.SUCCESS
 
         res_key = result_context.get_cache_key(node_target.uid, "result")
-        text_key = result_context.get_cache_key(node_target.uid, "text")
 
         # Cálculo esperado:
         # required_val = 1 (do node_source)
         # default_val = 100 (default do ConfigurableInput)
-        # multiplier = 2 (default de ParamTestNode.Parameters)
-        # (1 + 100) * 2 = 202
-        assert result_context.output_cache[res_key] == 202
-        assert result_context.output_cache[text_key] == "fallback_standard"
-
-    def test_node_data_param_update(self, engine, scene):
-        node_source = scene.create_node("test:param_test")
-
-        logic_target: ParamTestNode = scene.get_logic_node(node_source.uid)
-        logic_target.params.mode = "custom"
-        logic_target.params.multiplier = 5
-
-        node_instance = scene.graph.get_node(logic_target.scene_data.uid)
-        assert node_instance.node_data.data["mode"] == "custom"
-        assert node_instance.node_data.data["multiplier"] == 5
+        # (1 + 100) = 101
+        assert result_context.output_cache[res_key] == 101
     
-
-    def test_custom_node_parameters_override(self, engine, scene):
-        node_source = scene.create_node("test:increment")
-        node_target = scene.create_node("test:param_test")
-
-        logic_target: ParamTestNode = scene.get_logic_node(node_target.uid)
-        logic_target.params.mode = "custom"
-        logic_target.params.multiplier = 5
-
-        scene.graph.connect(
-            from_node_id=node_source.uid, from_slot_id="out",
-            to_node_id=node_target.uid, to_slot_id="required_val"
-        )
-
-        context = GraphRunContext(job_id="job_params_2", scene=scene)
-        result_context = engine.execute_job(context)
-
-        assert result_context.status == JobStatus.COMPLETED
-
-        res_key = result_context.get_cache_key(node_target.uid, "result")
-        text_key = result_context.get_cache_key(node_target.uid, "text")
-
-        # (1 + 100) * 5 = 505
-        assert result_context.output_cache[res_key] == 505
-        assert result_context.output_cache[text_key] == "fallback_custom"
-
     def test_missing_required_slot_fails_validation(self, engine, scene):
-        node_target = scene.create_node("test:param_test")
+        node_target = scene.create_node("test:input_test")
 
         context = GraphRunContext(job_id="job_params_3", scene=scene)
         result_context = engine.execute_job(context)
@@ -259,7 +244,7 @@ class TestNodeParametersAndDefaults:
 
     def test_incompatible_input_type_fails_runtime(self, engine, scene):
         str_node = scene.create_node("test:string_node")
-        target_node = scene.create_node("test:param_test")
+        target_node = scene.create_node("test:input_test")
 
         scene.graph.connect(
             from_node_id=str_node.uid, from_slot_id="str_out",
@@ -272,3 +257,71 @@ class TestNodeParametersAndDefaults:
         assert result_context.node_status[str_node.uid] == NodeExecutionStatus.SUCCESS
         assert result_context.node_status[target_node.uid] == NodeExecutionStatus.FAILED
         assert target_node.uid in result_context.errors
+
+class TestNodeParameterReprocessing:
+    def test_node_data_param_update(self, engine, scene):
+        node_source = scene.create_node("test:param_test")
+
+        logic_target: ParamTestNode = scene.get_logic_node(node_source.uid)
+        logic_target.params.mode = "custom"
+        logic_target.params.multiplier = 5
+
+        node_instance = scene.graph.get_node(logic_target.scene_data.uid)
+        assert node_instance.node_data.data["mode"] == "custom"
+        assert node_instance.node_data.data["multiplier"] == 5
+
+    def test_node_reprocessed_on_direct_parameter_mutation(self, engine, scene):
+        node_target = scene.create_node("test:param_test")
+        context = GraphRunContext(job_id="job_reprocess_1", scene=scene)
+        
+        engine.execute_job(context)
+
+        logic_target: InputTestNode = scene.get_logic_node(node_target.uid)
+        assert logic_target.execution_count == 1
+        
+        res_key = context.get_cache_key(node_target.uid, "result")
+        text_key = context.get_cache_key(node_target.uid, "text")
+        
+        assert context.output_cache[res_key] == 10
+        assert context.output_cache[text_key] == "mode_standard_run_1"
+
+        engine.execute_job(context)
+        assert logic_target.execution_count == 1
+
+        logic_target.params.mode = "custom"
+        logic_target.params.multiplier = 5
+
+        engine.execute_job(context)
+
+        assert logic_target.execution_count == 2
+        assert context.output_cache[res_key] == 25 # (5 * 5)
+        assert context.output_cache[text_key] == "mode_custom_run_2"
+
+    def test_node_reprocessed_on_update_parameters_method(self, engine, scene):
+        node_target = scene.create_node("test:param_test")
+        context = GraphRunContext(job_id="job_reprocess_2", scene=scene)
+
+        engine.execute_job(context)
+        logic_target: InputTestNode = scene.get_logic_node(node_target.uid)
+        assert logic_target.execution_count == 1
+
+        res_key = context.get_cache_key(node_target.uid, "result")
+        assert context.output_cache[res_key] == 10
+
+        logic_target.update_parameters({"mode": "custom", "multiplier": 5})
+        engine.execute_job(context)
+
+        assert logic_target.execution_count == 2
+        assert context.output_cache[res_key] == 25
+        assert context.output_cache[context.get_cache_key(node_target.uid, "text")] == "mode_custom_run_2"
+
+    def test_node_hash_changes_when_parameters_change(self, scene):
+        node_target = scene.create_node("test:param_test")
+        context = GraphRunContext(job_id="job_hash_test", scene=scene)
+        logic_target: InputTestNode = scene.get_logic_node(node_target.uid)
+
+        hash_before = EngineRuntimeHelper._compute_node_hash(node_target, context)
+        logic_target.params.multiplier = 10
+
+        hash_after = EngineRuntimeHelper._compute_node_hash(node_target, context)
+        assert hash_before != hash_after
