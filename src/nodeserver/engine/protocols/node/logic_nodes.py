@@ -15,7 +15,7 @@ class NodeOutputs(NodeIO): pass
 
 
 class BaseNode[inputModel: NodeInputs, outputModel: NodeOutputs](ABC):
-    config: LogicNodeConfig
+    config: LogicNodeConfig = LogicNodeConfig()
 
     scene_data: NodeSceneData # Should be a reference to a NodeInstance.node_data
     InputModel: ClassVar[type[NodeInputs]] = NodeInputs
@@ -32,7 +32,6 @@ class BaseNode[inputModel: NodeInputs, outputModel: NodeOutputs](ABC):
         self.params = self.Parameters(**scene_data.data)
         self.params.bind_sync(self._on_param_changed)
 
-    @abstractmethod
     def pre_forward(self, inputs: inputModel) -> None:
         pass
 
@@ -40,7 +39,6 @@ class BaseNode[inputModel: NodeInputs, outputModel: NodeOutputs](ABC):
     def forward(self, inputs: inputModel) -> outputModel:
         pass
 
-    @abstractmethod
     def post_forward_cleanup(self):
         pass
 

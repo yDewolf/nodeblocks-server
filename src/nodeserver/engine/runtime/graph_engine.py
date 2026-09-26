@@ -121,6 +121,7 @@ class StatelessGraphEngine:
                 raw_inputs[slot_id] = values
                 continue
 
-            raw_inputs[slot_id] = values[0] if values else None
+            if values:
+                raw_inputs[slot_id] = values[0]
         
         return raw_inputs

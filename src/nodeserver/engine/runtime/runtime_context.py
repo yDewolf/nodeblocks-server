@@ -29,8 +29,8 @@ class GraphRunContext:
     node_hashes: dict[str, str]
     persistent_cache: dict[str, dict]
 
-    def __init__(self, scene: NodeScene, persistent_cache: Optional[dict[str, dict]] = None):
-        self.job_id = str(uuid.uuid4())
+    def __init__(self, scene: NodeScene, persistent_cache: Optional[dict[str, dict]] = None, job_id: Optional[str] = None):
+        self.job_id = job_id or str(uuid.uuid4())
         self.scene = scene
         self.status = JobStatus.PENDING
         
