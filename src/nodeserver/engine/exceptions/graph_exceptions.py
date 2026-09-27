@@ -1,6 +1,9 @@
 from typing import Any, Optional
 
-from nodeserver.engine.exceptions.base_exceptions import GraphDomainError
+from nodeserver.engine.exceptions.base_exceptions import EngineDomainError
+
+class GraphDomainError(EngineDomainError):
+    pass
 
 # ConnectionManager
 

@@ -1,6 +1,9 @@
-from typing import Optional
+from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeSpec
+from nodeserver.protocols.manifest.base_manifest import make_namespace_fqn
 
 
 class PluginManifest(BaseModel):
@@ -8,7 +11,7 @@ class PluginManifest(BaseModel):
         Manifest to provide info about the plugin and its modules
     """
 
-    package_id: str
+    package_id: str # must be the same as plugin's folder name
     version: str # SemVer
 
     description: Optional[str] = None
@@ -18,4 +21,32 @@ class PluginManifest(BaseModel):
 
     dependencies: dict[str, str] = {} # ex: {"com.company.core_nodes": ">=1.0.0"}
     
-    node_modules: list[str] # python modules to import logic classes
+    node_modules: list[str] = Field(default_factory=list) # python modules to import logic classes
+    
+    data_types: list[PluginDatatypeSpec] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def process_data_types(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        package_id = data.get("package_id")
+        data_types = data.get("data_types", [])
+
+        if not package_id or not data_types:
+            return data
+
+        processed_specs = []
+        for item in data_types:
+            if isinstance(item, PluginDatatypeSpec):
+                if item.namespace is None:
+                    item.namespace = package_id
+                
+                if not item.whitelist and item.namespace:
+                    item.whitelist = [make_namespace_fqn(item.namespace, item.id)]
+                
+                processed_specs.append(item)
+
+        data["data_types"] = processed_specs
+        return data

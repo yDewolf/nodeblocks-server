@@ -15,4 +15,7 @@ class NamespaceModel(DataModel):
 
     @property
     def fqn(self) -> str:
-        return f"{self.namespace}:{self.id}"
+        return make_namespace_fqn(self.namespace, self.id)
+
+def make_namespace_fqn(namespace: str, id: str):
+    return f"{namespace}:{id}"
