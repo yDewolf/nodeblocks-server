@@ -5,6 +5,7 @@ from typing import Any, Type
 
 from nodeserver.engine.exceptions.plugin_exceptions import InvalidPluginNodeClassPath, MissingNamespacePluginDataType, PluginDataTypeRefInCompileTime
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
+from nodeserver.engine.plugins.plugin_decorators import PluginDataTypeDefModel, PluginNodeDefModel, get_plugin_meta
 from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef, PluginDatatypeSpec
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.plugins.protocols.plugin_nodes import NodeCacheEntry
@@ -24,15 +25,6 @@ class PluginCompiler:
 
         self.registry = registry
         self.spec_builder = NodeSpecBuilder(registry=self.registry)
-
-    # Helper methods
-
-    # TODO:
-    # def compile_node_type_from_fqn(self, fqn: str):
-    #     pass
-
-    # def compile_data_type_from_fqn(self, fqn: str):
-    #     pass
 
     # Compile Methods
     
@@ -112,6 +104,51 @@ class PluginCompiler:
                 compiled_nodes.append(node_spec)
 
         return compiled_nodes
+
+    # TODO: maybe create a compile_plugin_manifest from modules 
+    # so we don't need the other compile methods
+    def compile_plugin_modules(
+        self,
+        manifest: PluginManifest,
+        relative_modules: list[str]
+    ):
+        """
+        Searches for @plugin_node and @plugin_datatype decorators inside the modules
+        to auto generate manifest.data_types and manifest.node_modules
+        """
+        # class path -> fqn
+        registered_datatypes: dict[str, str] = {}
+        for module_path in relative_modules:
+            module = self._import_python_module(manifest.package_id, module_path)
+
+            for attr_name in dir(module):
+                attr = getattr(module, attr_name)
+                meta = get_plugin_meta(attr)
+                if not meta:
+                    continue
+
+                if getattr(attr, "__module__", None) != module.__name__:
+                    continue
+                
+                if isinstance(meta, PluginNodeDefModel):
+                    if not module_path in manifest.node_modules:
+                        manifest.node_modules.append(module_path)
+
+                if isinstance(meta, PluginDataTypeDefModel):
+                    class_path = f"{module_path}.{meta.cls_name}"
+                    if class_path in registered_datatypes:
+                        continue
+
+                    spec = PluginDatatypeSpec(
+                        class_path=class_path,
+                        namespace=manifest.package_id,
+                        id=meta.id,
+                        base_id=meta.base_id,
+                        default_renderer=meta.renderer,
+                        whitelist=meta.whitelist
+                    )
+                    manifest.data_types.append(spec)
+                    registered_datatypes[spec.class_path] = spec.fqn
 
 
     def compile_manifest(

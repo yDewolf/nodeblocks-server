@@ -8,7 +8,7 @@
       "base_id": "text",
       "default_renderer": "text",
       "whitelist": [
-        "test_plugin:test_datatype"
+        "text"
       ]
     }
   },

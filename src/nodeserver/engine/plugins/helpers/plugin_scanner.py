@@ -33,6 +33,22 @@ class PluginScanner:
 
         return manifests
 
+    def discover_modules(self, plugin_dir: Path) -> list[str]:
+        module_paths: list[str] = []
+        for file_path in plugin_dir.rglob("*.py"):
+            if any(part.startswith(".") or part.startswith("__") for part in file_path.parts):
+                continue
+            
+            if file_path.name in ("plugin.py", "setup.py"):
+                continue
+
+            rel_path = file_path.relative_to(plugin_dir)
+            
+            module_name = str(rel_path.with_suffix("")).replace("/", ".").replace("\\", ".")
+            module_paths.append(module_name)
+            
+        return module_paths
+
     @staticmethod
     def make_module_name(plugin_parent_name: str) -> str:
         return f"external_plugin_{plugin_parent_name}"

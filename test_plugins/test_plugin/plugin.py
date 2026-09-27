@@ -6,17 +6,5 @@ from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultR
 class TestPlugin(Plugin):
     manifest = PluginManifest(
         package_id="test_plugin",
-        version="0.0.0",
-
-        node_modules=[
-            "test_nodes"
-        ],
-        data_types=[
-            PluginDatatypeSpec(
-                id="test_datatype",
-                class_path="test_datatypes.TestDatatype",
-                base_id=DefaultDataTypes.TEXT,
-                default_renderer=DefaultRenderers.TEXT
-            )
-        ]
+        version="0.0.0"
     )
