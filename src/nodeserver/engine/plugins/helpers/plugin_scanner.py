@@ -6,13 +6,13 @@ from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
 
 class PluginScanner:
-    def __init__(self, plugins_dir: Path):
-        self.plugins_dir = plugins_dir
+    def __init__(self):
+        pass
 
-    def discover_plugins(self) -> list[PluginManifest]:
+    def discover_plugins(self, plugins_dir: Path) -> list[PluginManifest]:
         manifests: list[PluginManifest] = []
 
-        for plugin_file in self.plugins_dir.rglob("plugin.py", case_sensitive=False):
+        for plugin_file in plugins_dir.rglob("plugin.py", case_sensitive=False):
             module_name = PluginScanner.make_module_name(plugin_file.parent.name)
             
             spec = importlib.util.spec_from_file_location(module_name, plugin_file)
