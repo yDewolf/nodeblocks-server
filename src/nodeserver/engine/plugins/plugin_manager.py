@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Optional, Type
 
+from nodeserver.engine.exceptions.plugin_exceptions import PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
@@ -55,6 +56,7 @@ class PluginManager:
 
             if save_to_disk:
                 PluginManifestHelper.save_package_manifest(package, output_folder)
+                PluginManifestHelper.save_plugin_manifest(manifest, output_folder)
 
         return compiled_packages
 
@@ -68,11 +70,12 @@ class PluginManager:
         if not manifests_folder.exists():
             return {}
 
-        for manifest_file in manifests_folder.glob("*.manifest.json"):
-            with open(manifest_file, "r", encoding="utf-8") as file:
-                raw_data = json.load(file)
-                package = ManifestPackage.model_validate(raw_data)
+        for plugin_file in manifests_folder.glob("*.plugin.json"):
+            plugin_manifest = PluginManifestHelper.load_plugin_manifest(plugin_file)
+            self._plugin_manifests[plugin_manifest.package_id] = plugin_manifest
 
+        for manifest_file in manifests_folder.glob("*.manifest.json"):
+            package = PluginManifestHelper.load_package_manifest(manifest_file)
             self.register_compiled_package(package)
 
         return self._loaded_packages
@@ -91,10 +94,17 @@ class PluginManager:
         self._loaded_packages[package.package_id] = package
 
 
+    def ensure_plugin_manifest(self, package_id: str) -> PluginManifest:
+        if not package_id in self._plugin_manifests:
+            raise PluginNotLoadedError(package_id)
+
+        return self._plugin_manifests[package_id]
+
+    def get_plugin_manifest(self, package_id: str) -> Optional[PluginManifest]:
+        return self._plugin_manifests.get(package_id)
 
     def is_plugin_loaded(self, package_id: str) -> bool:
         return package_id in self._loaded_packages
-
 
     def get_loaded_package(self, package_id: str) -> Optional[ManifestPackage]:
         return self._loaded_packages.get(package_id)

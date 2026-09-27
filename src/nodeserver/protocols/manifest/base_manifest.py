@@ -19,3 +19,10 @@ class NamespaceModel(DataModel):
 
 def make_namespace_fqn(namespace: str, id: str):
     return f"{namespace}:{id}"
+
+def split_fqn(fqn: str) -> tuple[str, str]:
+    split = fqn.split(":", 1)
+    if len(split) != 2:
+        raise Exception(f"Invalid Fully Qualified Name: {fqn}")
+    
+    return split[0], split[1]
