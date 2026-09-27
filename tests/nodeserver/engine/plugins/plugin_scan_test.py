@@ -15,11 +15,6 @@ def plugins_setup() -> tuple[Path, Path]:
     root_path = tests_path.parent
 
     plugins_path = root_path / "test_plugins"
-    # if plugins_path.exists():
-    #     files = glob.glob(str(plugins_path))
-    #     for f in files:
-    #         os.remove(f)
-    
     plugins_path.mkdir(exist_ok=True)
 
     return root_path, plugins_path
@@ -28,34 +23,10 @@ def plugins_setup() -> tuple[Path, Path]:
 class TestPluginScan:
     def test_plugin_scan(self, plugins_setup):
         root_path, plugins_path = plugins_setup
-        scanner = PluginScanner(plugins_path)
+        scanner = PluginScanner()
         
-        discovered_plugins = scanner.discover_plugins()
+        discovered_plugins = scanner.discover_plugins(plugins_path)
         assert len(discovered_plugins) >= 1
-
-#     def test_plugin_scan(self, plugins_setup):
-#         root_path, plugins_path = plugins_setup
-
-#         test_plugin_path = plugins_path / "test_plugin"
-#         test_plugin_path.mkdir(exist_ok=True)
-
-#         plugin_file = test_plugin_path / "plugin.py"
-#         plugin_file.write_text(
-# """
-# from nodeserver.engine.plugins.plugin import Plugin
-# from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
-
-# class TestPlugin(Plugin):
-#     manifest = PluginManifest(
-#         package_id="test.package"
-#         version="0.0.1"
-
-#         node_modules=[
-
-#         ]
-#     )
-# """
-#         )
 
 
 @pytest.fixture
@@ -67,8 +38,8 @@ def compiler(plugins_setup, default_registry):
 class TestPluginCompile:
     def test_plugin_compile(self, plugins_setup, compiler):
         root_path, plugins_path = plugins_setup
-        scanner = PluginScanner(plugins_path)
-        discovered_plugins = scanner.discover_plugins()
+        scanner = PluginScanner()
+        discovered_plugins = scanner.discover_plugins(plugins_path)
         
         assert len(discovered_plugins) >= 1
 

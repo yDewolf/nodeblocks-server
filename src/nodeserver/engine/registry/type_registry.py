@@ -8,11 +8,13 @@ from nodeserver.protocols.manifest.node.node_manifest import NodeTypeSpec
 
 class TypeRegistry:
     # type_id -> spec
-    data_types: dict[str, DataTypeSpec]
     node_types: dict[str, NodeTypeSpec]
-
     node_logic_classes: dict[str, Type[BaseNode]]
+
+    # type_id -> spec
+    data_types: dict[str, DataTypeSpec]
     python_type_map: dict[type, DataTypeSpec]
+    _fqn_to_python_type: dict[str, type]
 
     def __init__(self):
         self.data_types = {}
@@ -20,36 +22,25 @@ class TypeRegistry:
 
         self.node_logic_classes = {}
         self.python_type_map = {}
-        
-        self._register_core_types()
-
-    def _register_core_types(self):
-        pass
-        # TODO: remover isso daqui e criar um plugin core
-        # self.register_data_type(DatatypeHelper.create_spec("core", "int", DefaultDataTypes.INT, DefaultRenderers.SCALAR, ["core.float", "core.int"]))
-        # self.register_data_type(DatatypeHelper.create_spec("core", "float", DefaultDataTypes.FLOAT, DefaultRenderers.SCALAR))
-        # self.register_data_type(DatatypeHelper.create_spec("core", "bool", DefaultDataTypes.BOOLEAN, DefaultRenderers.TEXT))
-        # self.register_data_type(DatatypeHelper.create_spec("core", "array", DefaultDataTypes.ARRAY, DefaultRenderers.ARRAY))
-        # self.register_data_type(DatatypeHelper.create_spec("core", "file", DefaultDataTypes.FILE, DefaultRenderers.NOT_IMPLEMENTED))
-        # self.register_data_type(DatatypeHelper.create_spec("core", "unknown", DefaultDataTypes.UNKNOWN, DefaultRenderers.NOT_IMPLEMENTED))
+        self._fqn_to_python_type = {}
 
 
-    # TODO: implementar os plugins para registrar automaticamente os specs aqui
     def register_data_type(self, spec: DataTypeSpec, python_type: Optional[type] = None):
         if spec.fqn in self.data_types:
             raise ValueError(f"DataType '{spec.fqn}' is already registered")
 
         self.data_types[spec.fqn] = spec
         if python_type is not None:
-            self.python_type_map[python_type] = spec
+            self.assign_datatype_python_type(spec.fqn, python_type)
     
-
-    def register_node_type(self, spec: NodeTypeSpec, logic_class: Type[BaseNode]):
+    def register_node_type(self, spec: NodeTypeSpec, logic_class: Optional[Type[BaseNode]] = None):
         if spec.fqn in self.node_types:
             raise ValueError(f"NodeType '{spec.fqn}' is already registered")
 
         self.node_types[spec.fqn] = spec
-        self.node_logic_classes[spec.fqn] = logic_class
+        if not logic_class is None:
+            self.assign_node_logic_class(spec.fqn, logic_class)
+
 
     def are_types_compatible(self, source_type: str, target_type: str) -> bool:
         source_spec = self.data_types.get(source_type)
@@ -58,6 +49,29 @@ class TypeRegistry:
             return False
 
         return DatatypeHelper.are_types_compatible(source_spec, target_spec)
+
+
+    # Late Assignment methods
+
+    def assign_node_logic_class(self, node_fqn: str, logic_class: Type[BaseNode]):
+        if node_fqn in self.node_logic_classes:
+            raise KeyError(f"{node_fqn} already has a logic class assigned ({self.node_logic_classes[node_fqn]})")
+
+        self.node_logic_classes[node_fqn] = logic_class
+
+    def assign_datatype_python_type(self, datatype_fqn: str, python_type: Type):
+        if datatype_fqn not in self.data_types:
+            raise KeyError(f"DataTypeSpec {datatype_fqn} must be registered before assigning a Python type")
+
+        if datatype_fqn in self._fqn_to_python_type:
+            existing_type = self._fqn_to_python_type[datatype_fqn]
+            raise KeyError(f"{datatype_fqn} is already assigned to a Python type {existing_type}")
+
+        self._fqn_to_python_type[datatype_fqn] = python_type
+        self.python_type_map[python_type] = self.data_types[datatype_fqn]
+
+
+    # Getters
 
     def get_node_type_spec(self, fqn: str) -> NodeTypeSpec:
         if not fqn in self.node_types:
@@ -77,8 +91,14 @@ class TypeRegistry:
         
         return self.data_types[fqn]
 
-    def get_datatype_by_annotation(self, py_type: type) -> Optional[DataTypeSpec]:
+    def get_datatype_by_annotation(self, py_type: type) -> DataTypeSpec:
         if not py_type in self.python_type_map:
             raise KeyError(f"No DataTypeSpec is registered as {py_type}")
         
-        return self.python_type_map.get(py_type)
+        return self.python_type_map[py_type]
+
+    def get_datatype_python_type(self, datatype_fqn: str) -> Optional[Type]:
+        if not datatype_fqn in self._fqn_to_python_type:
+            raise KeyError(f"No python type is assigned to {datatype_fqn}")
+        
+        return self._fqn_to_python_type.get(datatype_fqn)
