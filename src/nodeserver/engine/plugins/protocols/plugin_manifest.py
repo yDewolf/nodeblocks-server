@@ -1,10 +1,9 @@
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeSpec
 from nodeserver.protocols.manifest.base_manifest import make_namespace_fqn
-
 
 class PluginManifest(BaseModel):
     """

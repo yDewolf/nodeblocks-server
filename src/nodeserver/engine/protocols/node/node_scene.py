@@ -4,6 +4,7 @@ from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
 from nodeserver.engine.protocols.graph.scene_graph import SceneGraph
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
+from nodeserver.engine.protocols.node_provider import INodeProvider
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
@@ -17,22 +18,21 @@ class NodeScene:
     graph: SceneGraph
 
     _logic_nodes: dict[str, BaseNode] # TODO?: talvez fazer um submanager para isso
-    _factory: NodeInstanceFactory
+    node_provider: INodeProvider
 
-    # TODO: usar um NodeProvider aqui no lugar do registry e factory
-    def __init__(self, registry: TypeRegistry, factory: Optional[NodeInstanceFactory] = None):
+    def __init__(self, registry: TypeRegistry, node_provider: INodeProvider):
+        self.registry = registry
+        self.node_provider = node_provider
+
         self.scene_id = str(IDGenerator.generate_generic_id())
         self.graph = SceneGraph(registry)
         self._logic_nodes = {}
-        
-        self.registry = registry
-        self._factory = factory or NodeInstanceFactory(self.registry)
 
 
     # TODO: talvez passar só a posição do node, etc.
     # para certificar de que os parâmetros vão ser definidos corretamente
     def create_node(self, node_fqn: str, node_scene_data: Optional[NodeSceneData] = None) -> NodeInstance:
-        node_instance, logic_node = self._factory.create(node_fqn, node_scene_data)
+        node_instance, logic_node = self.node_provider.create_node(node_fqn, node_scene_data)
         
         self._logic_nodes[node_instance.uid] = logic_node
         self.graph.add_node(node_instance)

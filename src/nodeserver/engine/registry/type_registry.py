@@ -70,11 +70,18 @@ class TypeRegistry:
         self._fqn_to_python_type[datatype_fqn] = python_type
         self.python_type_map[python_type] = self.data_types[datatype_fqn]
 
+    # Boolean checks
+
+    def is_node_type_registered(self, nodetype_fqn: str) -> bool:
+        return nodetype_fqn in self.node_types
+
+    def is_datatype_associated_python(self, datatype_fqn: str) -> bool:
+        return datatype_fqn in self._fqn_to_python_type
 
     # Getters
 
     def get_node_type_spec(self, fqn: str) -> NodeTypeSpec:
-        if not fqn in self.node_types:
+        if not self.is_node_type_registered(fqn):
             raise KeyError(f"No NodeTypeSpec is registerd as {fqn}")
         
         return self.node_types[fqn]
@@ -98,7 +105,7 @@ class TypeRegistry:
         return self.python_type_map[py_type]
 
     def get_datatype_python_type(self, datatype_fqn: str) -> Optional[Type]:
-        if not datatype_fqn in self._fqn_to_python_type:
+        if not self.is_datatype_associated_python(datatype_fqn):
             raise KeyError(f"No python type is assigned to {datatype_fqn}")
         
         return self._fqn_to_python_type.get(datatype_fqn)
