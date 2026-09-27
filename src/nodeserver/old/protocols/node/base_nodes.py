@@ -1,4 +1,3 @@
-# TODO: Refatorar a forma como os nodes são interpretados/instânciados
 from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Optional

@@ -1,5 +1,3 @@
-# TODO: Refatorar os nodes, slots e conexões
-
 from nodeserver.old.node.node_exceptions import ReachedMaxConnections
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.old.helpers.scene.connection_manager import ConnectionManager

@@ -1,4 +1,3 @@
-# TODO: Refatorar os nodes, slots e conexões
 from typing import Optional
 from nodeserver.old.protocols.node.base_nodes import NodeMirror
 

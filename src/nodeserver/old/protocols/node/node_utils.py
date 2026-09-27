@@ -1,4 +1,3 @@
-# TODO: Refatorar a forma como os nodes são interpretados/instânciados
 from collections import deque
 
 from nodeserver.old.node.node_exceptions import ConnRecursionException

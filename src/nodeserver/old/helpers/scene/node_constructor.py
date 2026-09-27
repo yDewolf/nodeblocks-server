@@ -1,5 +1,3 @@
-# TODO: Refatorar os nodes, slots e conexões
-
 from typing import Any, Callable
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.old.protocols.datatype.node_data import NodeData
