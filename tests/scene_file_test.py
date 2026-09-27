@@ -1,5 +1,5 @@
-from nodeserver.protocols.helpers.file.node_scene_reader import SceneFileReader
-from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.old.wrapper.helpers.file.node_scene_reader import SceneFileReader
+from nodeserver.old.wrapper.helpers.file.typing_file_reader import TypeFileReader
 from test_data import SCENE_DATA_JSON, TYPE_FILE_JSON
 
 types_file = TypeFileReader()

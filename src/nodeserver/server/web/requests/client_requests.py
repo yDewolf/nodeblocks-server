@@ -2,7 +2,7 @@ from typing import Annotated, Literal, Optional, Union
 from pydantic import Field
 from pydantic import TypeAdapter
 
-from nodeserver.engine.instance.instance_states import InstanceCommands, InstanceStates, LoopStates
+from nodeserver.old.instance.instance_states import InstanceCommands, InstanceStates, LoopStates
 from nodeserver.server.web.requests.action_requests import ConnectionActionPayload, NodeActionPayload
 from nodeserver.server.web.requests.base_requests import BaseSocketModel
 from nodeserver.server.web.websocket_protocol import ClientMessages

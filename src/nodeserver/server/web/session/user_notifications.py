@@ -1,7 +1,7 @@
 
 from typing import Optional
 
-from nodeserver.engine.internal.internal_protocols import InstanceProtocol
+from nodeserver.old.internal.internal_protocols import InstanceProtocol
 from nodeserver.server.web.requests.notification_requests import NotificationWithMeta, ServerNotification
 
 

@@ -1,10 +1,10 @@
 from pydantic import BaseModel
 
-from nodeserver.engine.instance.instance_runtime import InstanceRuntime
-from nodeserver.engine.instance.server_instance import ServerInstance
+from nodeserver.old.instance.instance_runtime import InstanceRuntime
+from nodeserver.old.instance.server_instance import ServerInstance
 from nodeserver.server.web.session.user_session import UserSession
 from nodeserver.server.web.session.user_workspace import UserWorkspace
-from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.old.wrapper.helpers.file.typing_file_reader import TypeFileReader
 
 class WorkspaceAwareInput(BaseModel):
     class Config:

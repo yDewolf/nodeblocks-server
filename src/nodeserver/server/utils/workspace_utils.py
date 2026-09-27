@@ -1,7 +1,7 @@
 import os
 
-from nodeserver.engine.internal.instance_state import NODE_STATE_SUBFOLDER
-from nodeserver.engine.internal.internal_protocols import WorkspaceProtocol
+from nodeserver.old.internal.instance_state import NODE_STATE_SUBFOLDER
+from nodeserver.old.internal.internal_protocols import WorkspaceProtocol
 from nodeserver.server.utils.env_variables import WORKSPACES_PATH
 
 INSTANCE_FOLDER = "instances"

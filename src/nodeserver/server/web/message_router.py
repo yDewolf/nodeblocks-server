@@ -2,7 +2,7 @@ from enum import Enum
 import json
 import logging
 
-from nodeserver.engine.instance.actions.action_controller import Action
+from nodeserver.old.instance.actions.action_controller import Action
 from nodeserver.server.web.requests.notification_requests import ClientSyncNotifications, MsgUpdateNotification, ServerSyncNotifications
 from nodeserver.server.web.requests.request_unions import AnyServerMessage
 from nodeserver.server.web.requests.websocket_requests import SrvSyncScene, SrvVersionSync
@@ -10,7 +10,7 @@ from nodeserver.server.web.session.user_session import UserSession
 from nodeserver.server.web.websocket_messages import ClientMessageWrapper
 from nodeserver.server.web.requests.client_requests import MsgConnectionAction, MsgInstanceCommand, MsgInstanceState, MsgLoadScene, MsgLoopState, MsgNodeAction, MsgSimple, MsgSyncVersions
 from nodeserver.server.web.websocket_protocol import ClientMessages
-from nodeserver.engine.instance.server_instance import ServerInstance
+from nodeserver.old.instance.server_instance import ServerInstance
 
 COMMAND_LOGGER = logging.getLogger("nds.commands")
 class BaseMessagerouter:

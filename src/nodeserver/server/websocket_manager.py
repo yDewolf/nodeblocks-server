@@ -1,12 +1,12 @@
 import asyncio
 from aiohttp import web
 
-from nodeserver.engine.internal.instance_manager import InstanceManager
-from nodeserver.engine.internal.metadata_manager import MetadataManager
+from nodeserver.old.internal.instance_manager import InstanceManager
+from nodeserver.old.internal.metadata_manager import MetadataManager
 from nodeserver.server.web.instance.special_instance import WsServerInstance
 from nodeserver.server.web.manager.session_manager import SessionManager
 from nodeserver.server.web.manager.websocket_handler import WebsocketHandler
-from nodeserver.engine.instance.server_instance import ServerInstance
+from nodeserver.old.instance.server_instance import ServerInstance
 from nodeserver.server.web.message_router import BaseMessagerouter
 import logging
 

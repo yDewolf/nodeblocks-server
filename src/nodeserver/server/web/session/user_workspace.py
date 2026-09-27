@@ -4,7 +4,7 @@ import datetime
 import logging
 import os
 from typing import Optional
-from nodeserver.engine.instance.server_instance import ServerInstance
+from nodeserver.old.instance.server_instance import ServerInstance
 from nodeserver.server.utils.env_variables import INSTANCE_AUTOSAVE_INTERVAL
 from nodeserver.server.utils.workspace_utils import WorkspaceUtils
 from nodeserver.server.web.requests.notification_requests import NotificationLevel, ServerNotification

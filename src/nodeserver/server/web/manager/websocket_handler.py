@@ -7,15 +7,15 @@ import logging
 
 from pydantic import ValidationError
 
-from nodeserver.engine.instance.server_instance import ServerInstance
-from nodeserver.engine.internal.instance_state import StateFileUtils
+from nodeserver.old.instance.server_instance import ServerInstance
+from nodeserver.old.internal.instance_state import StateFileUtils
 from nodeserver.server.web.instance.special_instance import WsServerInstance
 from nodeserver.server.web.requests.notification_requests import ServerNotification
 from nodeserver.server.web.requests.request_unions import AnyServerMessage
 from nodeserver.server.web.requests.websocket_requests import SrvHandshakeError, SrvHandshakeSuccess, SrvVersionSync
 from nodeserver.server.web.session.user_session import SessionUtils, UserSession
 from nodeserver.server.utils.url_routing import Endpoint, URLRouter
-from nodeserver.engine.internal.instance_manager import InstanceManager
+from nodeserver.old.internal.instance_manager import InstanceManager
 
 from nodeserver.server.web.manager.session_manager import SessionManager
 from nodeserver.server.web.message_router import BaseMessagerouter

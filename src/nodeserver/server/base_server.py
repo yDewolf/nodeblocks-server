@@ -5,15 +5,15 @@ import logging
 from aiohttp import web
 import aiohttp_cors
 
-from nodeserver.engine.instance.server_instance import ServerInstance
-from nodeserver.engine.internal.instance_manager import InstanceManager
-from nodeserver.engine.internal.metadata_manager import MetadataManager
+from nodeserver.old.instance.server_instance import ServerInstance
+from nodeserver.old.internal.instance_manager import InstanceManager
+from nodeserver.old.internal.metadata_manager import MetadataManager
 from nodeserver.server.web.instance.special_instance import WsServerInstance
 from nodeserver.server.web.manager.session_manager import SessionManager
 from nodeserver.server.web.rest.metadata.metadata_api import MetadataHandler
 from nodeserver.server.web.rest.workspace.workspace_api import FileHandler
 from nodeserver.server.websocket_manager import WebsocketManager
-from nodeserver.protocols.helpers.file.typing_file_reader import TypeFileReader
+from nodeserver.old.wrapper.helpers.file.typing_file_reader import TypeFileReader
 
 USE_WATCHDOG: bool = True
 SESSION_CLEANUP_INTERVAL = 3.0

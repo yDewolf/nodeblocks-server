@@ -19,6 +19,7 @@ class NodeScene:
     _logic_nodes: dict[str, BaseNode] # TODO?: talvez fazer um submanager para isso
     _factory: NodeInstanceFactory
 
+    # TODO: usar um NodeProvider aqui no lugar do registry e factory
     def __init__(self, registry: TypeRegistry, factory: Optional[NodeInstanceFactory] = None):
         self.scene_id = str(IDGenerator.generate_generic_id())
         self.graph = SceneGraph(registry)
