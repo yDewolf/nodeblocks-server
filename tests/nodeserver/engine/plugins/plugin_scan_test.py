@@ -1,10 +1,11 @@
 import pytest
 
 from pathlib import Path
-import glob
-import os
 
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
+from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
+from nodeserver.engine.registry.type_registry import TypeRegistry
+from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 
 @pytest.fixture
 def plugins_setup() -> tuple[Path, Path]:
@@ -55,3 +56,25 @@ class TestPluginScan:
 #     )
 # """
 #         )
+
+
+@pytest.fixture
+def compiler(plugins_setup, default_registry):
+    root_path, plugins_path = plugins_setup
+    compiler = PluginCompiler(default_registry, plugins_path.name)
+    return compiler    
+
+class TestPluginCompile:
+    def test_plugin_compile(self, plugins_setup, compiler):
+        root_path, plugins_path = plugins_setup
+        scanner = PluginScanner(plugins_path)
+        discovered_plugins = scanner.discover_plugins()
+        
+        assert len(discovered_plugins) >= 1
+
+        compiled_manifests: list[ManifestPackage] = []
+        for plugin_manifest in discovered_plugins:
+            manifest = compiler.compile_manifest(plugin_manifest)
+            compiled_manifests.append(manifest)
+
+        assert len(compiled_manifests) == len(discovered_plugins)
