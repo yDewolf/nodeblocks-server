@@ -109,6 +109,18 @@ class  NodeSpecBuilder:
         return param_specs
 
 
+    def extract_datatype_dependencies(self, node_type: NodeTypeSpec) -> set[str]:
+        datatype_fqns: set[str] = set()
+
+        for id, param in node_type.parameters.items():
+            datatype_fqns.add(param.datatype_fqn)
+
+        for id, slot in node_type.slots.items():
+            datatype_fqns.add(slot.data_type_id)
+
+        return datatype_fqns
+
+
     # Utils:
     
     def _infer_datatype_from_type(self, annotation: Any) -> Optional[DataTypeSpec]:

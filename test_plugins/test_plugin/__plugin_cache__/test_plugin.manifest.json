@@ -29,6 +29,12 @@
           "max_connections": 0,
           "required": false,
           "is_input": false
+        },
+        "test_out": {
+          "data_type_id": "test_plugin:test_datatype",
+          "max_connections": 0,
+          "required": false,
+          "is_input": false
         }
       }
     }

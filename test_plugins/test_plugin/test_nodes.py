@@ -1,4 +1,5 @@
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
+from test_plugins.test_plugin.test_datatypes import TestDatatype
 
 
 class TestNodeInput(NodeInputs):
@@ -6,6 +7,7 @@ class TestNodeInput(NodeInputs):
 
 class TestNodeOutputs(NodeOutputs):
     out_0: float
+    test_out: TestDatatype
 
 class TestNode(BaseNode[TestNodeInput, TestNodeOutputs]):
     InputModel = TestNodeInput
@@ -13,5 +15,6 @@ class TestNode(BaseNode[TestNodeInput, TestNodeOutputs]):
 
     def forward(self, inputs: TestNodeInput) -> TestNodeOutputs:
         return TestNodeOutputs(
-            out_0=inputs.in_0 + 1
+            out_0=inputs.in_0 + 1,
+            test_out=TestDatatype()
         )

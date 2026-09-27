@@ -6,7 +6,7 @@ from nodeserver.engine.exceptions.plugin_exceptions import PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeSpec
+from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
@@ -20,6 +20,7 @@ class PluginManager:
     _loaded_packages: dict[str, ManifestPackage] # package_id -> ManifestPackage
     _plugin_manifests: dict[str, PluginManifest] # package_id -> PluginManifest
 
+    _loaded_datatypes: dict[str, PluginDatatypeRef]
 
     def __init__(
         self,
@@ -34,6 +35,8 @@ class PluginManager:
 
 
     def reset_packages(self):
+        self._loaded_datatypes = {}
+
         self._loaded_packages = {}
         self._plugin_manifests = {}
 
@@ -52,8 +55,6 @@ class PluginManager:
         compiled_packages: list[ManifestPackage] = []
 
         for manifest, path in discovered_manifests:
-            self._plugin_manifests[manifest.package_id] = manifest
-
             package: ManifestPackage = self.compiler.compile_manifest(manifest)
             compiled_packages.append(package)
 
@@ -64,6 +65,8 @@ class PluginManager:
                 
                 PluginManifestHelper.save_package_manifest(package, out_folder)
                 PluginManifestHelper.save_plugin_manifest(manifest, out_folder)
+
+            self.index_plugin(manifest)
 
         return compiled_packages
 
@@ -94,7 +97,7 @@ class PluginManager:
             #         ))
             
             # plugin_manifest.data_types = converted_datatypes
-            self._plugin_manifests[plugin_manifest.package_id] = plugin_manifest
+            self.index_plugin(plugin_manifest)
 
         return self._loaded_packages
 
@@ -111,12 +114,31 @@ class PluginManager:
 
         self._loaded_packages[package.package_id] = package
 
+    # Indexing
+
+    def index_plugin(self, plugin_manifest: PluginManifest):
+        self._plugin_manifests[plugin_manifest.package_id] = plugin_manifest
+        
+        # TODO: index other stuff
+        for datatype in plugin_manifest.data_types:
+            self._loaded_datatypes[datatype.fqn] = datatype
+        
+
+    # Ensures
 
     def ensure_plugin_manifest(self, package_id: str) -> PluginManifest:
         if not package_id in self._plugin_manifests:
             raise PluginNotLoadedError(package_id)
 
         return self._plugin_manifests[package_id]
+
+    def ensure_plugin_datatype_ref(self, datatype_fqn: str) -> PluginDatatypeRef:
+        if not datatype_fqn in self._loaded_datatypes:
+            raise KeyError()
+        
+        return self._loaded_datatypes[datatype_fqn]
+
+    # Getters
 
     def get_plugin_manifest(self, package_id: str) -> Optional[PluginManifest]:
         return self._plugin_manifests.get(package_id)
@@ -129,3 +151,8 @@ class PluginManager:
 
     def get_all_loaded_packages(self) -> dict[str, ManifestPackage]:
         return self._loaded_packages.copy()
+
+    # Datatype Getters
+
+    def get_plugin_datatype_ref(self, datatype_fqn: str) -> Optional[PluginDatatypeRef]:
+        return self._loaded_datatypes.get(datatype_fqn)
