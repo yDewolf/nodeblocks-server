@@ -72,3 +72,40 @@ class PluginDataTypeRefInCompileTime(PluginDomainException):
             f"{datatype_fqn} must be PluginDatatypeSpec in compile time so a DataTypeSpec can be generated", 
             plugin_id, {}
         )
+
+
+class PluginMissingNodeCache(PluginDomainException):
+    def __init__(
+        self, 
+        plugin_id: str | None = None
+    ) -> None:
+        super().__init__(
+            "PLUGIN_MISSING_NODE_CACHE", 
+            f"Plugin {plugin_id} doesn't have nodes_cache set up", 
+            plugin_id, {}
+        )
+
+
+class PluginMissingNodeCacheEntry(PluginDomainException):
+    def __init__(
+        self,
+        node_fqn: str,
+        plugin_id: str | None = None
+    ) -> None:
+        super().__init__(
+            "PLUGIN_MISSING_NODE_CACHE_ENTRY", 
+            f"Plugin {plugin_id}'s nodes_cache is missing an entry for {node_fqn}", 
+            plugin_id, {"node_fqn": node_fqn}
+        )
+
+class InvalidPluginNodeClassPath(PluginDomainException):
+    def __init__(
+        self,
+        class_path: str,
+        plugin_id: str | None = None
+    ) -> None:
+        super().__init__(
+            "INVALID_PLUGIN_NODE_CLASS_PATH", 
+            f"{class_path} is not a valid BaseNode class path in plugin {plugin_id}", 
+            plugin_id, {"class_path": class_path}
+        )

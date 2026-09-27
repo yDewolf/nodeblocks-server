@@ -3,10 +3,11 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Type
 
-from nodeserver.engine.exceptions.plugin_exceptions import MissingNamespacePluginDataType, PluginDataTypeRefInCompileTime
+from nodeserver.engine.exceptions.plugin_exceptions import InvalidPluginNodeClassPath, MissingNamespacePluginDataType, PluginDataTypeRefInCompileTime
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
 from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef, PluginDatatypeSpec
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_nodes import NodeCacheEntry
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
@@ -52,8 +53,13 @@ class PluginCompiler:
             default_renderer=plugin_dt_spec.default_renderer,
             whitelist=plugin_dt_spec.whitelist
         )
+
         if assign_to_registry:
-            self.registry.register_data_type(spec)
+            python_type = self.resolve_datatype_python_type(
+                plugin_dt_spec.namespace,
+                plugin_dt_spec.class_path
+            )
+            self.registry.register_data_type(spec, python_type)
 
         return spec
 
@@ -73,7 +79,7 @@ class PluginCompiler:
             node_cls=node_cls
         )
 
-        if assign_logic_class:
+        if assign_logic_class and node_cls:
             if not self.registry.is_node_type_registered(node_type_spec.fqn):
                 self.registry.register_node_type(node_type_spec, logic_class=node_cls)
             else:
@@ -133,18 +139,45 @@ class PluginCompiler:
             )
             package.data_types[datatype_spec.fqn] = datatype_spec
 
+        manifest.nodes_cache = {}
         for relative_module in manifest.node_modules:
             node_specs = self.compile_node_module(
                 package_id=manifest.package_id,
                 relative_module_path=relative_module,
                 assign_logic_classes=assign_to_registry
             )
+
             for node_spec in node_specs:
+                datatype_fqns = self.spec_builder.extract_datatype_dependencies(node_spec)
+                
+                manifest.nodes_cache[node_spec.fqn] = NodeCacheEntry(
+                    class_path=f"{relative_module}.{node_spec.id}",
+                    required_datatypes=list(datatype_fqns)
+                )
+
                 package.node_types[node_spec.fqn] = node_spec
 
         return package
 
     # Import Resolve methods:
+
+    def resolve_node_class(self, package_id: str, relative_class_path: str) -> type[BaseNode]:
+        full_path = self._resolve_import_path(package_id, relative_class_path)
+        module_path, class_name = full_path.rsplit(".", 1)
+
+        try:
+            module = importlib.import_module(module_path)
+            node_cls = getattr(module, class_name)
+            if self._is_concrete_node_class(node_cls):
+                return node_cls
+            else:
+                raise InvalidPluginNodeClassPath(
+                    full_path, package_id
+                )
+
+        except (ImportError, AttributeError) as e:
+            raise RuntimeError(f"Failed to import node type logic class {full_path}: {e}") from e
+
 
     def resolve_datatype_python_type(self, package_id: str, relative_class_path: str) -> Type:
         full_path = self._resolve_import_path(package_id, relative_class_path)

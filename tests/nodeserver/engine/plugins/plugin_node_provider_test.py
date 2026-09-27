@@ -109,6 +109,6 @@ class TestLazyLoading:
     def test_lazy_load_node_not_found(self, provider, setup_sys_path):
         node_fqn = "test_plugin:UnknownNode"
         
-        with pytest.raises(RuntimeError) as exc_info:
+        with pytest.raises(KeyError) as exc_info:
             provider.create_node(node_fqn)
-            
+

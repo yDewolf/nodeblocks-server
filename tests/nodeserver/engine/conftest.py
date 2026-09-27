@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 from pydantic import Field
 import pytest
@@ -65,7 +65,8 @@ def default_registry():
         python_type=float
     )
     reg.register_data_type(
-        DatatypeHelper.create_spec(namespace, "unknown", base_id=DefaultDataTypes.UNKNOWN, renderer=DefaultRenderers.NOT_IMPLEMENTED)
+        DatatypeHelper.create_spec(namespace, "unknown", base_id=DefaultDataTypes.UNKNOWN, renderer=DefaultRenderers.NOT_IMPLEMENTED),
+        python_type=type[Any]
     )
 
     return reg
