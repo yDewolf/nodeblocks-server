@@ -3,6 +3,7 @@ import pytest
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
 from nodeserver.engine.protocols.node.node_scene import NodeScene
+from nodeserver.engine.protocols.node_provider import BaseNodeProvider
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
 from nodeserver.engine.runtime.runtime_context import GraphRunContext, JobStatus, NodeExecutionStatus
@@ -119,8 +120,8 @@ def scene(default_registry):
     default_registry.register_node_type(spec_builder.build_node_spec("test", "string_node", StringNode), StringNode)
     default_registry.register_node_type(spec_builder.build_node_spec("test", "input_test", InputTestNode), InputTestNode)
     default_registry.register_node_type(spec_builder.build_node_spec("test", "param_test", ParamTestNode), ParamTestNode)
-    
-    scene = NodeScene(registry=default_registry)
+
+    scene = NodeScene(registry=default_registry, node_provider=BaseNodeProvider(registry=default_registry))
     return scene
 
 

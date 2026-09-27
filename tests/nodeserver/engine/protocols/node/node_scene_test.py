@@ -3,22 +3,22 @@ import pytest
 from nodeserver.engine.exceptions.graph_exceptions import CyclicConnectionError, CyclicGraphError, DuplicateConnectionError, MaxConnectionReached
 from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
 from nodeserver.engine.protocols.node.node_scene import NodeScene
+from nodeserver.engine.protocols.node_provider import BaseNodeProvider
 from tests.nodeserver.engine.conftest import MockNode
 
 @pytest.fixture
-def scene_setup(default_registry, default_builder) -> tuple[NodeScene, NodeInstanceFactory, str]:
+def scene_setup(default_registry, default_builder) -> tuple[NodeScene, str]:
     spec = default_builder.build_node_spec("custom", "transform_node", MockNode)
     default_registry.register_node_type(spec, logic_class=MockNode)
 
-    factory = NodeInstanceFactory(default_registry)
-    scene = NodeScene(registry=default_registry, factory=factory)
+    scene = NodeScene(registry=default_registry, node_provider=BaseNodeProvider(default_registry))
 
-    return scene, factory, spec.fqn
+    return scene, spec.fqn
 
 
 class TestNodeSceneManagement:
     def test_remove_node_cleans_up_connections(self, scene_setup):
-        scene, factory, node_fqn = scene_setup
+        scene, node_fqn = scene_setup
 
         node1 = scene.create_node(node_fqn)
         node2 = scene.create_node(node_fqn)
@@ -40,7 +40,7 @@ class TestNodeSceneManagement:
 
 class TestSceneGraphConnections:
     def test_add_and_remove_valid_connection(self, scene_setup):
-        scene, factory, node_fqn = scene_setup
+        scene, node_fqn = scene_setup
 
         node1 = scene.create_node(node_fqn)
         node2 = scene.create_node(node_fqn)
@@ -57,7 +57,7 @@ class TestSceneGraphConnections:
         assert conn.uid not in scene.graph._connections.connections
 
     def test_prevent_duplicate_connection(self, scene_setup):
-        scene, factory, node_fqn = scene_setup
+        scene, node_fqn = scene_setup
 
         node_a = scene.create_node(node_fqn)
         node_b = scene.create_node(node_fqn)
@@ -77,7 +77,7 @@ class TestSceneGraphConnections:
             )
 
     def test_max_connections_limit_validation(self, scene_setup):
-        scene, factory, node_fqn = scene_setup
+        scene, node_fqn = scene_setup
 
         node_src1 = scene.create_node(node_fqn)
         node_src2 = scene.create_node(node_fqn)
@@ -101,7 +101,7 @@ class TestSceneGraphConnections:
 
 class TestSceneGraphTopology:
     def test_topological_sort_linear_pipeline(self, scene_setup):
-        scene, factory, node_fqn = scene_setup
+        scene, node_fqn = scene_setup
 
         node_a = scene.create_node(node_fqn)
         node_b = scene.create_node(node_fqn)
@@ -123,7 +123,7 @@ class TestSceneGraphTopology:
         assert node_uids.index(node_b.uid) < node_uids.index(node_c.uid)
 
     def test_detect_cycle_in_graph(self, scene_setup):
-        scene, factory, node_fqn = scene_setup
+        scene, node_fqn = scene_setup
 
         node_a = scene.create_node(node_fqn)
         node_b = scene.create_node(node_fqn)
