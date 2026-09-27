@@ -29,34 +29,40 @@ class PluginManager:
         self.registry = registry
         self.scanner = scanner or PluginScanner()
         self.compiler = compiler or PluginCompiler(registry=registry)
+        self.reset_packages()
 
+
+    def reset_packages(self):
         self._loaded_packages = {}
         self._plugin_manifests = {}
 
 
-    def compile_plugins(self, source_folder: Path, output_folder: Path, save_to_disk: bool = True) -> list[ManifestPackage]:
+    def compile_plugins(self, source_folder: Path, save_to_disk: bool = True, output_folder: Optional[Path] = None) -> list[ManifestPackage]:
         """
         Scans a folder using PluginScanner then compiles each plugin found by it
         optionally saves ManifestPackage json (for fast boot)
         """
         source_folder = Path(source_folder)
-        output_folder = Path(output_folder)
 
-        if save_to_disk:
+        if save_to_disk and output_folder:
             output_folder.mkdir(parents=True, exist_ok=True)
 
-        discovered_manifests: list[PluginManifest] = self.scanner.discover_plugins(source_folder)
+        discovered_manifests = self.scanner.discover_plugins(source_folder)
         compiled_packages: list[ManifestPackage] = []
 
-        for manifest in discovered_manifests:
+        for manifest, path in discovered_manifests:
             self._plugin_manifests[manifest.package_id] = manifest
 
             package: ManifestPackage = self.compiler.compile_manifest(manifest)
             compiled_packages.append(package)
 
             if save_to_disk:
-                PluginManifestHelper.save_package_manifest(package, output_folder)
-                PluginManifestHelper.save_plugin_manifest(manifest, output_folder)
+                out_folder = output_folder or PluginManifestHelper.get_plugin_cache_folder(path.parent)
+                if not out_folder.exists():
+                    out_folder.mkdir()
+                
+                PluginManifestHelper.save_package_manifest(package, out_folder)
+                PluginManifestHelper.save_plugin_manifest(manifest, out_folder)
 
         return compiled_packages
 
@@ -70,11 +76,11 @@ class PluginManager:
         if not manifests_folder.exists():
             return {}
 
-        for plugin_file in manifests_folder.glob("*.plugin.json"):
+        for plugin_file in PluginManifestHelper.iterate_plugin_cache_files(manifests_folder):
             plugin_manifest = PluginManifestHelper.load_plugin_manifest(plugin_file)
             self._plugin_manifests[plugin_manifest.package_id] = plugin_manifest
 
-        for manifest_file in manifests_folder.glob("*.manifest.json"):
+        for manifest_file in PluginManifestHelper.iterate_manifest_cache_files(manifests_folder):
             package = PluginManifestHelper.load_package_manifest(manifest_file)
             self.register_compiled_package(package)
 

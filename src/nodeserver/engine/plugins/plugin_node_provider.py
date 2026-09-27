@@ -48,7 +48,7 @@ class PluginNodeProvider(INodeProvider):
                 return
 
         if node_fqn not in registry.node_logic_classes:
-            raise RuntimeError(f"Não foi possível encontrar a classe do nó '{node_fqn}' nos módulos do plugin.")
+            raise RuntimeError(f"Couldn't find {node_fqn} in plugin modules")
 
     def _ensure_plugin_datatypes_loaded(self, plugin_manifest: PluginManifest) -> None:
         registry = self.plugin_manager.registry

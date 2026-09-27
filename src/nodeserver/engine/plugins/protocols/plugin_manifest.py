@@ -21,7 +21,7 @@ class PluginManifest(BaseModel):
     dependencies: dict[str, str] = {} # ex: {"com.company.core_nodes": ">=1.0.0"}
     
     node_modules: list[str] = Field(default_factory=list) # python modules to import logic classes
-    
+
     data_types: list[PluginDatatypeSpec] = Field(default_factory=list)
 
     @model_validator(mode="before")
@@ -38,6 +38,17 @@ class PluginManifest(BaseModel):
 
         processed_specs = []
         for item in data_types:
+            if isinstance(item, dict):
+                if not "namespace" in item:
+                    item["namespace"] = package_id
+                
+                if not "whitelist" in item or item["whitelist"] is None:
+                    datatype_id = item.get("id")
+                    if datatype_id:
+                        item["whitelist"] = [make_namespace_fqn(item["namespace"], datatype_id)]
+                
+                processed_specs.append(item)
+            
             if isinstance(item, PluginDatatypeSpec):
                 if item.namespace is None:
                     item.namespace = package_id

@@ -4,7 +4,6 @@ from pathlib import Path
 
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
-from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 
 @pytest.fixture
@@ -44,7 +43,7 @@ class TestPluginCompile:
         assert len(discovered_plugins) >= 1
 
         compiled_manifests: list[ManifestPackage] = []
-        for plugin_manifest in discovered_plugins:
+        for plugin_manifest, path in discovered_plugins:
             manifest = compiler.compile_manifest(plugin_manifest)
             compiled_manifests.append(manifest)
 

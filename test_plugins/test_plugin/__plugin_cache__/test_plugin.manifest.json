@@ -1,0 +1,36 @@
+{
+  "version": "0.0.0",
+  "package_id": "test_plugin",
+  "data_types": {
+    "test_plugin:test_datatype": {
+      "namespace": "test_plugin",
+      "id": "test_datatype",
+      "base_id": "text",
+      "default_renderer": "text",
+      "whitelist": [
+        "test_plugin:test_datatype"
+      ]
+    }
+  },
+  "node_types": {
+    "test_plugin:TestNode": {
+      "namespace": "test_plugin",
+      "id": "TestNode",
+      "parameters": {},
+      "slots": {
+        "in_0": {
+          "data_type_id": "core:float",
+          "max_connections": 1,
+          "required": false,
+          "is_input": true
+        },
+        "out_0": {
+          "data_type_id": "core:float",
+          "max_connections": 0,
+          "required": false,
+          "is_input": false
+        }
+      }
+    }
+  }
+}
