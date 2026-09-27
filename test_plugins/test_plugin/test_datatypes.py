@@ -1,4 +1,4 @@
-from nodeserver.engine.plugins.plugin_decorators import plugin_datatype
+from nodeserver.engine.plugins.decorators.plugin_decorators import plugin_datatype
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 
 
