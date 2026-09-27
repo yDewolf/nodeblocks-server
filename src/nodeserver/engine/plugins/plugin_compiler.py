@@ -3,9 +3,9 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Type
 
-from nodeserver.engine.exceptions.plugin_exceptions import MissingNamespacePluginDataType
+from nodeserver.engine.exceptions.plugin_exceptions import MissingNamespacePluginDataType, PluginDataTypeRefInCompileTime
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeSpec
+from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef, PluginDatatypeSpec
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.registry.type_registry import TypeRegistry
@@ -124,6 +124,9 @@ class PluginCompiler:
         )
 
         for plugin_dt_spec in manifest.data_types:
+            if not isinstance(plugin_dt_spec, PluginDatatypeSpec):
+                raise PluginDataTypeRefInCompileTime(plugin_dt_spec.fqn, manifest.package_id)
+
             datatype_spec = self.compile_data_type_spec(
                 plugin_dt_spec=plugin_dt_spec,
                 assign_to_registry=assign_to_registry

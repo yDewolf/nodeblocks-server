@@ -58,3 +58,17 @@ class PluginNotLoadedError(PluginDomainException):
             f"Plugin {plugin_id} is not loaded.", 
             plugin_id, {}
         )
+
+
+
+class PluginDataTypeRefInCompileTime(PluginDomainException):
+    def __init__(
+        self,
+        datatype_fqn: str,
+        plugin_id: str | None = None
+    ) -> None:
+        super().__init__(
+            "PLUGIN_DATATYPE_REF_COMPILE_TIME", 
+            f"{datatype_fqn} must be PluginDatatypeSpec in compile time so a DataTypeSpec can be generated", 
+            plugin_id, {}
+        )
