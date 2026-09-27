@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Optional, Self, Type
 
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
@@ -17,12 +17,28 @@ class TypeRegistry:
     _fqn_to_python_type: dict[str, type]
 
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.data_types = {}
         self.node_types = {}
 
         self.node_logic_classes = {}
         self.python_type_map = {}
         self._fqn_to_python_type = {}
+
+    # Copies registered types from another registry without referencing
+    @classmethod
+    def from_registry(cls, registry: TypeRegistry) -> Self:
+        new_registry = cls()
+
+        new_registry.data_types = registry.data_types.copy()
+        new_registry.node_types = registry.node_types.copy()
+        new_registry.node_logic_classes = registry.node_logic_classes.copy()
+        new_registry.python_type_map = registry.python_type_map.copy()
+        new_registry._fqn_to_python_type = registry._fqn_to_python_type.copy()
+        
+        return new_registry
 
 
     def register_data_type(self, spec: DataTypeSpec, python_type: Optional[type] = None):

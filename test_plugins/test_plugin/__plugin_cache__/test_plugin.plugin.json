@@ -1,0 +1,23 @@
+{
+  "package_id": "test_plugin",
+  "version": "0.0.0",
+  "description": null,
+  "authors": [],
+  "min_engine_version": null,
+  "dependencies": {},
+  "node_modules": [
+    "test_nodes"
+  ],
+  "data_types": [
+    {
+      "namespace": "test_plugin",
+      "id": "test_datatype",
+      "base_id": "text",
+      "default_renderer": "text",
+      "whitelist": [
+        "test_plugin:test_datatype"
+      ],
+      "class_path": "test_datatypes.TestDatatype"
+    }
+  ]
+}

@@ -9,9 +9,8 @@ class PluginScanner:
     def __init__(self):
         pass
 
-    def discover_plugins(self, plugins_dir: Path) -> list[PluginManifest]:
-        manifests: list[PluginManifest] = []
-
+    def discover_plugins(self, plugins_dir: Path) -> list[tuple[PluginManifest, Path]]:
+        manifests: list[tuple[PluginManifest, Path]] = []
         for plugin_file in plugins_dir.rglob("plugin.py", case_sensitive=False):
             module_name = PluginScanner.make_module_name(plugin_file.parent.name)
             
@@ -27,7 +26,10 @@ class PluginScanner:
                         and issubclass(attr, Plugin) 
                         and attr is not Plugin
                     ):
-                        manifests.append(attr.get_manifest())
+                        manifests.append((
+                            attr.get_manifest(),
+                            plugin_file
+                        ))
 
         return manifests
 
