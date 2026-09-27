@@ -1,16 +1,16 @@
 from typing import Any, Optional, Type, Union
 
 from nodeserver.engine.exceptions.plugin_exceptions import InvalidPluginDecoratorUsage
+from nodeserver.engine.plugins.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
+from nodeserver.engine.plugins.plugin import Plugin
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.manifest.base_manifest import DataModel
 
 
-class PluginNodeDefModel(DataModel):
-    id: str
-
-
-def plugin_node(id: Optional[str] = None):
+def plugin_node(
+    id: Optional[str] = None,
+    plugin_cls: Optional[type[Plugin]] = None
+):
     """Registers a BaseNode in the current Plugin"""
     def wrapper(cls: Type) -> Type:
         if not issubclass(cls, BaseNode):
@@ -25,15 +25,13 @@ def plugin_node(id: Optional[str] = None):
     return wrapper
 
 
-class PluginDataTypeDefModel(DataModel):
-    id: str
-    cls_name: str
-
-    base_id: DefaultDataTypes
-    renderer: DefaultRenderers
-    whitelist: list[str]
-
-def plugin_datatype(id: str, base_id: DefaultDataTypes, default_renderer: DefaultRenderers, whitelist: Optional[list[str]] = None):
+def plugin_datatype(
+    id: str, 
+    base_id: DefaultDataTypes, 
+    default_renderer: DefaultRenderers, 
+    whitelist: Optional[list[str]] = None,
+    plugin_cls: Optional[type[Plugin]] = None
+):
     """Registers a DataType in the current Plugin"""
     def wrapper(cls: Type) -> Type:
         datatype_meta = PluginDataTypeDefModel(
@@ -49,7 +47,9 @@ def plugin_datatype(id: str, base_id: DefaultDataTypes, default_renderer: Defaul
     return wrapper
 
 
-def get_plugin_meta(attr: Any) -> Optional[Union[PluginNodeDefModel, PluginDataTypeDefModel]]:
+# Helpers:
+
+def get_plugin_spec_definition_meta(attr: Any) -> Optional[PluginDecoDefModels]:
     if not isinstance(attr, type):
         return None
     

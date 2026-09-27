@@ -1,11 +1,11 @@
 import importlib
-from pathlib import Path
 from types import ModuleType
 from typing import Any, Type
 
 from nodeserver.engine.exceptions.plugin_exceptions import InvalidPluginNodeClassPath, MissingNamespacePluginDataType, PluginDataTypeRefInCompileTime
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
-from nodeserver.engine.plugins.plugin_decorators import PluginDataTypeDefModel, PluginNodeDefModel, get_plugin_meta
+from nodeserver.engine.plugins.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
+from nodeserver.engine.plugins.decorators.plugin_decorators import get_plugin_spec_definition_meta
 from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef, PluginDatatypeSpec
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.plugins.protocols.plugin_nodes import NodeCacheEntry
@@ -116,39 +116,19 @@ class PluginCompiler:
         Searches for @plugin_node and @plugin_datatype decorators inside the modules
         to auto generate manifest.data_types and manifest.node_modules
         """
-        # class path -> fqn
-        registered_datatypes: dict[str, str] = {}
         for module_path in relative_modules:
             module = self._import_python_module(manifest.package_id, module_path)
 
             for attr_name in dir(module):
                 attr = getattr(module, attr_name)
-                meta = get_plugin_meta(attr)
+                meta = get_plugin_spec_definition_meta(attr)
                 if not meta:
                     continue
 
                 if getattr(attr, "__module__", None) != module.__name__:
                     continue
-                
-                if isinstance(meta, PluginNodeDefModel):
-                    if not module_path in manifest.node_modules:
-                        manifest.node_modules.append(module_path)
 
-                if isinstance(meta, PluginDataTypeDefModel):
-                    class_path = f"{module_path}.{meta.cls_name}"
-                    if class_path in registered_datatypes:
-                        continue
-
-                    spec = PluginDatatypeSpec(
-                        class_path=class_path,
-                        namespace=manifest.package_id,
-                        id=meta.id,
-                        base_id=meta.base_id,
-                        default_renderer=meta.renderer,
-                        whitelist=meta.whitelist
-                    )
-                    manifest.data_types.append(spec)
-                    registered_datatypes[spec.class_path] = spec.fqn
+                self._parse_plugin_decorators(meta, manifest, module_path)
 
 
     def compile_manifest(
@@ -226,6 +206,25 @@ class PluginCompiler:
 
         except (ImportError, AttributeError) as e:
             raise RuntimeError(f"Failed to import datatype python class {full_path}: {e}") from e
+
+    # Decorator Utility
+
+    def _parse_plugin_decorators(self, meta: PluginDecoDefModels, manifest: PluginManifest, module_path: str):
+        if isinstance(meta, PluginNodeDefModel):
+            if not module_path in manifest.node_modules:
+                manifest.node_modules.append(module_path)
+
+        if isinstance(meta, PluginDataTypeDefModel):
+            class_path = f"{module_path}.{meta.cls_name}"
+            spec = PluginDatatypeSpec(
+                class_path=class_path,
+                namespace=manifest.package_id,
+                id=meta.id,
+                base_id=meta.base_id,
+                default_renderer=meta.renderer,
+                whitelist=meta.whitelist
+            )
+            manifest.data_types.append(spec)
     
     # Utility:
 
