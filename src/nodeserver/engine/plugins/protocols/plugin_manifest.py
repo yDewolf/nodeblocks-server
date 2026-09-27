@@ -1,8 +1,8 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_serializer, model_validator
 
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeSpec
+from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef, PluginDatatypeSpec
 from nodeserver.protocols.manifest.base_manifest import make_namespace_fqn
 
 class PluginManifest(BaseModel):
@@ -21,8 +21,15 @@ class PluginManifest(BaseModel):
     dependencies: dict[str, str] = {} # ex: {"com.company.core_nodes": ">=1.0.0"}
     
     node_modules: list[str] = Field(default_factory=list) # python modules to import logic classes
+    data_types: list[Union[PluginDatatypeSpec, PluginDatatypeRef]] = Field(default_factory=list)
 
-    data_types: list[PluginDatatypeSpec] = Field(default_factory=list)
+    @field_serializer("data_types")
+    def serialize_data_types(self, data_types: list[PluginDatatypeSpec]):
+        return [
+            PluginDatatypeRef.model_validate(
+                {"namespace": data_type.namespace, "id": data_type.id, "class_path": data_type.class_path}
+            ) for data_type in data_types
+        ]
 
     @model_validator(mode="before")
     @classmethod
@@ -42,10 +49,10 @@ class PluginManifest(BaseModel):
                 if not "namespace" in item:
                     item["namespace"] = package_id
                 
-                if not "whitelist" in item or item["whitelist"] is None:
-                    datatype_id = item.get("id")
-                    if datatype_id:
-                        item["whitelist"] = [make_namespace_fqn(item["namespace"], datatype_id)]
+                # if not "whitelist" in item or item["whitelist"] is None:
+                #     datatype_id = item.get("id")
+                #     if datatype_id:
+                #         item["whitelist"] = [make_namespace_fqn(item["namespace"], datatype_id)]
                 
                 processed_specs.append(item)
             

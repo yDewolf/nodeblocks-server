@@ -12,11 +12,6 @@
     {
       "namespace": "test_plugin",
       "id": "test_datatype",
-      "base_id": "text",
-      "default_renderer": "text",
-      "whitelist": [
-        "test_plugin:test_datatype"
-      ],
       "class_path": "test_datatypes.TestDatatype"
     }
   ]

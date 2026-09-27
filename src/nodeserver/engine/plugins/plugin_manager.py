@@ -6,6 +6,7 @@ from nodeserver.engine.exceptions.plugin_exceptions import PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
+from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeSpec
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
@@ -76,13 +77,24 @@ class PluginManager:
         if not manifests_folder.exists():
             return {}
 
-        for plugin_file in PluginManifestHelper.iterate_plugin_cache_files(manifests_folder):
-            plugin_manifest = PluginManifestHelper.load_plugin_manifest(plugin_file)
-            self._plugin_manifests[plugin_manifest.package_id] = plugin_manifest
-
         for manifest_file in PluginManifestHelper.iterate_manifest_cache_files(manifests_folder):
             package = PluginManifestHelper.load_package_manifest(manifest_file)
             self.register_compiled_package(package)
+
+        for plugin_file in PluginManifestHelper.iterate_plugin_cache_files(manifests_folder):
+            plugin_manifest = PluginManifestHelper.load_plugin_manifest(plugin_file)
+
+            # FIXME: uncomment this if needed. For now it doesn't really matter if PluginManifest.data_types is PluginDatatypeRef
+            # converted_datatypes: list[PluginDatatypeSpec] = []
+            # for datatype in plugin_manifest.data_types:
+            #     if not isinstance(datatype, PluginDatatypeSpec):
+            #         spec = self.registry.get_datatype_spec(datatype.fqn)
+            #         converted_datatypes.append(PluginDatatypeSpec.from_ref_and_spec(
+            #             datatype, spec
+            #         ))
+            
+            # plugin_manifest.data_types = converted_datatypes
+            self._plugin_manifests[plugin_manifest.package_id] = plugin_manifest
 
         return self._loaded_packages
 

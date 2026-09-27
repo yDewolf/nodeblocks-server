@@ -1,14 +1,26 @@
 from nodeserver.engine.exceptions.plugin_exceptions import MissingNamespacePluginDataType
+from nodeserver.protocols.manifest.base_manifest import NamespaceModel
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 
-from typing import Optional
+from typing import Optional, Self
 
-# FIXME: quando for fazer model dump json, enviar apenas class_path e as coisas do namespace
-class PluginDatatypeSpec(DataTypeSpec):
+class PluginDatatypeRef(NamespaceModel):
+    class_path: str
+
+class PluginDatatypeSpec(DataTypeSpec, PluginDatatypeRef):
     """Maps a python class to a DataTypeSpec Fully Qualified Name (fqn) through import string."""
     namespace: Optional[str] = None # Must be autofilled by the PluginCompiler
 
-    class_path: str # ex: "myplugin.types.ImageBuffer"
+    @classmethod
+    def from_ref_and_spec(cls, ref: PluginDatatypeRef, spec: DataTypeSpec) -> Self:
+        return cls(
+            namespace=ref.namespace,
+            id=ref.id,
+            class_path=ref.class_path,
+            base_id=spec.base_id,
+            default_renderer=spec.default_renderer,
+            whitelist=spec.whitelist
+        )
 
     @property
     def fqn(self):
@@ -16,3 +28,13 @@ class PluginDatatypeSpec(DataTypeSpec):
             raise MissingNamespacePluginDataType(self.id, self.class_path)
 
         return super().fqn
+
+    def to_plugin_datatype_ref(self) -> PluginDatatypeRef:
+        if self.namespace is None:
+            raise MissingNamespacePluginDataType(self.id, self.class_path)
+
+        return PluginDatatypeRef(
+            namespace=self.namespace,
+            id=self.id,
+            class_path=self.class_path
+        )
