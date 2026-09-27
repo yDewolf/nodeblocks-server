@@ -1,5 +1,5 @@
 
-from typing import Any, Optional
+from typing import Any, Callable, Optional, Type
 
 from nodeserver.engine.exceptions.base_exceptions import EngineDomainError
 
@@ -16,6 +16,20 @@ class PluginDomainException(EngineDomainError):
             error_code, 
             message, 
             {"plugin_id": plugin_id, **(extra_details or {})}
+        )
+
+
+class InvalidPluginDecoratorUsage(PluginDomainException):
+    def __init__(
+        self,
+        cls: Type,
+        decorator: Callable,
+        plugin_id: str | None = None
+    ) -> None:
+        super().__init__(
+            "INVALID_PLUGIN_DECORATOR_USAGE", 
+            f"Invalid usage of {decorator.__name__} for class {cls}", 
+            plugin_id, {"cls": cls, "decorator": decorator}
         )
 
 

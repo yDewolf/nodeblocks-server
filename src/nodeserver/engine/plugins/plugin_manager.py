@@ -54,12 +54,15 @@ class PluginManager:
         discovered_manifests = self.scanner.discover_plugins(source_folder)
         compiled_packages: list[ManifestPackage] = []
 
-        for manifest, path in discovered_manifests:
+        for manifest, file_path in discovered_manifests:
+            modules = self.scanner.discover_modules(file_path.parent)
+            self.compiler.compile_plugin_modules(manifest, modules)
+            
             package: ManifestPackage = self.compiler.compile_manifest(manifest)
             compiled_packages.append(package)
 
             if save_to_disk:
-                out_folder = output_folder or PluginManifestHelper.get_plugin_cache_folder(path.parent)
+                out_folder = output_folder or PluginManifestHelper.get_plugin_cache_folder(file_path.parent)
                 if not out_folder.exists():
                     out_folder.mkdir()
                 

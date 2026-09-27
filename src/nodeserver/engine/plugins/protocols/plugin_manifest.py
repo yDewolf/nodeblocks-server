@@ -21,9 +21,10 @@ class PluginManifest(BaseModel):
     dependencies: dict[str, str] = {} # ex: {"com.company.core_nodes": ">=1.0.0"}
     
     nodes_cache: Optional[dict[str, NodeCacheEntry]] = None # fqn -> NodeCacheEntry
-    
+
     node_modules: list[str] = Field(default_factory=list) # python modules to import logic classes
     data_types: list[Union[PluginDatatypeSpec, PluginDatatypeRef]] = Field(default_factory=list)
+
     # TODO: implement PluginDatatype so the developer doesn't need to use PluginDatatypeSpec
     # then the developer can just define what modules have these datatypes
 
