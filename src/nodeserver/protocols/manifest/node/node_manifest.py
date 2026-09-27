@@ -29,14 +29,3 @@ class NodeTypeSpec(NamespaceModel):
         return self.model_dump(by_alias=True)
 
 
-class ManifestPackage(DataModel):
-    format: Optional[int] = None
-    version: int
-    package_id: str # FIXME on client: id -> package_id
-    
-    data_types: Dict[str, DataTypeSpec]
-    slot_types: Dict[str, str]
-    node_types: Dict[str, NodeTypeSpec]
-
-    def serialize(self) -> dict:
-        return self.model_dump(by_alias=True)
