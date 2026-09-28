@@ -17,5 +17,7 @@ class PluginDatatype(ABC):
         Returns:
             ValidSerializedDataType: value that would be sent to the client
         """
-        pass
+        raise NotImplementedError(
+            f"Plugin DataType ({self.__class__.__name__}) must implement serialize method."
+        )
 
