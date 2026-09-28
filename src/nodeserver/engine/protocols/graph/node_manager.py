@@ -1,5 +1,6 @@
 from typing import Optional
 
+from nodeserver.engine.exceptions.graph_exceptions import DuplicateNodeUIDError
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
 
 
@@ -20,7 +21,8 @@ class NodeManager:
 
     def add(self, node: NodeInstance) -> None:
         if node.uid in self._nodes:
-            raise Exception(f"A node with the same UID already exists in node manager")
+            raise DuplicateNodeUIDError(node.uid)
+        
         self._nodes[node.uid] = node
 
     def remove(self, node_id: str) -> Optional[NodeInstance]:

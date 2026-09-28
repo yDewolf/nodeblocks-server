@@ -5,6 +5,20 @@ from nodeserver.engine.exceptions.base_exceptions import EngineDomainError
 class GraphDomainError(EngineDomainError):
     pass
 
+# Node manager
+
+class DuplicateNodeUIDError(EngineDomainError):
+    def __init__(
+        self,
+        node_uid: str,
+    ) -> None:
+        super().__init__(
+            error_code="DUPLICATE_NODE", 
+            message="Another node is registered with the same UID", 
+            details={"node_uid": node_uid}
+        )
+
+
 # ConnectionManager
 
 class ConnectionValidationError(GraphDomainError):
