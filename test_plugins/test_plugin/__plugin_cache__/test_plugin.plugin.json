@@ -9,8 +9,8 @@
     "test_plugin:TestNode": {
       "class_path": "test_nodes.TestNode",
       "required_datatypes": [
-        "test_plugin:test_datatype",
-        "core:float"
+        "core:float",
+        "test_plugin:test_datatype"
       ]
     }
   },

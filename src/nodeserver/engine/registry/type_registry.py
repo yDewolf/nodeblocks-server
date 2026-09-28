@@ -1,7 +1,6 @@
 from typing import Optional, Self, Type
 
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
-from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 from nodeserver.protocols.manifest.node.node_manifest import NodeTypeSpec
@@ -29,7 +28,7 @@ class TypeRegistry:
 
     # Copies registered types from another registry without referencing
     @classmethod
-    def from_registry(cls, registry: TypeRegistry) -> Self:
+    def from_registry(cls, registry: 'TypeRegistry') -> Self:
         new_registry = cls()
 
         new_registry.data_types = registry.data_types.copy()

@@ -18,8 +18,23 @@ class PluginDomainException(EngineDomainError):
             {"plugin_id": plugin_id, **(extra_details or {})}
         )
 
+# Pre PluginCompiler compile
 
 class InvalidPluginDecoratorUsage(PluginDomainException):
+    def __init__(
+        self,
+        cls: Type,
+        message: str,
+        decorator: Callable,
+        plugin_id: str | None = None
+    ) -> None:
+        super().__init__(
+            "INVALID_PLUGIN_DECORATOR_USAGE", 
+            f"Invalid usage of {decorator.__name__} for class {cls}: {message}", 
+            plugin_id, {"cls": cls, "decorator": decorator}
+        )
+
+class InvalidNodeDecoratedClass(InvalidPluginDecoratorUsage):
     def __init__(
         self,
         cls: Type,
@@ -27,9 +42,25 @@ class InvalidPluginDecoratorUsage(PluginDomainException):
         plugin_id: str | None = None
     ) -> None:
         super().__init__(
-            "INVALID_PLUGIN_DECORATOR_USAGE", 
-            f"Invalid usage of {decorator.__name__} for class {cls}", 
-            plugin_id, {"cls": cls, "decorator": decorator}
+            cls,
+            f"{decorator.__name__} must be used on a BaseNode class.",
+            decorator,
+            plugin_id
+        )
+
+
+class InvalidDatatypeDecoratedClass(InvalidPluginDecoratorUsage):
+    def __init__(
+        self,
+        cls: Type,
+        decorator: Callable,
+        plugin_id: str | None = None
+    ) -> None:
+        super().__init__(
+            cls,
+            f"{decorator.__name__} must be used on a PluginDataType class.",
+            decorator,
+            plugin_id
         )
 
 
@@ -62,6 +93,8 @@ class MissingNamespacePluginDataType(InvalidDatatypeBinding):
             message=f"Missing namespace for datatype binding: {datatype_id} ({class_path})", 
         )
 
+# General errors
+
 class PluginNotLoadedError(PluginDomainException):
     def __init__(
         self, 
@@ -72,7 +105,6 @@ class PluginNotLoadedError(PluginDomainException):
             f"Plugin {plugin_id} is not loaded.", 
             plugin_id, {}
         )
-
 
 
 class PluginDataTypeRefInCompileTime(PluginDomainException):

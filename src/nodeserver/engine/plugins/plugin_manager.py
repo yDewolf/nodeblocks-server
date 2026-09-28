@@ -6,7 +6,7 @@ from nodeserver.engine.exceptions.plugin_exceptions import PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef
+from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
