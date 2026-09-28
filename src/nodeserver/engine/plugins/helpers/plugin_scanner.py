@@ -1,10 +1,12 @@
 import importlib.util
+import logging
 from pathlib import Path
 
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
 from nodeserver.engine.plugins.plugin import Plugin
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
+logger = logging.getLogger("nds.plugins")
 
 class PluginScanner:
     def __init__(self):
@@ -16,13 +18,15 @@ class PluginScanner:
         respective file paths.
         Automatically updates plugin's source hash.
         """
-        
+
+        logger.info("Scanning for plugin manifests in %s ", plugins_dir)
         manifests: list[tuple[PluginManifest, Path]] = []
         for plugin_file in plugins_dir.rglob("plugin.py", case_sensitive=False):
             module_name = PluginScanner.make_module_name(plugin_file.parent.name)
             
             spec = importlib.util.spec_from_file_location(module_name, plugin_file)
             if not spec or not spec.loader:
+                logger.warning("Failed to get module spec while scanning plugins. Skipping: %s", module_name)
                 continue # FIXME: raise invalid plugin.py file
             
             module = importlib.util.module_from_spec(spec)

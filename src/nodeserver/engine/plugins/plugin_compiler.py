@@ -1,4 +1,5 @@
 import importlib
+import logging
 from types import ModuleType
 from typing import Any, Type
 
@@ -10,12 +11,13 @@ from nodeserver.engine.plugins.decorators.plugin_decorators import get_plugin_sp
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeSpec
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.plugins.protocols.plugin_specs import NodeCacheEntry
-from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 from nodeserver.protocols.manifest.node.node_manifest import NodeTypeSpec
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
+
+logger = logging.getLogger("nds.plugins")
 
 class PluginCompiler:
     registry: TypeRegistry
@@ -38,9 +40,11 @@ class PluginCompiler:
         """
         Compiles a PluginDatatypeSpec into a DataTypeSpec
         """
+
         if not plugin_dt_spec.namespace:
             raise MissingNamespacePluginDataType(plugin_dt_spec.id, plugin_dt_spec.class_path)
 
+        logger.info("Generating %s DataTypeSpec from PluginDataTypeSpec.", plugin_dt_spec.fqn)
         spec = DataTypeSpec(
             namespace=plugin_dt_spec.namespace, id=plugin_dt_spec.id,
             base_id=plugin_dt_spec.base_id,
@@ -92,6 +96,7 @@ class PluginCompiler:
         compiles its logic classes (BaseNode)
         """
 
+        logger.info("Compiling %s's node module: %s", package_id, relative_module_path)
         module = self._import_python_module(package_id, relative_module_path)
 
         compiled_nodes: list[NodeTypeSpec] = []
@@ -118,10 +123,13 @@ class PluginCompiler:
         Searches for @plugin_node and @plugin_datatype decorators inside the modules
         to auto generate manifest.data_types and manifest.node_modules
         """
+        logger.info(f"Compiling modules from {manifest.package_id}...")
         for module_path in relative_modules:
+            logger.info("Populating %s's Plugin Manifest with decorated classes from: %s", manifest.package_id, module_path)
             module = self._import_python_module(manifest.package_id, module_path)
-
-            for attr_name in dir(module):
+            
+            attributes = dir(module)
+            for attr_name in attributes:
                 attr = getattr(module, attr_name)
                 meta = get_plugin_spec_definition_meta(attr)
                 if not meta:
@@ -131,7 +139,6 @@ class PluginCompiler:
                     continue
 
                 self._parse_plugin_decorators(meta, manifest, module_path)
-
 
     def compile_manifest(
         self,
@@ -148,6 +155,7 @@ class PluginCompiler:
             node_types={}
         )
 
+        logger.info("Compiling %s's plugin manifest...", manifest.package_id)
         for plugin_dt_spec in manifest.data_types:
             if not isinstance(plugin_dt_spec, PluginDatatypeSpec):
                 raise PluginDataTypeRefInCompileTime(plugin_dt_spec.fqn, manifest.package_id)
@@ -176,11 +184,13 @@ class PluginCompiler:
 
                 package.node_types[node_spec.fqn] = node_spec
 
+        logger.info("Finished Compiling %s's plugin manifest.", manifest.package_id)
         return package
 
     # Import Resolve methods:
 
     def resolve_node_class(self, package_id: str, relative_class_path: str) -> type[BaseNode]:
+        logger.info("Resolving node class for %s from module: %s", package_id, relative_class_path)
         full_path = self._resolve_import_path(package_id, relative_class_path)
         module_path, class_name = full_path.rsplit(".", 1)
 
@@ -199,6 +209,7 @@ class PluginCompiler:
 
 
     def resolve_datatype_python_type(self, package_id: str, relative_class_path: str) -> Type:
+        logger.info("Resolving datatype class for %s from module: %s", package_id, relative_class_path)
         full_path = self._resolve_import_path(package_id, relative_class_path)
         module_path, class_name = full_path.rsplit(".", 1)
 

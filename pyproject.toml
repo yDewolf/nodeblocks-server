@@ -30,6 +30,8 @@ addopts = [
     "--import-mode=importlib",
 ]
 
+log_cli = true
+log_cli_level = "INFO"
 
 
 [tool.setuptools.packages.find]

@@ -1,5 +1,5 @@
 from collections import deque
-import json
+import logging
 from pathlib import Path
 from typing import Optional, Type
 
@@ -13,6 +13,8 @@ from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
+
+logger = logging.getLogger("nds.plugins")
 
 class PluginManager:
     registry: TypeRegistry
