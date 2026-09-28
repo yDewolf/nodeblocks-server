@@ -2,8 +2,9 @@ from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field, field_serializer, model_validator
 
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef, PluginDatatypeSpec
-from nodeserver.engine.plugins.protocols.plugin_nodes import NodeCacheEntry
+from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeSpec
+from nodeserver.engine.plugins.protocols.plugin_specs import NodeCacheEntry
+from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.protocols.manifest.base_manifest import make_namespace_fqn
 
 class PluginManifest(BaseModel):
@@ -24,9 +25,6 @@ class PluginManifest(BaseModel):
 
     node_modules: list[str] = Field(default_factory=list) # python modules to import logic classes
     data_types: list[Union[PluginDatatypeSpec, PluginDatatypeRef]] = Field(default_factory=list)
-
-    # TODO: implement PluginDatatype so the developer doesn't need to use PluginDatatypeSpec
-    # then the developer can just define what modules have these datatypes
 
     @field_serializer("data_types")
     def serialize_data_types(self, data_types: list[PluginDatatypeSpec]):

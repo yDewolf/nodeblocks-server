@@ -1,8 +1,9 @@
 from typing import Any, Optional, Type, Union
 
-from nodeserver.engine.exceptions.plugin_exceptions import InvalidPluginDecoratorUsage
+from nodeserver.engine.exceptions.plugin_exceptions import InvalidDatatypeDecoratedClass, InvalidNodeDecoratedClass, InvalidPluginDecoratorUsage
 from nodeserver.engine.plugins.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
 from nodeserver.engine.plugins.plugin import Plugin
+from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatype
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 
@@ -14,7 +15,7 @@ def plugin_node(
     """Registers a BaseNode in the current Plugin"""
     def wrapper(cls: Type) -> Type:
         if not issubclass(cls, BaseNode):
-            raise InvalidPluginDecoratorUsage(cls, plugin_node)
+            raise InvalidNodeDecoratedClass(cls, plugin_node)
 
         node_id = id or cls.__name__
         node_meta = PluginNodeDefModel(id=node_id)
@@ -34,6 +35,9 @@ def plugin_datatype(
 ):
     """Registers a DataType in the current Plugin"""
     def wrapper(cls: Type) -> Type:
+        if not issubclass(cls, PluginDatatype):
+            raise InvalidDatatypeDecoratedClass(cls, plugin_datatype)
+        
         datatype_meta = PluginDataTypeDefModel(
             id=id,
             cls_name=cls.__name__,

@@ -6,9 +6,10 @@ from nodeserver.engine.exceptions.plugin_exceptions import InvalidPluginNodeClas
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
 from nodeserver.engine.plugins.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
 from nodeserver.engine.plugins.decorators.plugin_decorators import get_plugin_spec_definition_meta
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatypeRef, PluginDatatypeSpec
+from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeSpec
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
-from nodeserver.engine.plugins.protocols.plugin_nodes import NodeCacheEntry
+from nodeserver.engine.plugins.protocols.plugin_specs import NodeCacheEntry
+from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec

@@ -1,40 +1,21 @@
-from nodeserver.engine.exceptions.plugin_exceptions import MissingNamespacePluginDataType
-from nodeserver.protocols.manifest.base_manifest import NamespaceModel
-from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
+from abc import ABC, abstractmethod
+from types import NoneType
+from typing import Union
 
-from typing import Optional, Self
+# Abstract classes
 
-class PluginDatatypeRef(NamespaceModel):
-    class_path: str
+ValidSerializedDataType = Union[dict, str, bool, int, float, list, tuple, NoneType]
 
-class PluginDatatypeSpec(DataTypeSpec, PluginDatatypeRef):
-    """Maps a python class to a DataTypeSpec Fully Qualified Name (fqn) through import string."""
-    namespace: Optional[str] = None # Must be autofilled by the PluginCompiler
+class PluginDatatype(ABC):
+    # TODO: pensar certinho em como vamos fazer essa serialização
+    @abstractmethod
+    def serialize(self) -> ValidSerializedDataType:
+        """
+        Method used by the server to serialize custom plugin DataTypes.
+        This method must return a value that can be stored in a json string.
 
-    @classmethod
-    def from_ref_and_spec(cls, ref: PluginDatatypeRef, spec: DataTypeSpec) -> Self:
-        return cls(
-            namespace=ref.namespace,
-            id=ref.id,
-            class_path=ref.class_path,
-            base_id=spec.base_id,
-            default_renderer=spec.default_renderer,
-            whitelist=spec.whitelist
-        )
+        Returns:
+            ValidSerializedDataType: value that would be sent to the client
+        """
+        pass
 
-    @property
-    def fqn(self):
-        if self.namespace is None:
-            raise MissingNamespacePluginDataType(self.id, self.class_path)
-
-        return super().fqn
-
-    def to_plugin_datatype_ref(self) -> PluginDatatypeRef:
-        if self.namespace is None:
-            raise MissingNamespacePluginDataType(self.id, self.class_path)
-
-        return PluginDatatypeRef(
-            namespace=self.namespace,
-            id=self.id,
-            class_path=self.class_path
-        )
