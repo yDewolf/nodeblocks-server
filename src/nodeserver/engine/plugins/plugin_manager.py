@@ -1,3 +1,4 @@
+from collections import deque
 import json
 from pathlib import Path
 from typing import Optional, Type
@@ -58,7 +59,7 @@ class PluginManager:
         discovered_manifests = self.scanner.discover_plugins(source_folder)
         compiled_packages: list[ManifestPackage] = []
         
-        for manifest, file_path in discovered_manifests:
+        for manifest, file_path in self.resolve_plugin_load_order(discovered_manifests):
             if not manifest.source_hash:
                 raise Exception("didn't hash properly") # FIXME: exception
 
@@ -91,7 +92,7 @@ class PluginManager:
         discovered_manifests = self.scanner.discover_plugins(source_folder)
         compiled_packages: list[ManifestPackage] = []
 
-        for manifest, file_path in discovered_manifests:
+        for manifest, file_path in self.resolve_plugin_load_order(discovered_manifests):
             package = self._compile_plugin_manifest(manifest, file_path, save_to_disk, output_folder)
             compiled_packages.append(package)
             self.index_plugin(manifest)
@@ -107,6 +108,7 @@ class PluginManager:
         if not manifests_folder.exists():
             return {}
 
+        # FIXME: resolve plugin order here
         for manifest_file in PluginManifestHelper.iterate_manifest_cache_files(manifests_folder):
             package = PluginManifestHelper.load_package_manifest(manifest_file)
             self.register_compiled_package(package)
@@ -204,3 +206,42 @@ class PluginManager:
 
     def get_plugin_datatype_ref(self, datatype_fqn: str) -> Optional[PluginDatatypeRef]:
         return self._loaded_datatypes.get(datatype_fqn)
+
+
+    # TODO: make a generalized kahn algorithm
+    def resolve_plugin_load_order(self, manifests: list[tuple[PluginManifest, Path]]) -> list[tuple[PluginManifest, Path]]:
+        plugins_map: dict[str, tuple[PluginManifest, Path]] = {}
+        for manifest, path in manifests:
+            if manifest.package_id in plugins_map:
+                raise Exception("Duplicate plugin found in list")
+            
+            plugins_map[manifest.package_id] = (manifest, path)
+
+        in_degree: dict[str, int] = {pkg_id: 0 for pkg_id in plugins_map}
+        graph: dict[str, list[str]] = {pkg_id: [] for pkg_id in plugins_map}
+
+        for pkg_id, (manifest, path) in plugins_map.items():
+            for dep_id in manifest.dependencies.keys():
+                if dep_id not in plugins_map:
+                    raise Exception("Missing plugin dependency")
+                
+                graph[dep_id].append(pkg_id)
+                in_degree[pkg_id] += 1
+
+        queue = deque([pkg_id for pkg_id, degree in in_degree.items() if degree == 0])
+        ordered_manifests: list[tuple[PluginManifest, Path]] = []
+
+        while queue:
+            current_id = queue.popleft()
+            ordered_manifests.append(plugins_map[current_id])
+
+            for dependent_id in graph[current_id]:
+                in_degree[dependent_id] -= 1
+                if in_degree[dependent_id] == 0:
+                    queue.append(dependent_id)
+
+        if len(ordered_manifests) < len(plugins_map):
+            unresolved = [pkg_id for pkg_id, degree in in_degree.items() if degree > 0]
+            raise Exception(f"Circular dependency between plugins: {unresolved}")
+
+        return ordered_manifests
