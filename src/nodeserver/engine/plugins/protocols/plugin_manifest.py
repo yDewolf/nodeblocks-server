@@ -60,12 +60,13 @@ class PluginManifest(BaseModel):
                 
                 processed_specs.append(item)
             
-            if isinstance(item, PluginDatatypeSpec):
+            if isinstance(item, (PluginDatatypeSpec, PluginDatatypeRef)):
                 if item.namespace is None:
                     item.namespace = package_id
-                
-                if not item.whitelist and item.namespace:
-                    item.whitelist = [make_namespace_fqn(item.namespace, item.id)]
+
+                if isinstance(item, PluginDatatypeSpec):
+                    if not item.whitelist and item.namespace:
+                        item.whitelist = [make_namespace_fqn(item.namespace, item.id)]
                 
                 processed_specs.append(item)
 

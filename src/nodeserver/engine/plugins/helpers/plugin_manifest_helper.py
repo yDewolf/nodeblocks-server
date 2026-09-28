@@ -11,7 +11,14 @@ from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 class PluginManifestHelper:
     PLUGIN_CACHE_FOLDERNAME = "__plugin_cache__"
     PLUGIN_LIST_CACHE_FILENAME = ".plugin_list.json"
-    
+
+    @staticmethod
+    def make_plugin_folder_structure(target_folder: Path, plugin_id: str) -> Path:
+        plugin_folder = target_folder / plugin_id
+        plugin_folder.mkdir(exist_ok=True)
+
+        return plugin_folder
+
     @staticmethod
     def get_plugin_cache_folder(plugin_folder: Path) -> Path:
         return plugin_folder / PluginManifestHelper.PLUGIN_CACHE_FOLDERNAME
@@ -29,11 +36,11 @@ class PluginManifestHelper:
 
     @staticmethod
     def iterate_plugin_cache_files(folder: Path) -> Iterator[Path]:
-        return folder.glob(f"*/{PluginManifestHelper.PLUGIN_CACHE_FOLDERNAME}/*.plugin.json")
+        return folder.rglob(f"{PluginManifestHelper.PLUGIN_CACHE_FOLDERNAME}/*.plugin.json")
 
     @staticmethod
     def iterate_manifest_cache_files(folder: Path) -> Iterator[Path]:
-        return folder.glob(f"*/{PluginManifestHelper.PLUGIN_CACHE_FOLDERNAME}/*.manifest.json")
+        return folder.rglob(f"{PluginManifestHelper.PLUGIN_CACHE_FOLDERNAME}/*.manifest.json")
 
 
     @staticmethod
