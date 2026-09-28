@@ -6,7 +6,7 @@ from nodeserver.engine.plugins.plugin import Plugin
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.registry.type_registry import TypeRegistry
-from nodeserver.engine.exceptions.plugin_exceptions import PluginNotLoadedError
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager

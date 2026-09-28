@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from nodeserver.engine.exceptions.plugin_exceptions import MissingNamespacePluginDataType
+from nodeserver.engine.exceptions.plugin.plugin_exceptions import MissingNamespacePluginDataType
 from typing import Optional, Self
 from nodeserver.protocols.manifest.base_manifest import NamespaceModel
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional, Type
 
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.exceptions.plugin_exceptions import PluginNotLoadedError
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import DuplicatePluginError, PluginCircularDependencyError, PluginMissingDependency, PluginMissingSourceHash, PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.helpers.plugin_version_manager import PluginVersionManager
@@ -61,7 +61,7 @@ class PluginManager:
         
         for manifest, file_path in self.resolve_plugin_load_order(discovered_manifests):
             if not manifest.source_hash:
-                raise Exception("didn't hash properly") # FIXME: exception
+                raise PluginMissingSourceHash(manifest.package_id)
 
             cached_hash = cached_plugin_list.cached_plugins.get(manifest.package_id)
             if not cached_hash or cached_hash != manifest.source_hash:
@@ -69,7 +69,7 @@ class PluginManager:
             else:
                 # TODO: improve this loading logic
                 cache_folder = PluginManifestHelper.get_plugin_cache_folder(file_path.parent)
-                manifest_file = PluginManifestHelper.get_manifest_cache_file(cache_folder)
+                manifest_file = PluginManifestHelper.ensure_cache_file(cache_folder, manifest.package_id)
                 package = PluginManifestHelper.load_package_manifest(manifest_file)
                 self.register_compiled_package(package)
             
@@ -214,7 +214,10 @@ class PluginManager:
         plugins_map: dict[str, tuple[PluginManifest, Path]] = {}
         for manifest, path in manifests:
             if manifest.package_id in plugins_map:
-                raise Exception("Duplicate plugin found in list")
+                raise DuplicatePluginError(
+                    manifest.package_id, 
+                    [plugin_manifest.package_id for plugin_manifest, _ in manifests]    
+                )
             
             plugins_map[manifest.package_id] = (manifest, path)
 
@@ -224,7 +227,11 @@ class PluginManager:
         for pkg_id, (manifest, path) in plugins_map.items():
             for dep_id in manifest.dependencies.keys():
                 if dep_id not in plugins_map:
-                    raise Exception("Missing plugin dependency")
+                    raise PluginMissingDependency(
+                        manifest.package_id,
+                        [plugin_manifest.package_id for plugin_manifest, _ in manifests],
+                        manifest.dependencies
+                    )
                 
                 graph[dep_id].append(pkg_id)
                 in_degree[pkg_id] += 1
@@ -243,6 +250,9 @@ class PluginManager:
 
         if len(ordered_manifests) < len(plugins_map):
             unresolved = [pkg_id for pkg_id, degree in in_degree.items() if degree > 0]
-            raise Exception(f"Circular dependency between plugins: {unresolved}")
+            raise PluginCircularDependencyError(
+                plugin_id=None,
+                involved_plugins=unresolved
+            )
 
         return ordered_manifests

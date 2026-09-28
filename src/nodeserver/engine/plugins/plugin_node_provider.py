@@ -1,7 +1,8 @@
 import importlib
 from typing import Optional, Type
 
-from nodeserver.engine.exceptions.plugin_exceptions import PluginMissingNodeCache, PluginMissingNodeCacheEntry
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingNodeCacheEntry
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingNodeCache
 from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest

@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import Iterator
 
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import MissingCacheFilesError
 from nodeserver.engine.plugins.protocols.plugin_list_cache import PluginListCache
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
@@ -24,14 +25,14 @@ class PluginManifestHelper:
         return plugin_folder / PluginManifestHelper.PLUGIN_CACHE_FOLDERNAME
 
     @staticmethod
-    def get_manifest_cache_file(cache_folder: Path) -> Path:
-        manifest_files = [
-            file_path for file_path in cache_folder.glob("*.manifest.json")
-        ]
-        if len(manifest_files) != 1:
-            raise Exception(f"Invalid Plugin Cache Folder Structure. Should have only one plugin file. Files found: {manifest_files}") # FIXME: exception
+    def ensure_cache_file(cache_folder: Path, plugin_id: str) -> Path:
+        file_path = cache_folder / f"{plugin_id}.manifest.json"
+        if not file_path.exists():
+            raise MissingCacheFilesError(
+                plugin_id, file_path
+            )
         
-        return manifest_files[0]
+        return file_path
         
 
     @staticmethod

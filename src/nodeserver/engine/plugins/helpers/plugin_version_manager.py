@@ -1,9 +1,9 @@
-from collections import deque
 from typing import Optional
 from packaging.version import Version, parse as parse_version
 from packaging.specifiers import SpecifierSet
 
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import IncompatibleEngineVersionPluginError, IncompatibleVersionPluginError, PluginMissingDependency
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
 
@@ -21,12 +21,20 @@ class PluginVersionManager:
         specifier = SpecifierSet(spec_str)
 
         if not self.engine_version in specifier:
-            raise Exception("Dependency error wrong engine version")
+            raise IncompatibleEngineVersionPluginError(
+                package_id,
+                min_engine_version,
+                str(self.engine_version)
+            )
 
     def validate_plugin_dependencies(self, target_manifest: PluginManifest, installed_plugins: dict[str, PluginManifest]) -> None:
         for dep_package_id, version_req in target_manifest.dependencies.items():
             if not dep_package_id in installed_plugins:
-                raise Exception("Dependency error not installed")
+                raise PluginMissingDependency(
+                    plugin_id=target_manifest.package_id,
+                    loaded_plugins=[package_id for package_id in installed_plugins],
+                    plugin_dependencies=target_manifest.dependencies
+                )
 
             installed_manifest = installed_plugins[dep_package_id]
             installed_version = parse_version(installed_manifest.version)
@@ -35,4 +43,9 @@ class PluginVersionManager:
             specifier = SpecifierSet(spec_str)
 
             if installed_version not in specifier:
-                raise Exception("Dependency error wrong version")
+                raise IncompatibleVersionPluginError(
+                    plugin_id=target_manifest.package_id,
+                    dependency_id=dep_package_id,
+                    target_version=version_req,
+                    current_version=installed_manifest.version
+                )
