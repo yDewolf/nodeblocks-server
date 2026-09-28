@@ -17,7 +17,6 @@ class PluginScanner:
         Automatically updates plugin's source hash.
         """
         
-        
         manifests: list[tuple[PluginManifest, Path]] = []
         for plugin_file in plugins_dir.rglob("plugin.py", case_sensitive=False):
             module_name = PluginScanner.make_module_name(plugin_file.parent.name)

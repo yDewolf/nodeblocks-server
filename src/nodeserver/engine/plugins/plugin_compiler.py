@@ -142,7 +142,7 @@ class PluginCompiler:
         Compiles a PluginManifest into a PackageManifest
         """
         package = ManifestPackage(
-            version=manifest.version,
+            version=manifest.plugin_version,
             package_id=manifest.package_id,
             data_types={},
             node_types={}

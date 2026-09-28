@@ -90,23 +90,6 @@ class IncompatibleVersionPluginError(PluginDomainException):
             }
         )
 
-class IncompatibleEngineVersionPluginError(PluginDomainException):
-    def __init__(
-        self,
-        plugin_id: str,
-        target_engine_version: str,
-        current_engine_version: str
-    ) -> None:
-        super().__init__(
-            "INCOMPATIBLE_PLUGIN_ERROR",
-            f"Plugin {plugin_id} is not compatible with current engine version ({current_engine_version}). Plugin requirement: {target_engine_version}",
-            plugin_id, {
-                "target_engine_version": target_engine_version, 
-                "current_engine_version": current_engine_version
-            }
-        )
-
-
 # Plugin Dependencies
 
 class PluginMissingDependency(PluginDomainException):

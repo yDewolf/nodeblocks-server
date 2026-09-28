@@ -93,3 +93,36 @@ class InvalidPluginNodeClassPath(PluginDomainException):
             f"{class_path} is not a valid BaseNode class path in plugin {plugin_id}", 
             plugin_id, {"class_path": class_path}
         )
+
+# Version stuff
+
+class IncompatibleEngineVersionPluginError(PluginDomainException):
+    def __init__(
+        self,
+        plugin_id: str,
+        target_engine_version: str,
+        current_engine_version: str
+    ) -> None:
+        super().__init__(
+            "INCOMPATIBLE_PLUGIN_ERROR",
+            f"Plugin {plugin_id} is not compatible with current engine version ({current_engine_version}). Plugin requirement: {target_engine_version}",
+            plugin_id, {
+                "target_engine_version": target_engine_version,
+                "current_engine_version": current_engine_version
+            }
+        )
+class IncompatibleApiVersionPluginError(PluginDomainException):
+    def __init__(
+        self,
+        plugin_id: str,
+        target_api_version: str,
+        current_api_version: str
+    ) -> None:
+        super().__init__(
+            "INCOMPATIBLE_PLUGIN_ERROR",
+            f"Plugin {plugin_id} is not compatible with current plugin api version ({current_api_version}). Plugin requirement: {target_api_version}",
+            plugin_id, {
+                "target_api_version": target_api_version,
+                "current_api_version": current_api_version
+            }
+        )
