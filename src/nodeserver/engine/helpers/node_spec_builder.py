@@ -3,6 +3,7 @@ from typing import Annotated, Any, Optional, Union, get_args, get_origin
 
 from pydantic.fields import FieldInfo
 
+from nodeserver.engine.exceptions.spec_build_exceptions import AnnotationDataTypeInferError
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeIO
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters, ParamArguments
 from nodeserver.engine.protocols.spec_dataclasses import SlotSpecMeta
@@ -142,7 +143,10 @@ class  NodeSpecBuilder:
         if origin is list:
             args = get_args(annotation)
             if len(args) == 0:
-                raise Exception(f"Invalid datatype annotation ({annotation}) format. List types must specify a type using list[<type>]")
+                raise AnnotationDataTypeInferError(
+                    annotation,
+                    "List types must specify a type using list[<type>]"
+                )
 
             return self._infer_datatype_from_type(args[0])
 

@@ -2,7 +2,8 @@ import importlib
 from types import ModuleType
 from typing import Any, Type
 
-from nodeserver.engine.exceptions.plugin_exceptions import InvalidPluginNodeClassPath, MissingNamespacePluginDataType, PluginDataTypeRefInCompileTime
+from nodeserver.engine.exceptions.plugin.plugin_exceptions import InvalidPluginNodeClassPath, MissingNamespacePluginDataType
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginDataTypeRefInCompileTime
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
 from nodeserver.engine.plugins.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
 from nodeserver.engine.plugins.decorators.plugin_decorators import get_plugin_spec_definition_meta

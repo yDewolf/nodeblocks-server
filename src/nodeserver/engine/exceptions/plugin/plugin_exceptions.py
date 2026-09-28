@@ -1,22 +1,9 @@
 
-from typing import Any, Callable, Optional, Type
+from typing import Callable, Optional, Type
 
-from nodeserver.engine.exceptions.base_exceptions import EngineDomainError
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginDomainException
 
-
-class PluginDomainException(EngineDomainError):
-    def __init__(
-        self, 
-        error_code: str, 
-        message: str, 
-        plugin_id: Optional[str] = None,
-        extra_details: dict[str, Any] | None = None
-    ) -> None:
-        super().__init__(
-            error_code, 
-            message, 
-            {"plugin_id": plugin_id, **(extra_details or {})}
-        )
+# Exceptions that are probably caused by the Plugin's Developer
 
 # Pre PluginCompiler compile
 
@@ -94,55 +81,6 @@ class MissingNamespacePluginDataType(InvalidDatatypeBinding):
         )
 
 # General errors
-
-class PluginNotLoadedError(PluginDomainException):
-    def __init__(
-        self, 
-        plugin_id: str | None = None
-    ) -> None:
-        super().__init__(
-            "PLUGIN_NOT_LOADED", 
-            f"Plugin {plugin_id} is not loaded.", 
-            plugin_id, {}
-        )
-
-
-class PluginDataTypeRefInCompileTime(PluginDomainException):
-    def __init__(
-        self,
-        datatype_fqn: str,
-        plugin_id: str | None = None
-    ) -> None:
-        super().__init__(
-            "PLUGIN_DATATYPE_REF_COMPILE_TIME", 
-            f"{datatype_fqn} must be PluginDatatypeSpec in compile time so a DataTypeSpec can be generated", 
-            plugin_id, {}
-        )
-
-
-class PluginMissingNodeCache(PluginDomainException):
-    def __init__(
-        self, 
-        plugin_id: str | None = None
-    ) -> None:
-        super().__init__(
-            "PLUGIN_MISSING_NODE_CACHE", 
-            f"Plugin {plugin_id} doesn't have nodes_cache set up", 
-            plugin_id, {}
-        )
-
-
-class PluginMissingNodeCacheEntry(PluginDomainException):
-    def __init__(
-        self,
-        node_fqn: str,
-        plugin_id: str | None = None
-    ) -> None:
-        super().__init__(
-            "PLUGIN_MISSING_NODE_CACHE_ENTRY", 
-            f"Plugin {plugin_id}'s nodes_cache is missing an entry for {node_fqn}", 
-            plugin_id, {"node_fqn": node_fqn}
-        )
 
 class InvalidPluginNodeClassPath(PluginDomainException):
     def __init__(
