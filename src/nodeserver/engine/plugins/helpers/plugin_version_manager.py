@@ -3,13 +3,14 @@ from typing import Optional
 from packaging.version import Version, parse as parse_version
 from packaging.specifiers import SpecifierSet
 
+from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
 
 class PluginVersionManager:
     engine_version: Version
     
-    def __init__(self, current_engine_version: str):
+    def __init__(self, current_engine_version: str = CURRENT_ENGINE_VERSION):
         self.engine_version = parse_version(current_engine_version)
 
     def validate_engine_compatibility(self, min_engine_version: Optional[str], package_id: str) -> None:
