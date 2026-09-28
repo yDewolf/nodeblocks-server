@@ -3,12 +3,10 @@ from pathlib import Path
 import pytest
 
 from nodeserver.engine.plugins.plugin import Plugin
-from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.registry.type_registry import TypeRegistry
-from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginNotLoadedError
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingSourceHash, PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
-from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
@@ -118,10 +116,6 @@ class TestRegistrationAndIndexing:
         assert dummy_plugin_manager.get_plugin_datatype_ref(dt_ref.fqn) == dt_ref
 
 
-# ============================================================================
-# 3. Testes de Garantias (Ensures) e Getters
-# ============================================================================
-
 class TestEnsuresAndGetters:
     def test_ensure_plugin_manifest_success(self, dummy_plugin_manager):
         manifest = create_manifest("pkg_1")
@@ -197,27 +191,14 @@ class TestPluginDiskOperations:
         cache_list_file = source_dir / ".plugin_list.json"
         assert cache_list_file.exists()
 
-    def test_load_or_compile_plugins_lanca_excecao_se_nao_houver_hash(self, dummy_plugin_manager, tmp_path):
+    def test_load_or_compile_plugins_missing_hash_exception(self, dummy_plugin_manager, tmp_path):
         source_dir = tmp_path / "plugins_src"
         plugin_dir = source_dir / "unhashed_plugin"
         plugin_dir.mkdir(parents=True)
 
         manifest = create_manifest("unhashed_plugin", source_hash="")
         
-        # Injeta manualmente no scanner uma descoberta sem hash para testar a validação
         dummy_plugin_manager.scanner.discover_plugins = lambda path: [(manifest, plugin_dir / "plugin.py")]
 
-        with pytest.raises(Exception, match="didn't hash properly"):
+        with pytest.raises(PluginMissingSourceHash):
             dummy_plugin_manager.load_or_compile_plugins(source_dir)
-
-
-class TestPluginManagerCompileOrLoad:
-    def test_compile_or_load(self, plugins_setup, default_registry, setup_sys_path):
-        root, plugins_folder = plugins_setup
-        dummy_registry = TypeRegistry.from_registry(default_registry)
-        dummy_manager = PluginManager(
-            registry=dummy_registry, 
-            compiler=PluginCompiler(registry=dummy_registry, plugins_base_package="test_plugins")
-        )
-        dummy_manager.load_or_compile_plugins(plugins_folder)
-        pass

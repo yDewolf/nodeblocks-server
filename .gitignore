@@ -1,5 +1,5 @@
 __plugin_cache__
-*.plugin.list.json
+.plugin_list.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
