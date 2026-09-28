@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 
+from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
 from nodeserver.engine.plugins.plugin import Plugin
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
@@ -10,26 +11,37 @@ class PluginScanner:
         pass
 
     def discover_plugins(self, plugins_dir: Path) -> list[tuple[PluginManifest, Path]]:
+        """
+        Searches for 'plugin.py' files and returns a list of PluginManifests and their
+        respective file paths.
+        Automatically updates plugin's source hash.
+        """
+        
+        
         manifests: list[tuple[PluginManifest, Path]] = []
         for plugin_file in plugins_dir.rglob("plugin.py", case_sensitive=False):
             module_name = PluginScanner.make_module_name(plugin_file.parent.name)
             
             spec = importlib.util.spec_from_file_location(module_name, plugin_file)
-            if spec and spec.loader:
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+            if not spec or not spec.loader:
+                continue # FIXME: raise invalid plugin.py file
+            
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
 
-                for attr_name in dir(module):
-                    attr = getattr(module, attr_name)
-                    if (
-                        isinstance(attr, type) 
-                        and issubclass(attr, Plugin) 
-                        and attr is not Plugin
-                    ):
-                        manifests.append((
-                            attr.get_manifest(),
-                            plugin_file
-                        ))
+            for attr_name in dir(module):
+                attr = getattr(module, attr_name)
+                if (
+                    isinstance(attr, type) 
+                    and issubclass(attr, Plugin) 
+                    and attr is not Plugin
+                ):
+                    manifest: PluginManifest = attr.get_manifest()
+                    manifest.source_hash = PluginHasher.calculate_plugin_hash(plugin_file.parent)
+                    manifests.append((
+                        manifest,
+                        plugin_file
+                    ))
 
         return manifests
 

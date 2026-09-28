@@ -11,6 +11,7 @@ class PluginManifest(BaseModel):
     """
         Manifest to provide info about the plugin and its modules
     """
+    source_hash: Optional[str] = None
 
     package_id: str # must be the same as plugin's folder name
     version: str # SemVer

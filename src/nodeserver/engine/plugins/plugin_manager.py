@@ -2,9 +2,11 @@ import json
 from pathlib import Path
 from typing import Optional, Type
 
+from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.exceptions.plugin_exceptions import PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
+from nodeserver.engine.plugins.helpers.plugin_version_manager import PluginVersionManager
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
@@ -16,6 +18,7 @@ class PluginManager:
 
     scanner: PluginScanner
     compiler: PluginCompiler
+    version_manager: PluginVersionManager
 
     _loaded_packages: dict[str, ManifestPackage] # package_id -> ManifestPackage
     _plugin_manifests: dict[str, PluginManifest] # package_id -> PluginManifest
@@ -26,8 +29,11 @@ class PluginManager:
         self,
         registry: TypeRegistry,
         scanner: Optional[PluginScanner] = None,
-        compiler: Optional[PluginCompiler] = None
+        compiler: Optional[PluginCompiler] = None,
+        plugin_version_manager: Optional[PluginVersionManager] = None
     ):
+        self.version_manager = plugin_version_manager or PluginVersionManager(CURRENT_ENGINE_VERSION)
+        
         self.registry = registry
         self.scanner = scanner or PluginScanner()
         self.compiler = compiler or PluginCompiler(registry=registry)
@@ -40,6 +46,32 @@ class PluginManager:
         self._loaded_packages = {}
         self._plugin_manifests = {}
 
+    
+    def load_or_compile_plugins(self, source_folder: Path, save_to_disk: bool = True):
+        """
+        Scans a folder using PluginScanner then checks plugin hashes to determine
+        if plugins need to be compiled or they can just be loaded
+        """
+        source_folder = Path(source_folder)
+        cached_plugin_list = PluginManifestHelper.load_or_create_plugin_list_cache(source_folder)
+
+        discovered_manifests = self.scanner.discover_plugins(source_folder)
+        compiled_packages: list[ManifestPackage] = []
+        
+        for manifest, file_path in discovered_manifests:
+            cached_hash = cached_plugin_list.cached_plugins.get(manifest.package_id)
+            if not cached_hash or cached_hash != manifest.source_hash:
+                self._compile_plugin_manifest(manifest, file_path, save_to_disk)
+            else:
+                # TODO: improve this loading logic
+                cache_folder = PluginManifestHelper.get_plugin_cache_folder(file_path.parent)
+                manifest_file = PluginManifestHelper.get_manifest_cache_file(cache_folder)
+                package = PluginManifestHelper.load_package_manifest(manifest_file)
+                self.register_compiled_package(package)
+                
+            self.index_plugin(manifest)
+
+        return compiled_packages
 
     def compile_plugins(self, source_folder: Path, save_to_disk: bool = True, output_folder: Optional[Path] = None) -> list[ManifestPackage]:
         """
@@ -55,24 +87,11 @@ class PluginManager:
         compiled_packages: list[ManifestPackage] = []
 
         for manifest, file_path in discovered_manifests:
-            modules = self.scanner.discover_modules(file_path.parent)
-            self.compiler.compile_plugin_modules(manifest, modules)
-            
-            package: ManifestPackage = self.compiler.compile_manifest(manifest)
+            package = self._compile_plugin_manifest(manifest, file_path, save_to_disk, output_folder)
             compiled_packages.append(package)
-
-            if save_to_disk:
-                out_folder = output_folder or PluginManifestHelper.get_plugin_cache_folder(file_path.parent)
-                if not out_folder.exists():
-                    out_folder.mkdir()
-                
-                PluginManifestHelper.save_package_manifest(package, out_folder)
-                PluginManifestHelper.save_plugin_manifest(manifest, out_folder)
-
             self.index_plugin(manifest)
 
         return compiled_packages
-
 
     def load_plugin_manifests(self, manifests_folder: Path) -> dict[str, ManifestPackage]:
         """
@@ -104,6 +123,8 @@ class PluginManager:
 
         return self._loaded_packages
 
+    # Single Plugin 'Actions'
+
     def register_compiled_package(self, package: ManifestPackage) -> None:
         """
         Registers a ManifestPackage's types in the registry (TypeRegistry).
@@ -116,6 +137,25 @@ class PluginManager:
             self.registry.register_node_type(node_spec)
 
         self._loaded_packages[package.package_id] = package
+
+    
+    def _compile_plugin_manifest(self, manifest: PluginManifest, file_path: Path, save_to_disk: bool = True, cache_out_folder: Optional[Path] = None) -> ManifestPackage:
+        modules = self.scanner.discover_modules(file_path.parent)
+        self.compiler.compile_plugin_modules(manifest, modules)
+        
+        package: ManifestPackage = self.compiler.compile_manifest(manifest)
+
+        if save_to_disk:
+            out_folder = cache_out_folder or PluginManifestHelper.get_plugin_cache_folder(file_path.parent)
+            if not out_folder.exists():
+                out_folder.mkdir()
+            
+            PluginManifestHelper.save_package_manifest(package, out_folder)
+            PluginManifestHelper.save_plugin_manifest(manifest, out_folder)
+
+        return package
+
+
 
     # Indexing
 
