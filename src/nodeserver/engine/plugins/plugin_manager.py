@@ -108,14 +108,15 @@ class PluginManager:
         if not manifests_folder.exists():
             return {}
 
-        # FIXME: resolve plugin order here
         for manifest_file in PluginManifestHelper.iterate_manifest_cache_files(manifests_folder):
             package = PluginManifestHelper.load_package_manifest(manifest_file)
             self.register_compiled_package(package)
 
-        for plugin_file in PluginManifestHelper.iterate_plugin_cache_files(manifests_folder):
-            plugin_manifest = PluginManifestHelper.load_plugin_manifest(plugin_file)
-
+        plugin_manifests: list[tuple[PluginManifest, Path]] = [
+            (PluginManifestHelper.load_plugin_manifest(cache_file), cache_file) 
+            for cache_file in PluginManifestHelper.iterate_plugin_cache_files(manifests_folder)
+        ] 
+        for plugin_manifest, cache_file in self.resolve_plugin_load_order(plugin_manifests):
             # FIXME: uncomment this if needed. For now it doesn't really matter if PluginManifest.data_types is PluginDatatypeRef
             # converted_datatypes: list[PluginDatatypeSpec] = []
             # for datatype in plugin_manifest.data_types:
