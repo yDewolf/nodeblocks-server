@@ -59,6 +59,9 @@ class PluginManager:
         compiled_packages: list[ManifestPackage] = []
         
         for manifest, file_path in discovered_manifests:
+            if not manifest.source_hash:
+                raise Exception("didn't hash properly") # FIXME: exception
+
             cached_hash = cached_plugin_list.cached_plugins.get(manifest.package_id)
             if not cached_hash or cached_hash != manifest.source_hash:
                 self._compile_plugin_manifest(manifest, file_path, save_to_disk)
@@ -68,9 +71,11 @@ class PluginManager:
                 manifest_file = PluginManifestHelper.get_manifest_cache_file(cache_folder)
                 package = PluginManifestHelper.load_package_manifest(manifest_file)
                 self.register_compiled_package(package)
-                
+            
+            cached_plugin_list.cached_plugins[manifest.package_id] = manifest.source_hash               
             self.index_plugin(manifest)
 
+        PluginManifestHelper.save_plugin_list_cache(source_folder, cached_plugin_list)
         return compiled_packages
 
     def compile_plugins(self, source_folder: Path, save_to_disk: bool = True, output_folder: Optional[Path] = None) -> list[ManifestPackage]:

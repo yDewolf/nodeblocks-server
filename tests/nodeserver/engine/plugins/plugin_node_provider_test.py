@@ -112,3 +112,14 @@ class TestLazyLoading:
         with pytest.raises(KeyError) as exc_info:
             provider.create_node(node_fqn)
 
+# TODO: move this to another file
+class TestPluginManagerCompileOrLoad:
+    def test_compile_or_load(self, plugins_setup, default_registry, setup_sys_path):
+        root, plugins_folder = plugins_setup
+        dummy_registry = TypeRegistry.from_registry(default_registry)
+        dummy_manager = PluginManager(
+            registry=dummy_registry, 
+            compiler=PluginCompiler(registry=dummy_registry, plugins_base_package="test_plugins")
+        )
+        dummy_manager.load_or_compile_plugins(plugins_folder)
+        pass

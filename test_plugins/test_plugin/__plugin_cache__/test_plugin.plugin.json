@@ -1,4 +1,5 @@
 {
+  "source_hash": "57a058d3d9f3f789906ac43145e8b188f6deffb4e678e331efa03f5375978751",
   "package_id": "test_plugin",
   "version": "0.0.0",
   "description": null,
@@ -9,8 +10,8 @@
     "test_plugin:TestNode": {
       "class_path": "test_nodes.TestNode",
       "required_datatypes": [
-        "core:float",
-        "test_plugin:test_datatype"
+        "test_plugin:test_datatype",
+        "core:float"
       ]
     }
   },

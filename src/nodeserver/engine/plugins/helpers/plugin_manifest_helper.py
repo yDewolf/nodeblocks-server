@@ -64,11 +64,17 @@ class PluginManifestHelper:
 
 
     @staticmethod
+    def save_plugin_list_cache(plugins_folder: Path, cache: PluginListCache):
+        file_path = plugins_folder / PluginManifestHelper.PLUGIN_LIST_CACHE_FILENAME
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(cache.model_dump_json(indent=2))
+    
+    @staticmethod
     def load_or_create_plugin_list_cache(plugins_folder: Path) -> PluginListCache:
         file_path = plugins_folder / PluginManifestHelper.PLUGIN_LIST_CACHE_FILENAME
         if not file_path.exists():
             data = PluginListCache(cached_plugins={})
-            file_path.write_text(data.model_dump_json(indent=2))
+            file_path.write_text(data.model_dump_json(indent=2), encoding="utf-8")
             return data
         
         with open(file_path, "r", encoding="utf-8") as file:
