@@ -7,6 +7,8 @@ from nodeserver.protocols.manifest.node.node_manifest import NodeTypeSpec
 
 class ManifestPackage(DataModel):
     # format: Optional[int] = None # FIXME on client -> remove this
+    
+    # TODO: implement package versioning
     version: str # FIXME on client: int -> str
     package_id: str # FIXME on client: id -> package_id
     

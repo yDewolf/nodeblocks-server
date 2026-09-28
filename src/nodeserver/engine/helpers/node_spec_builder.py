@@ -26,6 +26,7 @@ class  NodeSpecBuilder:
         self.registry = registry
 
     def build_node_spec(self, namespace: str, id: str, node_cls: type[BaseNode]) -> NodeTypeSpec:
+        logger.debug("Building NodeTypeSpec as (%s) from %s's node class %s: ", id, namespace, node_cls.__name__)
         inputs = self._generate_specs_for_slots(node_cls.InputModel, is_input=True)
         outputs = self._generate_specs_for_slots(node_cls.OutputModel, is_input=False)
         parameters = self._generate_specs_for_parameters(node_cls.Parameters)
