@@ -60,6 +60,10 @@ class PluginManager:
         compiled_packages: list[ManifestPackage] = []
         
         for manifest, file_path in self.resolve_plugin_load_order(discovered_manifests):
+            self.version_manager.validate_engine_compatibility(
+                manifest.engine_version, manifest.package_id
+            )
+
             if not manifest.source_hash:
                 raise PluginMissingSourceHash(manifest.package_id)
 
@@ -93,6 +97,9 @@ class PluginManager:
         compiled_packages: list[ManifestPackage] = []
 
         for manifest, file_path in self.resolve_plugin_load_order(discovered_manifests):
+            self.version_manager.validate_engine_compatibility(
+                manifest.engine_version, manifest.package_id
+            )
             package = self._compile_plugin_manifest(manifest, file_path, save_to_disk, output_folder)
             compiled_packages.append(package)
             self.index_plugin(manifest)
@@ -108,15 +115,15 @@ class PluginManager:
         if not manifests_folder.exists():
             return {}
 
-        for manifest_file in PluginManifestHelper.iterate_manifest_cache_files(manifests_folder):
-            package = PluginManifestHelper.load_package_manifest(manifest_file)
-            self.register_compiled_package(package)
-
         plugin_manifests: list[tuple[PluginManifest, Path]] = [
             (PluginManifestHelper.load_plugin_manifest(cache_file), cache_file) 
             for cache_file in PluginManifestHelper.iterate_plugin_cache_files(manifests_folder)
-        ] 
+        ]
+
         for plugin_manifest, cache_file in self.resolve_plugin_load_order(plugin_manifests):
+            self.version_manager.validate_engine_compatibility(
+                plugin_manifest.engine_version, plugin_manifest.package_id
+            )
             # FIXME: uncomment this if needed. For now it doesn't really matter if PluginManifest.data_types is PluginDatatypeRef
             # converted_datatypes: list[PluginDatatypeSpec] = []
             # for datatype in plugin_manifest.data_types:
@@ -128,6 +135,11 @@ class PluginManager:
             
             # plugin_manifest.data_types = converted_datatypes
             self.index_plugin(plugin_manifest)
+
+        for manifest_file in PluginManifestHelper.iterate_manifest_cache_files(manifests_folder):
+            package = PluginManifestHelper.load_package_manifest(manifest_file)
+            if self.is_plugin_loaded(package.package_id):
+                self.register_compiled_package(package)
 
         return self._loaded_packages
 
@@ -194,8 +206,11 @@ class PluginManager:
     def get_plugin_manifest(self, package_id: str) -> Optional[PluginManifest]:
         return self._plugin_manifests.get(package_id)
 
-    def is_plugin_loaded(self, package_id: str) -> bool:
+    def is_package_loaded(self, package_id: str) -> bool:
         return package_id in self._loaded_packages
+
+    def is_plugin_loaded(self, package_id: str) -> bool:
+        return package_id in self._plugin_manifests
 
     def get_loaded_package(self, package_id: str) -> Optional[ManifestPackage]:
         return self._loaded_packages.get(package_id)

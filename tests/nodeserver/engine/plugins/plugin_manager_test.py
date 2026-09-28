@@ -2,7 +2,9 @@ from typing import Optional
 from pathlib import Path
 import pytest
 
+from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.plugins.plugin import Plugin
+from nodeserver.engine.plugins.plugin_api_version import CURRENT_PLUGIN_API_VERSION
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingSourceHash, PluginNotLoadedError
@@ -29,8 +31,10 @@ def create_manifest(
     data_types: Optional[list] = None,
 ) -> PluginManifest:
     return PluginManifest(
+        engine_version=CURRENT_ENGINE_VERSION,
+        plugin_api_version=CURRENT_PLUGIN_API_VERSION,
         package_id=package_id,
-        version=version,
+        plugin_version=version,
         dependencies=dependencies or {},
         source_hash=source_hash,
         data_types=data_types or [],
@@ -99,7 +103,7 @@ class TestRegistrationAndIndexing:
 
         dummy_plugin_manager.register_compiled_package(package)
 
-        assert dummy_plugin_manager.is_plugin_loaded("test_pkg") is True
+        assert dummy_plugin_manager.is_package_loaded("test_pkg") is True
         assert dummy_plugin_manager.get_loaded_package("test_pkg") == package
 
     def test_index_plugin_e_datatype_ref(self, dummy_plugin_manager):
@@ -181,7 +185,7 @@ class TestPluginDiskOperations:
         plugin_file.write_text(
             f"from {PluginManifest.__module__} import {PluginManifest.__name__}\n"
             f"from {Plugin.__module__} import {Plugin.__name__}\n"
-            f"class TestPlugin({Plugin.__name__}): manifest = PluginManifest(package_id='my_plugin', version='1.0.0')\n"
+            f"class TestPlugin({Plugin.__name__}): manifest = PluginManifest(package_id='my_plugin', plugin_version='1.0.0', plugin_api_version='{CURRENT_PLUGIN_API_VERSION}', engine_version='{CURRENT_ENGINE_VERSION}')\n"
         )
 
         dummy_plugin_manager.load_or_compile_plugins(source_dir)

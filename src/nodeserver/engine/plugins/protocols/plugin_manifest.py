@@ -14,12 +14,15 @@ class PluginManifest(BaseModel):
     source_hash: Optional[str] = None
 
     package_id: str # must be the same as plugin's folder name
-    version: str # SemVer
+    
+    plugin_version: str # SemVer
+    
+    engine_version: str # SemVer
+    plugin_api_version: str # SemVer
 
     description: Optional[str] = None
     authors: list[str] = []
     
-    min_engine_version: Optional[str] = None
     dependencies: dict[str, str] = {} # ex: {"com.company.core_nodes": ">=1.0.0"}
     
     nodes_cache: Optional[dict[str, NodeCacheEntry]] = None # fqn -> NodeCacheEntry
