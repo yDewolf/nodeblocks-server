@@ -1,3 +1,4 @@
+from collections import deque
 from typing import Optional
 from packaging.version import Version, parse as parse_version
 from packaging.specifiers import SpecifierSet
