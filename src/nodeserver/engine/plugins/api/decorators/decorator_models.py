@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from nodeserver.engine.plugins.plugin import Plugin
+from nodeserver.engine.plugins.api.plugin import Plugin
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.manifest.base_manifest import DataModel
 

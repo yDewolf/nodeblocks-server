@@ -1,5 +1,5 @@
-from nodeserver.engine.plugins.decorators.plugin_decorators import plugin_datatype
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatype
+from nodeserver.engine.plugins.api.decorators.plugin_decorators import plugin_datatype
+from nodeserver.engine.plugins.api.plugin_datatype import PluginDatatype
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 
 

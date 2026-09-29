@@ -1,4 +1,4 @@
-from nodeserver.engine.plugins.decorators.plugin_decorators import plugin_node
+from nodeserver.engine.plugins.api.decorators.plugin_decorators import plugin_node
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
 from test_plugins.test_plugin.test_datatypes import TestDatatype
 

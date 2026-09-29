@@ -4,6 +4,12 @@ from pathlib import Path
 import sys
 
 from nodeserver.cli.commands.base_command import CLICommand
+from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
+from nodeserver.engine.plugins.api import CURRENT_PLUGIN_API_VERSION, PluginDatatype, Plugin
+from nodeserver.engine.plugins.api.decorators import plugin_node, plugin_datatype
+from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
+from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 
 
 class CreatePluginCMD(CLICommand):
@@ -53,11 +59,7 @@ class CreatePluginCMD(CLICommand):
         datatypes_dir.mkdir(parents=True, exist_ok=True)
 
         plugin_file = plugin_dir / "plugin.py"
-        plugin_content = TEMPLATE_PLUGIN_PY.format(
-            class_name=class_name,
-            package_id=pkg_id,
-            plugin_name=plugin_name,
-        )
+        plugin_content = build_plugin_py_template(class_name, pkg_id, plugin_name)
         plugin_file.write_text(plugin_content, encoding="utf-8")
         
         (nodes_dir / "example_node.py").write_text(TEMPLATE_EXAMPLE_NODE, encoding="utf-8")
@@ -76,41 +78,37 @@ class CreatePluginCMD(CLICommand):
         print("they might be anywhere inside your plugin folder")
 
 
-TEMPLATE_PLUGIN_PY = '''
-from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.plugins.plugin_api_version import CURRENT_PLUGIN_API_VERSION
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
-from nodeserver.engine.plugins.plugin import Plugin
+def build_plugin_py_template(class_name: str, package_id: str, plugin_name: str) -> str:
+    return f"""from {PluginManifest.__module__} import {PluginManifest.__name__}
+from {Plugin.__module__} import {Plugin.__name__}
 
-class {class_name}Plugin(Plugin):
-    manifest = PluginManifest(
+
+class {class_name}Plugin({Plugin.__name__}):
+    manifest = {PluginManifest.__name__}(
         package_id="{package_id}",
         plugin_version="0.1.0",
-        
         description="Description for {plugin_name}",
         authors=["you"],
-
-        engine_version=f">={{CURRENT_ENGINE_VERSION}}",
-        plugin_api_version=f">={{CURRENT_PLUGIN_API_VERSION}}",
-
-        # Define your plugin's dependencies here
-        # example: {{"another_package": ">=1.0.0"}}
-        dependencies={{}}
+        engine_version=f">={CURRENT_ENGINE_VERSION}", # Current Engine Version
+        plugin_api_version=f">={CURRENT_PLUGIN_API_VERSION}", # Current Plugin API Version
+        dependencies={{}},
     )
-'''
+"""
 
-TEMPLATE_EXAMPLE_NODE = '''
-from nodeserver.engine.plugins.decorators.plugin_decorators import plugin_node
-from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
+TEMPLATE_EXAMPLE_NODE = f"""from {plugin_node.__module__} import {plugin_node.__name__}
+from {BaseNode.__module__} import {BaseNode.__name__}, {NodeInputs.__name__}, {NodeOutputs.__name__}
 
-class ExampleNodeInput(NodeInputs):
+
+class ExampleNodeInput({NodeInputs.__name__}):
     in_0: float
 
-class ExampleNodeOutput(NodeOutputs):
+
+class ExampleNodeOutput({NodeOutputs.__name__}):
     out_0: float
 
-@plugin_node()
-class ExampleNode(BaseNode[ExampleNodeInput, ExampleNodeOutput]):
+
+@{plugin_node.__name__}()
+class ExampleNode({BaseNode.__name__}[ExampleNodeInput, ExampleNodeOutput]):
     InputModel = ExampleNodeInput
     OutputModel = ExampleNodeOutput
 
@@ -118,25 +116,25 @@ class ExampleNode(BaseNode[ExampleNodeInput, ExampleNodeOutput]):
         return ExampleNodeOutput(
             out_0=inputs.in_0 + 1,
         )
+"""
 
-'''
+TEMPLATE_EXAMPLE_DATATYPE = f"""from {plugin_datatype.__module__} import {plugin_datatype.__name__}
+from {PluginDatatype.__module__} import {PluginDatatype.__name__}
+from {DefaultDataTypes.__module__} import {DefaultDataTypes.__name__}, {DefaultRenderers.__name__}
 
-TEMPLATE_EXAMPLE_DATATYPE = '''
-from nodeserver.engine.plugins.decorators.plugin_decorators import plugin_datatype
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatype
-from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 
-@plugin_datatype(
+@{plugin_datatype.__name__}(
     id="example_datatype",
-    base_id=DefaultDataTypes.CUSTOM,
-    default_renderer=DefaultRenderers.NOT_IMPLEMENTED
+    base_id={DefaultDataTypes.__name__}.CUSTOM,
+    default_renderer={DefaultRenderers.__name__}.NOT_IMPLEMENTED,
 )
-class ExampleDataType(PluginDatatype):
-    """Implement your datatype class here"""
+class ExampleDataType({PluginDatatype.__name__}):
+    \"\"\"Implement your datatype class here\"\"\"
+
     def serialize(self):
-        """
-        Serialization method for your custom datatype. 
+        \"\"\"
+        Serialization method for your custom datatype.
         Must return a json compatible type.
-        """
+        \"\"\"
         pass
-'''
+"""

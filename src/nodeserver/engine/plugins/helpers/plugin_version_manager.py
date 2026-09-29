@@ -5,7 +5,7 @@ from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.exceptions.plugin.plugin_exceptions import IncompatibleApiVersionPluginError, IncompatibleEngineVersionPluginError
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import IncompatibleVersionPluginError, PluginMissingDependency
 from nodeserver.engine.helpers.version_helper import VersionHelper
-from nodeserver.engine.plugins.plugin_api_version import CURRENT_PLUGIN_API_VERSION
+from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
 import logging

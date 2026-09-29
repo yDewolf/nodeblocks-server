@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.plugins.plugin import Plugin
-from nodeserver.engine.plugins.plugin_api_version import CURRENT_PLUGIN_API_VERSION
+from nodeserver.engine.plugins.api.plugin import Plugin
+from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingSourceHash, PluginNotLoadedError
