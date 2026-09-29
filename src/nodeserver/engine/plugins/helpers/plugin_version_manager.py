@@ -8,6 +8,9 @@ from nodeserver.engine.helpers.version_helper import VersionHelper
 from nodeserver.engine.plugins.plugin_api_version import CURRENT_PLUGIN_API_VERSION
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
+import logging
+logger = logging.getLogger("nds.plugins")
+
 class PluginVersionManager:
     engine_version: Version
     plugin_api_version: Version
@@ -39,10 +42,10 @@ class PluginVersionManager:
         self, engine_version_req: Optional[str], package_id: str
     ) -> None:
         if not engine_version_req:
+            logger.warning("Plugin %s is missing engine version requirement. Plugin will be used anyway.", package_id)
             return
 
         specifier = VersionHelper._parse_semver_specifier(engine_version_req)
-
         if self.engine_version not in specifier:
             raise IncompatibleEngineVersionPluginError(
                 package_id,
@@ -54,6 +57,7 @@ class PluginVersionManager:
         self, api_version_req: Optional[str], package_id: str
     ) -> None:
         if not api_version_req:
+            logger.warning("Plugin %s is missing plugin api version requirement. Plugin will be used anyway.", package_id)
             return
 
         specifier = VersionHelper._parse_semver_specifier(api_version_req)
