@@ -6,8 +6,8 @@ from typing import Any, Type
 from nodeserver.engine.exceptions.plugin.plugin_exceptions import InvalidPluginNodeClassPath, MissingNamespacePluginDataType
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginDataTypeRefInCompileTime
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
-from nodeserver.engine.plugins.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
-from nodeserver.engine.plugins.decorators.plugin_decorators import get_plugin_spec_definition_meta
+from nodeserver.engine.plugins.api.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
+from nodeserver.engine.plugins.api.decorators.plugin_decorators import get_plugin_spec_definition_meta
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeSpec
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.plugins.protocols.plugin_specs import NodeCacheEntry

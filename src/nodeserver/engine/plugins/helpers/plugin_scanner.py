@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
-from nodeserver.engine.plugins.plugin import Plugin
+from nodeserver.engine.plugins.api.plugin import Plugin
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
 logger = logging.getLogger("nds.plugins")

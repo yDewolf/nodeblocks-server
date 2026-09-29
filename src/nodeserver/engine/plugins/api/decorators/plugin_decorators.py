@@ -1,9 +1,9 @@
 from typing import Any, Optional, Type, Union
 
 from nodeserver.engine.exceptions.plugin.plugin_exceptions import InvalidDatatypeDecoratedClass, InvalidNodeDecoratedClass, InvalidPluginDecoratorUsage
-from nodeserver.engine.plugins.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
-from nodeserver.engine.plugins.plugin import Plugin
-from nodeserver.engine.plugins.protocols.plugin_datatypes import PluginDatatype
+from nodeserver.engine.plugins.api.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
+from nodeserver.engine.plugins.api.plugin import Plugin
+from nodeserver.engine.plugins.api.plugin_datatype import PluginDatatype
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 
