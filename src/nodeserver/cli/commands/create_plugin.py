@@ -2,6 +2,7 @@
 from argparse import _SubParsersAction, ArgumentParser, Namespace
 from pathlib import Path
 import sys
+from typing import Optional
 
 from nodeserver.cli.commands.base_command import CLICommand
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
@@ -38,7 +39,7 @@ class CreatePluginCMD(CLICommand):
     @classmethod
     def run(cls, args: Namespace):
         target_dir = Path(args.path)
-        package_id: str = args.package_id
+        package_id: Optional[str] = args.package_id
 
         target_dir = target_dir.resolve()
         pkg_id = package_id or target_dir.name.lower().replace("-", "_").replace(" ", "_")
@@ -47,7 +48,7 @@ class CreatePluginCMD(CLICommand):
         class_name = "".join(words)
         plugin_name = " ".join(words)
 
-        plugin_dir = target_dir / pkg_id
+        plugin_dir = target_dir / pkg_id if package_id else target_dir
         if plugin_dir.exists() and any(plugin_dir.iterdir()):
             print(f"Error: Folder '{plugin_dir}' already exists and is not empty", file=sys.stderr)
             sys.exit(1)
