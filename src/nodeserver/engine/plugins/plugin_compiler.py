@@ -44,7 +44,7 @@ class PluginCompiler:
         if not plugin_dt_spec.namespace:
             raise MissingNamespacePluginDataType(plugin_dt_spec.id, plugin_dt_spec.class_path)
 
-        logger.info("Generating %s DataTypeSpec from PluginDataTypeSpec.", plugin_dt_spec.fqn)
+        logger.debug("Generating %s DataTypeSpec from PluginDataTypeSpec.", plugin_dt_spec.fqn)
         spec = DataTypeSpec(
             namespace=plugin_dt_spec.namespace, id=plugin_dt_spec.id,
             base_id=plugin_dt_spec.base_id,
@@ -96,7 +96,7 @@ class PluginCompiler:
         compiles its logic classes (BaseNode)
         """
 
-        logger.info("Compiling %s's node module: %s", package_id, relative_module_path)
+        logger.info("Compiling node module: %s - package_id: %s", relative_module_path, package_id)
         module = self._import_python_module(package_id, relative_module_path)
 
         compiled_nodes: list[NodeTypeSpec] = []
@@ -123,9 +123,9 @@ class PluginCompiler:
         Searches for @plugin_node and @plugin_datatype decorators inside the modules
         to auto generate manifest.data_types and manifest.node_modules
         """
-        logger.info(f"Compiling modules from {manifest.package_id}...")
+        logger.info("Compiling plugin modules: %s - package_id: %s", ", ".join(relative_modules), manifest.package_id)
         for module_path in relative_modules:
-            logger.info("Populating %s's Plugin Manifest with decorated classes from: %s", manifest.package_id, module_path)
+            logger.debug("Populating Plugin Manifest package_id: %s with decorated classes from: %s", manifest.package_id, module_path)
             module = self._import_python_module(manifest.package_id, module_path)
             
             attributes = dir(module)
@@ -155,7 +155,7 @@ class PluginCompiler:
             node_types={}
         )
 
-        logger.info("Compiling %s's plugin manifest...", manifest.package_id)
+        logger.info("Compiling plugin manifest... - package_id: %s", manifest.package_id)
         for plugin_dt_spec in manifest.data_types:
             if not isinstance(plugin_dt_spec, PluginDatatypeSpec):
                 raise PluginDataTypeRefInCompileTime(plugin_dt_spec.fqn, manifest.package_id)
@@ -190,7 +190,7 @@ class PluginCompiler:
     # Import Resolve methods:
 
     def resolve_node_class(self, package_id: str, relative_class_path: str) -> type[BaseNode]:
-        logger.info("Resolving node class for %s from module: %s", package_id, relative_class_path)
+        logger.debug("Resolving node class from module: %s - package_id: ", relative_class_path,  package_id)
         full_path = self._resolve_import_path(package_id, relative_class_path)
         module_path, class_name = full_path.rsplit(".", 1)
 
@@ -209,7 +209,7 @@ class PluginCompiler:
 
 
     def resolve_datatype_python_type(self, package_id: str, relative_class_path: str) -> Type:
-        logger.info("Resolving datatype class for %s from module: %s", package_id, relative_class_path)
+        logger.debug("Resolving datatype class from module: %s - package_id: %s", relative_class_path, package_id)
         full_path = self._resolve_import_path(package_id, relative_class_path)
         module_path, class_name = full_path.rsplit(".", 1)
 

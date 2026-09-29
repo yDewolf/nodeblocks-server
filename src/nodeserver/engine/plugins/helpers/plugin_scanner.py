@@ -19,7 +19,7 @@ class PluginScanner:
         Automatically updates plugin's source hash.
         """
 
-        logger.info("Scanning for plugin manifests in %s ", plugins_dir)
+        logger.debug("Scanning for plugin manifests in %s ", plugins_dir)
         manifests: list[tuple[PluginManifest, Path]] = []
         for plugin_file in plugins_dir.rglob("plugin.py", case_sensitive=False):
             module_name = PluginScanner.make_module_name(plugin_file.parent.name)
@@ -49,6 +49,7 @@ class PluginScanner:
         return manifests
 
     def discover_modules(self, plugin_dir: Path) -> list[str]:
+        logger.debug("Searching for plugin modules in %s", plugin_dir)
         module_paths: list[str] = []
         for file_path in plugin_dir.rglob("*.py"):
             if any(part.startswith(".") or part.startswith("__") for part in file_path.parts):
