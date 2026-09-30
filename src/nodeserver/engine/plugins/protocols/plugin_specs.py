@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from nodeserver.engine.exceptions.plugin.plugin_exceptions import MissingNamespacePluginDataType
 from typing import Optional, Self
 from nodeserver.protocols.manifest.base_manifest import NamespaceModel
@@ -10,7 +10,7 @@ from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 
 class PluginDatatypeRef(NamespaceModel):
     class_path: str
-
+    alias_class_paths: list[str] = []
 
 class PluginDatatypeSpec(DataTypeSpec, PluginDatatypeRef):
     """Maps a python class to a DataTypeSpec Fully Qualified Name (fqn) through import string."""

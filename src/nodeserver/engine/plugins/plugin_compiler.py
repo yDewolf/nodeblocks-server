@@ -57,7 +57,16 @@ class PluginCompiler:
                 plugin_dt_spec.namespace,
                 plugin_dt_spec.class_path
             )
-            self.registry.register_data_type(spec, python_type)
+
+            resolved_aliases: list[type] = []
+            for alias_class_path in plugin_dt_spec.alias_class_paths:
+                alias = self.resolve_absolute_python_type(
+                    alias_class_path,
+                    package_id=plugin_dt_spec.namespace
+                )
+                resolved_aliases.append(alias)
+            
+            self.registry.register_data_type(spec, python_type, resolved_aliases)
 
         return spec
 
@@ -131,14 +140,10 @@ class PluginCompiler:
             attributes = dir(module)
             for attr_name in attributes:
                 attr = getattr(module, attr_name)
-                meta = get_plugin_spec_definition_meta(attr)
-                if not meta:
-                    continue
-
                 if getattr(attr, "__module__", None) != module.__name__:
                     continue
 
-                self._parse_plugin_decorators(meta, manifest, module_path)
+                self._update_manifest_from_attr_decorators(attr, manifest, module_path)
 
     def compile_manifest(
         self,
@@ -220,7 +225,26 @@ class PluginCompiler:
         except (ImportError, AttributeError) as e:
             raise RuntimeError(f"Failed to import datatype python class {full_path}: {e}") from e
 
+    def resolve_absolute_python_type(self, class_path: str, package_id: str = "not provided") -> Type:
+        logger.debug("Resolving datatype class from module: %s - package_id: %s", class_path, package_id)
+        module_path, class_name = class_path.rsplit(".", 1)
+
+        try:
+            module = importlib.import_module(module_path)
+            return getattr(module, class_name)
+
+        except (ImportError, AttributeError) as e:
+            raise RuntimeError(f"Failed to import python class {class_path}: {e}") from e
+
     # Decorator Utility
+
+    def _update_manifest_from_attr_decorators(self, attr: Any, manifest: PluginManifest, module_path: str) -> bool:
+        meta = get_plugin_spec_definition_meta(attr)
+        if not meta:
+            return False
+
+        self._parse_plugin_decorators(meta, manifest, module_path)
+        return True
 
     def _parse_plugin_decorators(self, meta: PluginDecoDefModels, manifest: PluginManifest, module_path: str):
         if isinstance(meta, PluginNodeDefModel):
@@ -235,7 +259,8 @@ class PluginCompiler:
                 id=meta.id,
                 base_id=meta.base_id,
                 default_renderer=meta.renderer,
-                whitelist=meta.whitelist
+                whitelist=meta.whitelist,
+                alias_class_paths=meta.alias_class_paths,
             )
             manifest.data_types.append(spec)
     

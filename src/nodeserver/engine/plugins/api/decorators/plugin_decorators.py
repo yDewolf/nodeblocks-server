@@ -31,6 +31,7 @@ def plugin_datatype(
     base_id: DefaultDataTypes, 
     default_renderer: DefaultRenderers, 
     whitelist: Optional[list[str]] = None,
+    aliases: Optional[list[type]] = None,
     plugin_cls: Optional[type[Plugin]] = None
 ):
     """Registers a DataType in the current Plugin"""
@@ -41,6 +42,7 @@ def plugin_datatype(
         datatype_meta = PluginDataTypeDefModel(
             id=id,
             cls_name=cls.__name__,
+            alias_class_paths=[f"{alias.__module__}.{alias.__name__}" for alias in aliases or []],
             base_id=base_id,
             renderer=default_renderer,
             whitelist=whitelist or [base_id],

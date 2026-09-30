@@ -15,6 +15,7 @@ class PluginNodeDefModel(PluginDefModel):
 class PluginDataTypeDefModel(PluginDefModel):
     id: str
     cls_name: str
+    alias_class_paths: list[str] = []
 
     base_id: DefaultDataTypes
     renderer: DefaultRenderers

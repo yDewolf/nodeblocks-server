@@ -34,18 +34,19 @@ def setup_sys_path(plugins_setup):
         sys.path.remove(str(root_path))
 
 @pytest.fixture
-def plugin_manager(default_registry, plugins_setup):
+def plugin_manager(plugins_setup):
     _, plugins_path = plugins_setup
 
-    dummy_registry = TypeRegistry.from_registry(default_registry)
+    dummy_registry = TypeRegistry()
     dummy_manager = PluginManager(
         registry=dummy_registry, 
         compiler=PluginCompiler(registry=dummy_registry, plugins_base_package="test_plugins")
     )
     dummy_manager.compile_plugins(plugins_path, save_to_disk=True)
 
-    compiler = PluginCompiler(registry=default_registry, plugins_base_package="test_plugins")
-    manager = PluginManager(registry=default_registry, compiler=compiler)
+    registry = TypeRegistry()
+    compiler = PluginCompiler(registry=registry, plugins_base_package="test_plugins")
+    manager = PluginManager(registry=registry, compiler=compiler)
     manager.load_plugin_manifests(plugins_path)
 
     return manager

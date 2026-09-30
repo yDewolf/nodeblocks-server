@@ -88,11 +88,15 @@ class TypeRegistry(TypeSpecRegistry):
         self.python_type_map = registry.python_type_map.copy()
         self._fqn_to_python_type = registry._fqn_to_python_type.copy()
 
-    def register_data_type(self, spec: DataTypeSpec, python_type: Optional[type] = None):
+    def register_data_type(self, spec: DataTypeSpec, python_type: Optional[type] = None, aliases: Optional[list[type]] = None):
         super().register_data_type(spec)
 
         if python_type is not None:
-            self.assign_datatype_python_type(spec.fqn, python_type)
+            self.assign_datatype_python_type(spec.fqn, python_type, aliases)
+        
+        elif aliases:
+            for alias in aliases:
+                self.assign_datatype_alias(spec.fqn, alias)
     
     def register_node_type(self, spec: NodeTypeSpec, logic_class: Optional[Type[BaseNode]] = None):
         super().register_node_type(spec)
@@ -108,7 +112,7 @@ class TypeRegistry(TypeSpecRegistry):
 
         self.node_logic_classes[node_fqn] = logic_class
 
-    def assign_datatype_python_type(self, datatype_fqn: str, python_type: Type):
+    def assign_datatype_python_type(self, datatype_fqn: str, python_type: Type, aliases: Optional[list[type]] = None):
         if datatype_fqn not in self.data_types:
             raise KeyError(f"DataTypeSpec {datatype_fqn} must be registered before assigning a Python type")
 
@@ -118,7 +122,16 @@ class TypeRegistry(TypeSpecRegistry):
 
         self._fqn_to_python_type[datatype_fqn] = python_type
         self.python_type_map[python_type] = self.data_types[datatype_fqn]
+        if aliases:
+            for alias in aliases:
+                self.python_type_map[alias] = self.data_types[datatype_fqn]
 
+    def assign_datatype_alias(self, datatype_fqn: str, type_alias: type):
+        if datatype_fqn not in self.data_types:
+            raise KeyError(f"DataTypeSpec {datatype_fqn} must be registered before assigning an alias")
+        
+        self.python_type_map[type_alias] = self.data_types[datatype_fqn]
+    
     # Boolean checks
 
     def is_datatype_associated_python(self, datatype_fqn: str) -> bool:

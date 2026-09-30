@@ -23,23 +23,6 @@ if __name__ == "__main__":
     reg = TypeRegistry()
     namespace = "core"
 
-    reg.register_data_type(
-        DatatypeHelper.create_spec(namespace, "string", base_id=DefaultDataTypes.TEXT, renderer=DefaultRenderers.TEXT),
-        python_type=str
-    )
-    reg.register_data_type(
-        DatatypeHelper.create_spec(namespace, "int", base_id=DefaultDataTypes.INT, renderer=DefaultRenderers.SCALAR),
-        python_type=int
-    )
-    reg.register_data_type(
-        DatatypeHelper.create_spec(namespace, "float", base_id=DefaultDataTypes.FLOAT, renderer=DefaultRenderers.SCALAR),
-        python_type=float
-    )
-    reg.register_data_type(
-        DatatypeHelper.create_spec(namespace, "unknown", base_id=DefaultDataTypes.UNKNOWN, renderer=DefaultRenderers.NOT_IMPLEMENTED),
-        python_type=type[Any]
-    )
-
     dummy_registry = TypeRegistry.from_registry(reg)
     dummy_manager = PluginManager(
         registry=dummy_registry, 
