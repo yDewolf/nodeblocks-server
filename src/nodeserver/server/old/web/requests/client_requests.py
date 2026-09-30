@@ -3,9 +3,9 @@ from pydantic import Field
 from pydantic import TypeAdapter
 
 from nodeserver.old.instance.instance_states import InstanceCommands, InstanceStates, LoopStates
-from nodeserver.server.web.requests.action_requests import ConnectionActionPayload, NodeActionPayload
-from nodeserver.server.web.requests.base_requests import BaseSocketModel
-from nodeserver.server.web.websocket_protocol import ClientMessages
+from nodeserver.server.old.web.requests.action_requests import ConnectionActionPayload, NodeActionPayload
+from nodeserver.server.old.web.requests.base_requests import BaseSocketModel
+from nodeserver.server.old.web.websocket_protocol import ClientMessages
 from nodeserver.protocols.manifest.node_scene_dataclasses import SceneData
 
 class InstanceCommandPayload(BaseSocketModel):

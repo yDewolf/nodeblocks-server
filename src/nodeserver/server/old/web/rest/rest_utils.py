@@ -3,8 +3,8 @@ from enum import Enum
 from typing import Optional
 from aiohttp import web
 import aiohttp_cors
-from nodeserver.server.web.manager.session_manager import SessionManager
-from nodeserver.server.web.session.user_session import UserSession
+from nodeserver.server.old.web.manager.session_manager import SessionManager
+from nodeserver.server.old.web.session.user_session import UserSession
 
 class BaseRequestRouter:
     session_manager: SessionManager

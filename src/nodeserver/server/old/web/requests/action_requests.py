@@ -1,8 +1,8 @@
 from typing import List, Dict, Union, Literal, Annotated
 from pydantic import Field, TypeAdapter
 
-from nodeserver.server.web.requests.base_requests import BaseSocketModel
-from nodeserver.server.web.websocket_protocol import SceneActionTypes
+from nodeserver.server.old.web.requests.base_requests import BaseSocketModel
+from nodeserver.server.old.web.websocket_protocol import SceneActionTypes
 from nodeserver.protocols.manifest.node_scene_dataclasses import ConnectionSceneData, NodeSceneData
 
 # Node Action Payloads

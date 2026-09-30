@@ -9,19 +9,19 @@ from pydantic import ValidationError
 
 from nodeserver.old.instance.server_instance import ServerInstance
 from nodeserver.old.internal.instance_state import StateFileUtils
-from nodeserver.server.web.instance.special_instance import WsServerInstance
-from nodeserver.server.web.requests.notification_requests import ServerNotification
-from nodeserver.server.web.requests.request_unions import AnyServerMessage
-from nodeserver.server.web.requests.websocket_requests import SrvHandshakeError, SrvHandshakeSuccess, SrvVersionSync
-from nodeserver.server.web.session.user_session import SessionUtils, UserSession
-from nodeserver.server.utils.url_routing import Endpoint, URLRouter
+from nodeserver.server.old.web.instance.special_instance import WsServerInstance
+from nodeserver.server.old.web.requests.notification_requests import ServerNotification
+from nodeserver.server.old.web.requests.request_unions import AnyServerMessage
+from nodeserver.server.old.web.requests.websocket_requests import SrvHandshakeError, SrvHandshakeSuccess, SrvVersionSync
+from nodeserver.server.old.web.session.user_session import SessionUtils, UserSession
+from nodeserver.server.old.utils.url_routing import Endpoint, URLRouter
 from nodeserver.old.internal.instance_manager import InstanceManager
 
-from nodeserver.server.web.manager.session_manager import SessionManager
-from nodeserver.server.web.message_router import BaseMessagerouter
-from nodeserver.server.web.session.user_workspace import WorkspaceUtils
-from nodeserver.server.web.websocket_messages import MessageUtils
-from nodeserver.server.web.websocket_protocol import WebsocketStatus
+from nodeserver.server.old.web.manager.session_manager import SessionManager
+from nodeserver.server.old.web.message_router import BaseMessagerouter
+from nodeserver.server.old.web.session.user_workspace import WorkspaceUtils
+from nodeserver.server.old.web.websocket_messages import MessageUtils
+from nodeserver.server.old.web.websocket_protocol import WebsocketStatus
 
 logger = logging.getLogger("nds.websocket")
 
