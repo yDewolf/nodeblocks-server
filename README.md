@@ -8,6 +8,13 @@ Nodeblocks é um framework de sistemas baseados em nodes voltado para edição e
 ## Aviso:
 Esse projeto está em constante desenvolvimento e está atualmente em estado de **beta**, ou seja, não há garantia alguma de que novas versões serão compatíveis com ``NodeScenes`` e ``TypeData`` de formatos anteriores.
 
+## Aviso sobre esse Branch:
+Esse branch busca atualizar a arquitetura do projeto para melhorar a escalabilidade, separando o projeto em 3 partes:
+- `Protocols`: Definição dos protocolos de `NodeScene`, etc; (basicamente o atual `wrapper/`)
+- `Engine`: implementação abstrata dos `Nodes` e coisas relacionadas ao runtime das cenas;
+- `Server`: tudo que é relacionado à comunicação externa
+
+
 ## Esse repositório:
 ![GitHub repo size](https://img.shields.io/github/repo-size/yDewolf/node-editor-server-api)
 
