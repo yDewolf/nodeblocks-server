@@ -1,12 +1,8 @@
-from collections import deque
-from concurrent.futures import ProcessPoolExecutor
 import logging
-import multiprocessing
 from pathlib import Path
-from typing import Optional, Type
+from typing import Optional
 
-from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import DuplicatePluginError, PluginCircularDependencyError, PluginMissingDependency, PluginMissingSourceHash, PluginNotLoadedError
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import  PluginMissingSourceHash
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.helpers.plugin_version_manager import PluginVersionManager
@@ -62,8 +58,8 @@ class PluginManager(PluginSpecManager):
             if not cached_hash or cached_hash != manifest.source_hash:
                 self._compile_plugin_manifest(manifest, file_path, save_to_disk, assign_to_registry=True)
 
-            self.version_manager.validate_engine_compatibility(
-                manifest.engine_version, manifest.package_id
+            self.version_manager.validate_plugin_requirements(
+                manifest, self._installed_plugins
             )
 
             self._load_plugin_from_cache(manifest, file_path)
@@ -78,8 +74,7 @@ class PluginManager(PluginSpecManager):
         self, 
         source_folder: Path, 
         save_to_disk: bool = True, 
-        output_folder: Optional[Path] = None, 
-        auto_index: bool = True
+        output_folder: Optional[Path] = None
     ) -> list[ManifestPackage]:
         """
         Scans a folder using PluginScanner then compiles each plugin found by it
@@ -101,10 +96,9 @@ class PluginManager(PluginSpecManager):
                 manifest, self._installed_plugins
             )
 
-            package = self._compile_plugin_manifest(manifest, file_path, save_to_disk, output_folder, assign_to_registry=auto_index)
+            package = self._compile_plugin_manifest(manifest, file_path, save_to_disk, output_folder, assign_to_registry=True)
             compiled_manifests.append(package)
-            if auto_index:
-                self.index_plugin(manifest)
+            self.index_plugin(manifest)
 
         if save_to_disk:
             PluginManifestHelper.save_plugin_list_cache(source_folder, cached_plugin_list)

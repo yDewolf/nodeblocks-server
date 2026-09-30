@@ -2,6 +2,7 @@ from pathlib import Path
 import sys
 from typing import Any
 
+from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.registry.type_registry import TypeRegistry
@@ -44,8 +45,11 @@ if __name__ == "__main__":
         registry=dummy_registry, 
         compiler=PluginCompiler(registry=dummy_registry, plugins_base_package="test_plugins")
     )
-    dummy_manager.load_or_compile_plugins(plugins_path, save_to_disk=True)
+    # dummy_manager.load_or_compile_plugins(plugins_path, save_to_disk=True)
 
+    PluginSubprocessHelper.setup_and_load_plugins(
+        plugins_path, dummy_manager
+    )
     # compiler = PluginCompiler(registry=reg, plugins_base_package="test_plugins")
     # manager = PluginManager(registry=reg, compiler=compiler)
     # manager.load_plugin_manifests(plugins_path)

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional, Type
 
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import DuplicatePluginError, PluginCircularDependencyError, PluginMissingDependency, PluginMissingSourceHash, PluginNotLoadedError
+from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import DuplicatePluginError, PluginCircularDependencyError, PluginMissingDependency, PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.helpers.plugin_version_manager import PluginVersionManager
