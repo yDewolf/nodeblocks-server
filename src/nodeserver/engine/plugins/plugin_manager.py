@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import  PluginMissingSourceHash
+from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.helpers.plugin_version_manager import PluginVersionManager
@@ -99,6 +100,9 @@ class PluginManager(PluginSpecManager):
             package = self._compile_plugin_manifest(manifest, file_path, save_to_disk, output_folder, assign_to_registry=True)
             compiled_manifests.append(package)
             self.index_plugin(manifest)
+            
+            manifest.source_hash = PluginHasher.calculate_plugin_hash(file_path.parent)
+            cached_plugin_list.cached_plugins[manifest.package_id] = manifest.source_hash               
 
         if save_to_disk:
             PluginManifestHelper.save_plugin_list_cache(source_folder, cached_plugin_list)
