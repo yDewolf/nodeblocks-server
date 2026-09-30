@@ -1,7 +1,7 @@
 import os
 from dotenv import find_dotenv, load_dotenv, set_key
 
-from nodeserver.server.utils.file_utils import FileUtils
+from nodeserver.server.old.utils.file_utils import FileUtils
 
 dotenv_path = find_dotenv(raise_error_if_not_found=True)
 load_dotenv(dotenv_path)

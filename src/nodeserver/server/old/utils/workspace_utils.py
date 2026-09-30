@@ -2,7 +2,7 @@ import os
 
 from nodeserver.old.internal.instance_state import NODE_STATE_SUBFOLDER
 from nodeserver.old.internal.internal_protocols import WorkspaceProtocol
-from nodeserver.server.utils.env_variables import WORKSPACES_PATH
+from nodeserver.server.old.utils.env_variables import WORKSPACES_PATH
 
 INSTANCE_FOLDER = "instances"
 UPLOADS_FOLDER = "uploads"

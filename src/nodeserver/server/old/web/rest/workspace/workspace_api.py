@@ -6,10 +6,10 @@ import os
 
 import aiohttp_cors
 
-from nodeserver.server.web.manager.session_manager import SessionManager
-from nodeserver.server.web.requests.websocket_requests import SrvSyncFiles
-from nodeserver.server.web.rest.rest_utils import BaseRequestRouter, RestUtils
-from nodeserver.server.web.session.user_session import UserSession
+from nodeserver.server.old.web.manager.session_manager import SessionManager
+from nodeserver.server.old.web.requests.websocket_requests import SrvSyncFiles
+from nodeserver.server.old.web.rest.rest_utils import BaseRequestRouter, RestUtils
+from nodeserver.server.old.web.session.user_session import UserSession
 
 class FileRequestType(Enum):
     GET = 0

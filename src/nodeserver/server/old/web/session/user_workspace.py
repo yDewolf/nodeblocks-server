@@ -5,11 +5,11 @@ import logging
 import os
 from typing import Optional
 from nodeserver.old.instance.server_instance import ServerInstance
-from nodeserver.server.utils.env_variables import INSTANCE_AUTOSAVE_INTERVAL
-from nodeserver.server.utils.workspace_utils import WorkspaceUtils
-from nodeserver.server.web.requests.notification_requests import NotificationLevel, ServerNotification
-from nodeserver.server.web.requests.request_unions import AnyServerMessage
-from nodeserver.server.web.session.user_notifications import NotificationController
+from nodeserver.server.old.utils.env_variables import INSTANCE_AUTOSAVE_INTERVAL
+from nodeserver.server.old.utils.workspace_utils import WorkspaceUtils
+from nodeserver.server.old.web.requests.notification_requests import NotificationLevel, ServerNotification
+from nodeserver.server.old.web.requests.request_unions import AnyServerMessage
+from nodeserver.server.old.web.session.user_notifications import NotificationController
 
 logger = logging.getLogger("nds.workspace")
 

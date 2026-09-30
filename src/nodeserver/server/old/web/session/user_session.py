@@ -2,8 +2,8 @@ from typing import Optional
 import jwt
 import datetime
 
-from nodeserver.server.utils.env_variables import SECRET_KEY
-from nodeserver.server.web.session.user_workspace import UserWorkspace
+from nodeserver.server.old.utils.env_variables import SECRET_KEY
+from nodeserver.server.old.web.session.user_workspace import UserWorkspace
 
 class UserSession:
     token: Optional[str]

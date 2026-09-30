@@ -2,7 +2,7 @@
 from typing import Optional
 
 from nodeserver.old.internal.internal_protocols import InstanceProtocol
-from nodeserver.server.web.requests.notification_requests import NotificationWithMeta, ServerNotification
+from nodeserver.server.old.web.requests.notification_requests import NotificationWithMeta, ServerNotification
 
 
 class NotificationController:

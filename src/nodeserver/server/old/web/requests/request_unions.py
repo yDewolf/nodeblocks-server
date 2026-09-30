@@ -2,9 +2,9 @@ from typing import Annotated, Union
 
 from pydantic import Field, TypeAdapter
 
-from nodeserver.server.web.requests.client_requests import BaseClientCommands
-from nodeserver.server.web.requests.notification_requests import ClientNotificationMessages, ServerNotification, ServerNotificationMessages
-from nodeserver.server.web.requests.websocket_requests import BaseServerMessages
+from nodeserver.server.old.web.requests.client_requests import BaseClientCommands
+from nodeserver.server.old.web.requests.notification_requests import ClientNotificationMessages, ServerNotification, ServerNotificationMessages
+from nodeserver.server.old.web.requests.websocket_requests import BaseServerMessages
 
 
 AnyClientMessage = Annotated[

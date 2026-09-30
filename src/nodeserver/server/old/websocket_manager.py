@@ -3,14 +3,14 @@ from aiohttp import web
 
 from nodeserver.old.internal.instance_manager import InstanceManager
 from nodeserver.old.internal.metadata_manager import MetadataManager
-from nodeserver.server.web.instance.special_instance import WsServerInstance
-from nodeserver.server.web.manager.session_manager import SessionManager
-from nodeserver.server.web.manager.websocket_handler import WebsocketHandler
+from nodeserver.server.old.web.instance.special_instance import WsServerInstance
+from nodeserver.server.old.web.manager.session_manager import SessionManager
+from nodeserver.server.old.web.manager.websocket_handler import WebsocketHandler
 from nodeserver.old.instance.server_instance import ServerInstance
-from nodeserver.server.web.message_router import BaseMessagerouter
+from nodeserver.server.old.web.message_router import BaseMessagerouter
 import logging
 
-from nodeserver.server.web.requests.websocket_requests import SrvMetadataUpdated
+from nodeserver.server.old.web.requests.websocket_requests import SrvMetadataUpdated
 
 logger = logging.getLogger("nds.websocket")
 

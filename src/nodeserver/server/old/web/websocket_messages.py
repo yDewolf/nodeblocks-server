@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 
-from nodeserver.server.web.requests.request_unions import AnyClientMessage, AnyServerMessage, ClientMessageAdapter
+from nodeserver.server.old.web.requests.request_unions import AnyClientMessage, AnyServerMessage, ClientMessageAdapter
 
 class SocketMessage[MessageType: AnyServerMessage | AnyClientMessage]:
     msg: MessageType

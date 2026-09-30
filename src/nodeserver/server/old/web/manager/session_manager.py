@@ -2,8 +2,8 @@ import datetime
 import logging
 from typing import Optional
 
-from nodeserver.server.utils.env_variables import SESSION_GRACE_PERIOD
-from nodeserver.server.web.session.user_session import SessionUtils, UserSession
+from nodeserver.server.old.utils.env_variables import SESSION_GRACE_PERIOD
+from nodeserver.server.old.web.session.user_session import SessionUtils, UserSession
 
 logger = logging.getLogger("nds.websocket")
 

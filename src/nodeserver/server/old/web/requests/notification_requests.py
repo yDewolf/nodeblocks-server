@@ -3,9 +3,9 @@ from typing import Annotated, Any, Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from nodeserver.server.web.requests.base_requests import BaseSocketModel
-from nodeserver.server.web.requests.client_requests import MsgSimple
-from nodeserver.server.web.websocket_protocol import ClientMessages, ServerMessages
+from nodeserver.server.old.web.requests.base_requests import BaseSocketModel
+from nodeserver.server.old.web.requests.client_requests import MsgSimple
+from nodeserver.server.old.web.websocket_protocol import ClientMessages, ServerMessages
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
 class NotificationLevel(str, Enum):
