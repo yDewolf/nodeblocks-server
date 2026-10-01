@@ -13,11 +13,10 @@ from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 class NodeScene:
     # TODO: add scene metadata like name, description, modified timestamps, etc
     scene_id: str
+    graph: SceneGraph
+    _logic_nodes: dict[str, BaseNode] # TODO?: talvez fazer um submanager para isso
 
     registry: TypeRegistry
-    graph: SceneGraph
-
-    _logic_nodes: dict[str, BaseNode] # TODO?: talvez fazer um submanager para isso
     node_provider: INodeProvider
 
     def __init__(self, registry: TypeRegistry, node_provider: INodeProvider):

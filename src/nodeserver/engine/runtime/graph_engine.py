@@ -2,41 +2,50 @@ import logging
 from typing import Any
 
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
-from nodeserver.engine.protocols.node.logic_nodes import BaseNode
+from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeOutputs
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
+from nodeserver.engine.runtime.engine_events import JobStatus, NodeExecutionStatus
 from nodeserver.engine.runtime.extra_node_io import ContextAwareInput
-from nodeserver.engine.runtime.runtime_context import GraphRunContext, JobStatus, NodeExecutionStatus
+from nodeserver.engine.runtime.runtime_context import GraphRunContext
 
 logger = logging.getLogger("nds.engine")
 
 class StatelessGraphEngine:
     def execute_job(self, context: GraphRunContext) -> GraphRunContext:
-        context.status = JobStatus.RUNNING
-        
+        context.set_job_status(JobStatus.RUNNING)
         try:
             execution_order = context.scene.graph.get_execution_order()
             for node_instance in execution_order:
                 if EngineRuntimeHelper._has_failed_dependencies(node_instance.uid, context):
-                    context.node_status[node_instance.uid] = NodeExecutionStatus.SKIPPED
+                    context.update_node_status(
+                        node_instance.uid, NodeExecutionStatus.SKIPPED
+                    )
                     continue
                 
                 success = self._process_node(node_instance, context)
                 if success:
-                    context.node_status[node_instance.uid] = NodeExecutionStatus.SUCCESS
+                    context.update_node_status(
+                        node_instance.uid, NodeExecutionStatus.SUCCESS, 
+                        result=context.persistent_cache[node_instance.uid]
+                    )
                     continue
-                
-                context.node_status[node_instance.uid] = NodeExecutionStatus.FAILED
+
+                context.update_node_status(
+                    node_instance.uid, NodeExecutionStatus.FAILED
+                )
 
             if any(status == NodeExecutionStatus.FAILED for status in context.node_status.values()):
-                context.status = JobStatus.PARTIAL_SUCCESS
+                context.set_job_status(JobStatus.PARTIAL_SUCCESS)
             else:
-                context.status = JobStatus.COMPLETED
+                context.set_job_status(JobStatus.COMPLETED)
             
         except Exception as e:
-            logger.error(f"Erro fatal no Job {context.job_id}: {e}")
-            context.status = JobStatus.FAILED
+            logger.error(f"Fatal error on job {context.job_id}: {e}")
+            context.set_job_status(JobStatus.FAILED)
+            # FIXME: talvez fazer um raise aqui
         
         return context
+
 
     def _process_node(self, node_instance: NodeInstance, context: GraphRunContext) -> bool:
         logic_node = context.scene._logic_nodes.get(node_instance.uid)
@@ -68,9 +77,10 @@ class StatelessGraphEngine:
             node_inputs = logic_node.InputModel(**raw_inputs)
             
             logic_node.pre_forward(node_inputs)
-            node_outputs = logic_node.forward(node_inputs)
+            node_outputs: NodeOutputs = logic_node.forward(node_inputs)
 
-            outputs_dict = {}
+            # slot_id -> output_value
+            outputs_dict: dict[str, Any] = {}
             for slot_id, value in node_outputs.__dict__.items():
                 cache_key = context.get_cache_key(node_instance.uid, slot_id)
                 context.output_cache[cache_key] = value
