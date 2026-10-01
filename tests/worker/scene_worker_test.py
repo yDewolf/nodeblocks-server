@@ -29,7 +29,7 @@ if __name__ == "__main__":
     ))
     controller.send_command(
         ExecuteGraphCommand(
-            mode=GraphExecutionModes.FULL_GRAPH
+            mode=GraphExecutionModes.CONTINUOUS
         )
     )
     input("Press enter to quit")

@@ -1,7 +1,5 @@
 import uuid
 from typing import Any, Callable, Optional
-from enum import Enum
-
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.engine_events import EvtJobStatusChanged, EvtNodeStatusChanged, IPCEngineEvent, JobStatus, NodeExecutionStatus
 
@@ -12,7 +10,7 @@ class GraphRunContext:
     job_id: str
     status: JobStatus
     
-    output_cache: dict[str, Any] # this run only
+    output_cache: dict[str, Any]
     errors: dict[str, str] # TODO: alterar isso aqui para um ErrorWrapper
     node_status: dict[str, NodeExecutionStatus]
 
@@ -41,6 +39,8 @@ class GraphRunContext:
 
         self._emit_event_callback = emit_event_callback
 
+    # Context Updates:
+
     def update_node_status(self, node_uid: str, status: NodeExecutionStatus, result: Any = None):
         self.node_status[node_uid] = status
         self._emit_event(EvtNodeStatusChanged(
@@ -51,11 +51,31 @@ class GraphRunContext:
         self.status = status
         self._emit_event(EvtJobStatusChanged(status))
 
+    # Pre Engine Processing
+
+    def prepare_for_run(self, node_uids: Optional[list[str]] = None):
+        uids_to_reset = node_uids if node_uids is not None else list(self.scene.graph.all_nodes.keys())
+        for uid in uids_to_reset:
+            self._reset_node_status(uid)
+
+    def invalidate_node_cache(self, node_uid: str, recursive: bool = True):
+        self.persistent_cache.pop(node_uid, None)
+        self.node_hashes.pop(node_uid, None)
+
+        if recursive:
+            downstream = self.scene.graph.get_downstream_node_ids(node_uid)
+            for d_uid in downstream:
+                self.invalidate_node_cache(d_uid, recursive=False)
+
+    # Utility
+
+    def _reset_node_status(self, node_uid: str):
+        self.node_status[node_uid] = NodeExecutionStatus.PENDING
+        self.errors.pop(node_uid, None)
 
     def _emit_event(self, event: IPCEngineEvent):
         if self._emit_event_callback:
             self._emit_event_callback(event)
-
 
     def get_cache_key(self, node_uid: str, slot_id: str) -> str:
         return f"{node_uid}:{slot_id}"

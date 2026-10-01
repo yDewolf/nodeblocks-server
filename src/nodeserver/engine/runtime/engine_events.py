@@ -34,3 +34,6 @@ class EvtJobStatusChanged(IPCEngineEvent):
     status: JobStatus
 
 
+@dataclass(frozen=True)
+class EvtFailedProcess(IPCEngineEvent):
+    error: str

@@ -26,7 +26,11 @@ class StopWorkerCommand(IPCSceneWorkerCommand):
 @dataclass(frozen=True)
 class ExecuteGraphCommand(IPCSceneWorkerCommand):
     mode: GraphExecutionModes
+    iterations: Optional[int] = None # Only if continuous mode
 
+@dataclass(frozen=True)
+class PauseGraphCommand(IPCSceneWorkerCommand):
+    pass
 
 # Scene Commands
 @dataclass(frozen=True)
