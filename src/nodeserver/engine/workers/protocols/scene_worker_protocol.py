@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
-from nodeserver.engine.protocols.ipc_protocol import IPCCommandStatus, CmdStatus
+from nodeserver.engine.protocols.ipc_protocol import IPCCommandResponse, IPCCommandStatus, CmdStatus, IPCEvent
 from nodeserver.engine.runtime.engine_events import IPCEngineEvent
 
-class IPCSceneWorkerEvent:
+class IPCSceneWorkerEvent(IPCEvent):
     pass
-
 
 @dataclass(frozen=True)
 class EvtWorkerReady(IPCSceneWorkerEvent):
@@ -21,9 +20,10 @@ class WorkerEngineEventWrapper(IPCSceneWorkerEvent):
 
 
 # Command Responses
+
 @dataclass(frozen=True)
-class SceneWorkerCommandResponse(IPCSceneWorkerEvent):
-    status: CmdStatus
+class SceneWorkerCommandResponse(IPCCommandResponse, IPCSceneWorkerEvent):
+    pass
 
 # Scene Actions:
 

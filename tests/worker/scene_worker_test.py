@@ -1,10 +1,12 @@
 
 from pathlib import Path
 
-from nodeserver.engine.workers.protocols.scene_worker_commands import ExecuteGraphCommand, GraphExecutionModes
+from nodeserver.engine.workers.protocols.scene_worker_commands import ExecuteGraphCommand, GraphExecutionModes, LoadSceneCommand
 from nodeserver.engine.workers.protocols.scene_worker_protocol import EvtWorkerReady
+from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.server.workers.scene_worker_controller import SceneWorkerController
 import logging.config
+
 logging.config.fileConfig("logging.conf")
 
 if __name__ == "__main__":
@@ -20,10 +22,17 @@ if __name__ == "__main__":
                 is_ready = True
                 break
 
+    controller.send_command(LoadSceneCommand(
+        scene_data=SceneData(
+            package_id="core", package_version="0.0.0"
+        )
+    ))
     controller.send_command(
         ExecuteGraphCommand(
             mode=GraphExecutionModes.FULL_GRAPH
         )
     )
     input("Press enter to quit")
+    events = controller.get_events()
+    print(events)
     controller.stop()

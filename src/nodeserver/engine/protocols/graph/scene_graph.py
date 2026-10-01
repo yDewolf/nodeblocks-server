@@ -22,6 +22,10 @@ class SceneGraph:
         self._nodes = NodeManager()
         self._connections = ConnectionManager(registry)
 
+    def reset_graph(self):
+        self._connections._clear()
+        self._nodes._clear()
+
     # Node Manipulation
 
     def remove_node(self, node_id: str):
@@ -38,11 +42,19 @@ class SceneGraph:
 
     # Connection Manipulation
 
-    def connect_slots(self, from_slot: SlotInstance, to_slot: SlotInstance) -> Optional[ConnectionSceneData]:
-        conn = self._connections.connect_slots(from_slot, to_slot)
+    def connect_slots(self, from_slot: SlotInstance, to_slot: SlotInstance, conn_uid: Optional[str] = None) -> Optional[ConnectionSceneData]:
+        conn = self._connections.connect_slots(from_slot, to_slot, conn_uid)
         return conn
 
-    def connect(self, from_node_id: str, from_slot_id: str, to_node_id: str, to_slot_id: str) -> Optional[ConnectionSceneData]:
+    def add_connection(self, conn_data: ConnectionSceneData):
+        conn = self.connect(
+            from_node_id=conn_data.from_slot.node_id, from_slot_id=conn_data.from_slot.slot_id,
+            to_node_id=conn_data.to_slot.node_id, to_slot_id=conn_data.to_slot.slot_id,
+            conn_uid=conn_data.uid
+        )
+        return conn
+
+    def connect(self, from_node_id: str, from_slot_id: str, to_node_id: str, to_slot_id: str, conn_uid: Optional[str] = None) -> Optional[ConnectionSceneData]:
         from_node = self._nodes.get(from_node_id)
         to_node = self._nodes.get(to_node_id)
 
@@ -55,7 +67,7 @@ class SceneGraph:
         if not from_slot or not to_slot:
             return None
 
-        return self.connect_slots(from_slot, to_slot)
+        return self.connect_slots(from_slot, to_slot, conn_uid)
 
     def disconnect(self, conn_id: str):
         conn = self._connections.remove(conn_id)

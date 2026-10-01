@@ -18,6 +18,9 @@ class NodeManager:
     def __init__(self) -> None:
         self._nodes = {}
 
+    def _clear(self):
+        self._nodes.clear()
+
 
     def add(self, node: NodeInstance) -> None:
         if node.uid in self._nodes:

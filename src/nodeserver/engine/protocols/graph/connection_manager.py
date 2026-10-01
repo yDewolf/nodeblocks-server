@@ -27,12 +27,17 @@ class ConnectionManager:
         self._connections = {}
         self._endpoints_index = set()
 
+    def _clear(self):
+        self._connections.clear()
+        self._endpoints_index.clear()
+
     
-    def connect_slots(self, from_slot: SlotInstance, to_slot: SlotInstance) -> Optional[ConnectionSceneData]:
+    def connect_slots(self, from_slot: SlotInstance, to_slot: SlotInstance, conn_uid: Optional[str] = None) -> Optional[ConnectionSceneData]:
         self.validate_connection(from_slot, to_slot)
         conn = ConnectionSceneData(
             from_slot=NodePathData(node_id=from_slot.node_id, slot_id=from_slot.slot_id),
-            to_slot=NodePathData(node_id=to_slot.node_id, slot_id=to_slot.slot_id)
+            to_slot=NodePathData(node_id=to_slot.node_id, slot_id=to_slot.slot_id),
+            uid=conn_uid or ConnectionSceneData.uid
         )
 
         self.add(conn)

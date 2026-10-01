@@ -7,7 +7,7 @@ from nodeserver.engine.protocols.node.node_instance import NodeInstance
 from nodeserver.engine.protocols.node_provider import INodeProvider
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
-from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
+from nodeserver.protocols.manifest.node.node_graph import NodeSceneData, SceneData
 
 
 class NodeScene:
@@ -50,3 +50,16 @@ class NodeScene:
 
 
     # TODO: implement save and load (baseado em SceneData)
+    
+    # Overrides current scene by default
+    # This assumes the provided scene is valid and is compatible with the current plugins etc
+    def load_from_scene_data(self, scene_data: SceneData, override: bool = True):
+        if override:
+            self.graph.reset_graph()
+
+        for node_id, data in scene_data.nodes.items():
+            self.create_node(data.type_id, data)
+
+        for conn_id, data in scene_data.connections.items():
+            self.graph.add_connection(data)
+        
