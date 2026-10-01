@@ -70,7 +70,7 @@ class SceneData(BaseModel):
     # sobre os Plugins
     package_id: str = "unknown" # FIXME on client: node_types_id -> package_id
     # TODO: implement a better version control system
-    package_version: int = 0 # FIXME on client: node_types_version -> package_version 
+    package_version: str # FIXME on client: node_types_version: int -> package_version: str 
 
     nodes: Dict[str, NodeSceneData] = Field(default_factory=dict)
     connections: Dict[str, ConnectionSceneData] = Field(default_factory=dict)

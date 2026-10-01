@@ -5,7 +5,6 @@ import logging
 from multiprocessing import Queue
 from pathlib import Path
 
-from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
 from nodeserver.engine.workers.protocols.scene_worker_commands import ExecuteGraphCommand, IPCSceneWorkerCommand, LoadSceneCommand
@@ -17,13 +16,20 @@ logger = logging.getLogger("nds.worker")
 class SceneWorker(BaseSceneWorker):
     @BaseSceneWorker.dispatch.register
     def _(self, cmd: LoadSceneCommand):
-        node_scene = NodeScene(self.registry, self.node_provider)
-            
-        self._build_context(node_scene)
+        try:
+            self._load_scene_into_context(cmd.scene_data)
+        except Exception as e:
+            return SceneWorkerCommandResponse.failed(message=str(e))
+        
+        return SceneWorkerCommandResponse.successful()
 
     @BaseSceneWorker.dispatch.register
     def _(self, cmd: ExecuteGraphCommand):
-        pass
+        if not self.context:
+            return SceneWorkerCommandResponse.failed("SceneWorker context wasn't built")
+        
+        self.engine.execute_job(self.context)
+        return SceneWorkerCommandResponse.successful()
 
 
 
@@ -37,10 +43,5 @@ def run_scene_worker_loop(
 
     scene_worker = SceneWorker(plugins_folder, command_queue, event_queue)
     with scoped_sys_path(plugins_folder.parent):
-        try:
-            scene_worker.setup_plugins()
-            scene_worker.listen_to_commands()
-
-        except Exception as e:
-            logger.exception("Critical failure in scene worker loop.")
-            event_queue.put(EvtFatalError(error=str(e)))
+        scene_worker.setup_plugins()
+        scene_worker.listen_to_commands()

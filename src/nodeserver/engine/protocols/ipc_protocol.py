@@ -1,6 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Optional, Self
+
+from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
 
 class IPCCommandStatus(StrEnum):
@@ -21,12 +23,24 @@ class CmdStatus:
         return cls(status=IPCCommandStatus.SUCCESSFUL, message=message)
 
 
-class IPCCommand:
-    # Server -> Worker
-    pass
-
-
 class IPCEvent:
     # Engine -> ...
     pass
 
+@dataclass(frozen=True, kw_only=True)
+class IPCCommand:
+    # Server -> Worker
+    request_id: str = IDGenerator.generate_generic_id(length=4)
+
+@dataclass(frozen=True)
+class IPCCommandResponse(IPCEvent):
+    request_id: Optional[str]
+    status: CmdStatus
+
+    @classmethod
+    def failed(cls, request_id: Optional[str] = None, message: Optional[str] = None):
+        return cls(request_id=request_id, status=CmdStatus.failed(message))
+
+    @classmethod
+    def successful(cls, request_id: Optional[str] = None, message: Optional[str] = None):
+        return cls(request_id=request_id, status=CmdStatus.successful(message))
