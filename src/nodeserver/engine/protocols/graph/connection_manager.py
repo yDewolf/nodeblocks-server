@@ -5,6 +5,7 @@ from typing import Optional, Union, overload
 from nodeserver.engine.exceptions.graph_exceptions import ConnectionValidationError, CyclicConnectionError, DuplicateConnectionError, IncompatibleSlotsError, MaxConnectionReached
 from nodeserver.engine.protocols.node.node_instance import SlotInstance
 from nodeserver.engine.registry.type_registry import TypeRegistry
+from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodePathData, NodePathSerialized
 
 SlotPairKey = tuple[str, str, str, str]
@@ -37,7 +38,7 @@ class ConnectionManager:
         conn = ConnectionSceneData(
             from_slot=NodePathData(node_id=from_slot.node_id, slot_id=from_slot.slot_id),
             to_slot=NodePathData(node_id=to_slot.node_id, slot_id=to_slot.slot_id),
-            uid=conn_uid or ConnectionSceneData.uid
+            uid=conn_uid or IDGenerator.generate_conn_id()
         )
 
         self.add(conn)
@@ -167,3 +168,11 @@ class ConnectionManager:
                 downstream.add(conn.to_slot.node_id)
         
         return downstream
+
+    def _get_upstream_node_ids(self, node_id: str) -> set[str]:
+        upstream: set[str] = set()
+        for conn in self._connections.values():
+            if conn.to_slot.node_id == node_id:
+                upstream.add(conn.to_slot.node_id)
+        
+        return upstream

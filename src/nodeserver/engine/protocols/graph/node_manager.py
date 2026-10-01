@@ -31,6 +31,9 @@ class NodeManager:
     def remove(self, node_id: str) -> Optional[NodeInstance]:
         return self._nodes.pop(node_id, None)
 
+    def ensure(self, node_id: str) -> NodeInstance:
+        return self._nodes[node_id]
+
     def get(self, node_id: str) -> Optional[NodeInstance]:
         return self._nodes.get(node_id)
 

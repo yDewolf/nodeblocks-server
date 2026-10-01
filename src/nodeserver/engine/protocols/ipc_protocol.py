@@ -38,9 +38,9 @@ class IPCCommandResponse(IPCEvent):
     status: CmdStatus
 
     @classmethod
-    def failed(cls, request_id: Optional[str] = None, message: Optional[str] = None):
-        return cls(request_id=request_id, status=CmdStatus.failed(message))
+    def failed(cls, message: Optional[str] = None, request_id: Optional[str] = None, **kwargs):
+        return cls(request_id=request_id, status=CmdStatus.failed(message), **kwargs)
 
     @classmethod
-    def successful(cls, request_id: Optional[str] = None, message: Optional[str] = None):
-        return cls(request_id=request_id, status=CmdStatus.successful(message))
+    def successful(cls, message: Optional[str] = None, request_id: Optional[str] = None, **kwargs):
+        return cls(request_id=request_id, status=CmdStatus.successful(message), **kwargs)

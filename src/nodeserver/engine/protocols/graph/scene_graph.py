@@ -88,6 +88,8 @@ class SceneGraph:
             to_slot.connection_count = max(0, to_slot.connection_count - 1)
 
     # Node and Connection Getters
+    def ensure_node(self, node_id: str) -> NodeInstance:
+        return self._nodes.ensure(node_id)
 
     def get_node(self, node_id: str) -> Optional[NodeInstance]:
         return self._nodes.get(node_id)
@@ -141,6 +143,12 @@ class SceneGraph:
             )
 
         return order
+
+    def get_downstream_node_ids(self, node_uid: str) -> set[str]:
+        return self._connections._get_downstream_node_ids(node_uid)
+
+    def get_upstream_node_ids(self, node_uid: str) -> set[str]:
+        return self._connections._get_upstream_node_ids(node_uid)
 
     def get_execution_order(self) -> list[NodeInstance]:
         topological_uids = self.get_topological_order()
