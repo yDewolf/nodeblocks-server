@@ -18,9 +18,9 @@ class SceneWorkerController:
     _event_queue: mp.Queue[IPCSceneWorkerEvent]
     _process: Optional[SpawnProcess]
 
-    def __init__(self, scene_id: str, plugins_dir: Path):
+    def __init__(self, scene_id: str, plugins_folder: Path):
         self.scene_id = scene_id
-        self.plugins_folder = plugins_dir
+        self.plugins_folder = plugins_folder
         
         self._ctx = mp.get_context("spawn")
         
@@ -29,10 +29,10 @@ class SceneWorkerController:
         self._process = None
 
 
-    def start(self):
+    def start(self, wait_ready: bool = False):
         if self._process and self._process.is_alive():
             return
-        
+
         self._process = self._ctx.Process(
             target=run_scene_worker_loop,
             args=(self.scene_id, self.plugins_folder, self._command_queue, self._event_queue),
@@ -44,7 +44,7 @@ class SceneWorkerController:
     def stop(self, timeout: float = 3.0):
         if not self._process or not self._process.is_alive():
             return
-            
+
         self.send_command(StopWorkerCommand())
         self._process.join(timeout)
         
