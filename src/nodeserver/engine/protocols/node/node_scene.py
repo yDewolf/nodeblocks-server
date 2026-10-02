@@ -19,11 +19,11 @@ class NodeScene:
     registry: TypeRegistry
     node_provider: INodeProvider
 
-    def __init__(self, registry: TypeRegistry, node_provider: INodeProvider):
+    def __init__(self, registry: TypeRegistry, node_provider: INodeProvider, id: Optional[str] = None):
         self.registry = registry
         self.node_provider = node_provider
 
-        self.scene_id = str(IDGenerator.generate_generic_id())
+        self.scene_id = id or IDGenerator.generate_generic_id(length=6)
         self.graph = SceneGraph(registry)
         self._logic_nodes = {}
 

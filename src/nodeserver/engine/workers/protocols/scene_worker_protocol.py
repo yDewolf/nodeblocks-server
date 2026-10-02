@@ -6,6 +6,8 @@ from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 class ISceneWorker(Protocol):
+    scene_id: str
+
     def engine_event_receiver(self, event: IPCEngineEvent):
         pass
 

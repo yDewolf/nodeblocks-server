@@ -82,7 +82,7 @@ def worker(tmp_path: Path, packages) -> SceneWorker:
     plugins_folder = tmp_path / "plugins"
     plugins_folder.mkdir(parents=True, exist_ok=True)
 
-    worker = SceneWorker(plugins_folder, cmd_queue, evt_queue)
+    worker = SceneWorker("test_scene", plugins_folder, tmp_path / "scenes", cmd_queue, evt_queue)
 
     test_plugin, test_package, package_id = packages
     worker.plugin_manager.register_compiled_package(test_package)

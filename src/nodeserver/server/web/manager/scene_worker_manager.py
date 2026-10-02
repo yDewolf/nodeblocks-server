@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 from typing import Any, Callable, Coroutine, Optional
 
-from nodeserver.engine.workers.protocols.scene_worker_commands import IPCSceneWorkerCommand
+from nodeserver.engine.workers.protocols.scene_worker_commands import IPCSceneWorkerCommand, LoadSceneCommand
 from nodeserver.engine.workers.protocols.scene_worker_protocol import IPCSceneWorkerEvent
 from nodeserver.server.workers.scene_worker_controller import SceneWorkerController
 
@@ -25,12 +25,14 @@ class SceneWorkerManager:
         self.active_workers = {}
         self._event_dispatcher_task = None
 
-    def get_or_create_worker(self, scene_id: str) -> SceneWorkerController:
-        # TODO: carregar a cena automaticamente a partir do scene id e da pasta
+    def get_or_create_worker(self, scene_id: str, auto_load: bool = True) -> SceneWorkerController:
         if scene_id not in self.active_workers:
-            controller = SceneWorkerController(scene_id, self.plugins_folder)
+            controller = SceneWorkerController(scene_id, self.plugins_folder, self.scenes_folder)
             controller.start()
             self.active_workers[scene_id] = controller
+
+        if auto_load:
+            controller.send_command(LoadSceneCommand(scene_uid=scene_id, create_if_nonexistent=True))
         
         return self.active_workers[scene_id]
     

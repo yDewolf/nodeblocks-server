@@ -46,7 +46,16 @@ class SceneUpdateCommand(IPCSceneWorkerCommand):
     pass
 
 @dataclass(frozen=True)
+class ResetSceneCommand(SceneUpdateCommand):
+    pass
+
+@dataclass(frozen=True)
 class LoadSceneCommand(SceneUpdateCommand):
+    scene_uid: str
+    create_if_nonexistent: bool = False
+
+@dataclass(frozen=True)
+class LoadSceneDataCommand(SceneUpdateCommand):
     scene_data: SceneData
 
 

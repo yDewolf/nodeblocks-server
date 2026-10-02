@@ -5,7 +5,7 @@ setup_logging(default_level=logging.DEBUG)
 
 from pathlib import Path
 
-from nodeserver.engine.workers.protocols.scene_worker_commands import UpdateExecutionStateCmd, LoadSceneCommand
+from nodeserver.engine.workers.protocols.scene_worker_commands import UpdateExecutionStateCmd, LoadSceneDataCommand
 from nodeserver.engine.workers.protocols.scene_worker_protocol import EvtWorkerReady
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -13,10 +13,11 @@ from nodeserver.server.workers.scene_worker_controller import SceneWorkerControl
 
 if __name__ == "__main__":
     plugins_folder = Path(__file__).parent.parent.parent / "test_plugins"
-    controller = SceneWorkerController("test_0", plugins_folder)
+    scenes_folder = Path(__file__).parent.parent.parent / "scenes"
+    controller = SceneWorkerController("test_0", plugins_folder, scenes_folder)
 
     controller.start(wait_ready=True)
-    controller.send_command(LoadSceneCommand(
+    controller.send_command(LoadSceneDataCommand(
         scene_data=SceneData(
             dependencies={"core": "0.1.0"}
         )
