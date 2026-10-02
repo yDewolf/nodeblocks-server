@@ -18,6 +18,7 @@ class SceneWorkerRunManager:
     engine: JobStlGraphEngine
     context: Optional[SceneSuperContext] = None
     _active_step_job: Optional[StepJobExecutionContext] = None
+    _last_finished_job: Optional[JobExecutionContext] = None
 
     execution_state: SceneWorkerExecutionState
     execution_mode: SceneWorkerExecutionMode
@@ -104,7 +105,7 @@ class SceneWorkerRunManager:
         if self.execution_mode == SceneWorkerExecutionMode.FULL_GRAPH:
             job_context = JobExecutionContext(runtime=self.context, target_nodes=self.target_nodes)
             self.engine.execute_graph(job_context, reraise_exception=True)
-
+            self._last_finished_job = job_context
             return True
         
         elif self.execution_mode == SceneWorkerExecutionMode.GRAPH_STEP:
@@ -113,6 +114,7 @@ class SceneWorkerRunManager:
             
             self.engine.execute_step(self._active_step_job, reraise_exception=True)
             if self._active_step_job.is_finished:
+                self._last_finished_job = self._active_step_job
                 self._active_step_job = None
                 return True
 

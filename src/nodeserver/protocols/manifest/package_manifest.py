@@ -12,9 +12,9 @@ class ManifestPackage(DataModel):
     version: str # FIXME on client: int -> str
     package_id: str # FIXME on client: id -> package_id
     
-    data_types: dict[str, DataTypeSpec]
+    data_types: dict[str, DataTypeSpec] # fqn -> spec
     # slot_types: dict[str, str] # FIXME on client -> remove this
-    node_types: dict[str, NodeTypeSpec]
+    node_types: dict[str, NodeTypeSpec] # fqn -> spec
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)
