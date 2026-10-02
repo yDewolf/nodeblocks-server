@@ -2,7 +2,7 @@ import logging
 import logging.config
 
 def setup_logging(default_level=logging.INFO):
-    LOGGING_CONFIG = {
+    LOGGING_CONFIG: logging.config._DictConfigArgs = {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {

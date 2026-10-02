@@ -1,13 +1,12 @@
 from functools import singledispatchmethod
 
-# nodeserver/engine/scene/scene_worker_runner.py
 import logging
 from multiprocessing import Queue
 from pathlib import Path
 
 from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
-from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, IPCSceneWorkerCommand, LoadSceneCommand, PauseGraphCommand
+from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, IPCSceneWorkerCommand, LoadSceneCommand, PauseGraphCommand, UpdateTargetNodesCmd
 from nodeserver.engine.workers.protocols.scene_worker_protocol import AddNodeCommandResponse, EvtFatalError, IPCSceneWorkerEvent, SceneWorkerCommandResponse
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 
@@ -23,6 +22,10 @@ class SceneWorker(BaseSceneWorker):
     @dispatch.register
     def _(self, cmd: UpdateExecutionStateCmd):
         self.execution_manager.execution_state = cmd.state
+        if not cmd.target_iterations is None: 
+            self.execution_manager._target_iterations = cmd.target_iterations
+            self.execution_manager._current_iteration = 0
+        
         return SceneWorkerCommandResponse.successful()
     
     @dispatch.register
@@ -30,12 +33,25 @@ class SceneWorker(BaseSceneWorker):
         self.execution_manager.execution_mode = cmd.mode
         return SceneWorkerCommandResponse.successful()
 
+    @dispatch.register
+    def _(self, cmd: UpdateTargetNodesCmd):
+        if not self.execution_manager.context:
+            return SceneWorkerCommandResponse.failed(message="missing execution context")
+
+        if cmd.target_nodes:
+            all_nodes_exist = self.execution_manager.context.scene.graph.nodes_exist(cmd.target_nodes)
+            if not all_nodes_exist:
+                return SceneWorkerCommandResponse.failed(message="some nodes doesn't exist")
+        
+        self.execution_manager.target_nodes = cmd.target_nodes
+        return SceneWorkerCommandResponse.successful()
+
     # Runtime Control:
 
     @dispatch.register
     def _(self, cmd: PauseGraphCommand):
         self.execution_manager.execution_state = SceneWorkerExecutionState.STOPPED
-        return SceneWorkerCommandResponse.successful(request_id=cmd.request_id)
+        return SceneWorkerCommandResponse.successful()
 
     @dispatch.register
     def _(self, cmd: GraphStepCommand):
