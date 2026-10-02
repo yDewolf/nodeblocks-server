@@ -1,16 +1,10 @@
 from dataclasses import dataclass, field
-from enum import StrEnum
 from typing import Any, Optional
 
 from nodeserver.engine.protocols.ipc_protocol import IPCCommand
+from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData, SceneData
 from nodeserver.protocols.manifest.structs.scene_structs import Vector2
-
-
-class GraphExecutionModes(StrEnum):
-    FULL_GRAPH = "full_graph"
-    GRAPH_STEP = "graph_step"
-    CONTINUOUS = "continuous"
 
 
 class IPCSceneWorkerCommand(IPCCommand):
@@ -19,18 +13,28 @@ class IPCSceneWorkerCommand(IPCCommand):
 
 # Graph Execution
 @dataclass(frozen=True)
-class StopWorkerCommand(IPCSceneWorkerCommand):
-    pass
-
+class StopWorkerCommand(IPCSceneWorkerCommand): pass
 
 @dataclass(frozen=True)
-class ExecuteGraphCommand(IPCSceneWorkerCommand):
-    mode: GraphExecutionModes
-    iterations: Optional[int] = None # Only if continuous mode
+class PauseGraphCommand(IPCSceneWorkerCommand): pass
 
 @dataclass(frozen=True)
-class PauseGraphCommand(IPCSceneWorkerCommand):
+class GraphStepCommand(IPCSceneWorkerCommand): 
+    # TODO: target_node
     pass
+
+# Mode Updates
+
+@dataclass(frozen=True)
+class UpdateExecutionStateCmd(IPCSceneWorkerCommand):
+    state: SceneWorkerExecutionState
+    # TODO: iterations: Optional[int] = None # Only if continuous mode
+
+@dataclass(frozen=True)
+class UpdateExecutionModeCmd(IPCSceneWorkerCommand):
+    mode: SceneWorkerExecutionMode
+
+
 
 # Scene Commands
 @dataclass(frozen=True)

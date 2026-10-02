@@ -31,8 +31,8 @@ class BaseGraphEngine(ABC):
 
 
 
-    def _execute_nodes(self, context: EngineRuntimeContext, target_nodes: Optional[list[str]]):
-        execution_order = context.scene.graph.get_topological_order()
+    def _execute_nodes(self, context: EngineRuntimeContext, target_nodes: Optional[list[str]], execution_order: Optional[list[str]] = None):
+        execution_order = execution_order or context.scene.graph.get_topological_order()
         if target_nodes:
             execution_order = self._filter_execution_order(
                 execution_order, target_nodes, context

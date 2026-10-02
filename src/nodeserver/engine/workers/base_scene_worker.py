@@ -1,4 +1,4 @@
-from enum import StrEnum
+# TODO: refatorar essa classe para incluir alguns submanagers
 from functools import singledispatchmethod
 import logging
 from multiprocessing import Queue
@@ -13,20 +13,16 @@ from nodeserver.engine.plugins.plugin_node_provider import PluginNodeProvider
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.node_provider import INodeProvider
 from nodeserver.engine.registry.type_registry import TypeRegistry
-from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, IPCEngineEvent
+from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, IPCEngineEvent, JobStatus
 from nodeserver.engine.runtime.job_graph_engine import JobStlGraphEngine
-from nodeserver.engine.runtime.job_runtime_context import JobExecutionContext, SceneSuperContext
+from nodeserver.engine.runtime.job_runtime_context import JobExecutionContext, SceneSuperContext, StepJobExecutionContext
 from nodeserver.engine.workers.protocols.scene_worker_commands import IPCSceneWorkerCommand, StopWorkerCommand
 from nodeserver.engine.workers.protocols.scene_worker_protocol import EvtWorkerReady, IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
+from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionState
+from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 logger = logging.getLogger("nds.worker")
-
-class WorkerExecutionState(StrEnum):
-    STOPPED = "stopped"
-    RUNNING_FULL_GRAPH = "running_full_graph"
-    RUNNING_SINGLE = "running_single"
-    RUNNING_CONTINUOUS = "continuous"
 
 # Basico do basico do scene worker
 
@@ -44,7 +40,10 @@ class BaseSceneWorker:
 
     engine: JobStlGraphEngine
     context: Optional[SceneSuperContext] = None
-    execution_state: WorkerExecutionState
+    _active_step_job: Optional[StepJobExecutionContext] = None
+
+    execution_state: SceneWorkerExecutionState
+    execution_mode: SceneWorkerExecutionMode
 
     active: bool
 
@@ -66,8 +65,10 @@ class BaseSceneWorker:
         self.node_provider = PluginNodeProvider(self.plugin_manager)
 
         self._build_engine()
+        self._active_step_job = None
         self.active = True
-        self.execution_state = WorkerExecutionState.STOPPED
+        self.execution_state = SceneWorkerExecutionState.STOPPED
+        self.execution_mode = SceneWorkerExecutionMode.GRAPH_STEP
 
     def setup_plugins(self):
         PluginSubprocessHelper.setup_and_load_plugins(
@@ -78,7 +79,7 @@ class BaseSceneWorker:
     def runtime_loop(self):
         while self.active:
             self._process_pending_commands()
-            if self.execution_state == WorkerExecutionState.RUNNING_CONTINUOUS:
+            if self.execution_state == SceneWorkerExecutionState.RUNNING_CONTINUOUS:
                 start_time = time.perf_counter()
                 self._execute_scene_graph()
 
@@ -87,9 +88,8 @@ class BaseSceneWorker:
                 if sleep_time > 0.002:
                     time.sleep(sleep_time)
 
-            elif self.execution_state == WorkerExecutionState.RUNNING_SINGLE:
+            elif self.execution_state == SceneWorkerExecutionState.RUNNING:
                 self._execute_scene_graph()
-                self.execution_state = WorkerExecutionState.STOPPED
 
             else:
                 try:
@@ -166,27 +166,33 @@ class BaseSceneWorker:
     def _execute_scene_graph(self):
         if not self.context:
             logger.error("Attempted to execute scene action without a loaded context")
-            self.execution_state = WorkerExecutionState.STOPPED
+            self.execution_state = SceneWorkerExecutionState.STOPPED
             return
 
-        if self.execution_state == WorkerExecutionState.STOPPED:
+        if self.execution_state == SceneWorkerExecutionState.STOPPED:
             return
 
         try:
-            if self.execution_state == WorkerExecutionState.RUNNING_SINGLE:
-                # TODO:
-                return
+            if self.execution_mode == SceneWorkerExecutionMode.FULL_GRAPH:
+                job_context = JobExecutionContext(runtime=self.context)
+                self.engine.execute_graph(job_context, reraise_exception=True)
+            
+            elif self.execution_mode == SceneWorkerExecutionMode.GRAPH_STEP:
+                if self._active_step_job is None or self._active_step_job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.PARTIAL_SUCCESS):
+                    self._active_step_job = StepJobExecutionContext(runtime=self.context)
+                
+                self.engine.execute_step(self._active_step_job, reraise_exception=True)
+                if self._active_step_job.is_finished:
+                    self._active_step_job = None
 
-            job_context = JobExecutionContext(runtime=self.context)
-            self.engine.execute_graph(job_context, reraise_exception=True)
-
-            if self.execution_state == WorkerExecutionState.RUNNING_FULL_GRAPH:
-                self.execution_state = WorkerExecutionState.STOPPED
+            if self.execution_state != SceneWorkerExecutionState.RUNNING_CONTINUOUS:
+                self.execution_state = SceneWorkerExecutionState.STOPPED
 
         except Exception as e:
             logger.error("Failed to process scene graph")
-            self.execution_state = WorkerExecutionState.STOPPED
-
+            self.execution_state = SceneWorkerExecutionState.STOPPED
+            
+            self._active_step_job = None
             self.event_queue.put(WorkerEngineEventWrapper(
                 engine_event=EvtFailedProcess(error=str(e))
             ))

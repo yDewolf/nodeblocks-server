@@ -77,3 +77,24 @@ class JobExecutionContext(EngineRuntimeContext):
     def persistent_cache(self) -> dict[str, dict[str, Any]]:
         return self.global_context.persistent_cache
 
+
+class StepJobExecutionContext(JobExecutionContext):
+    execution_order: Optional[list[str]]
+    current_index: int
+
+    def __init__(
+        self, 
+        runtime: "SceneSuperContext", 
+        job_id: Optional[str] = None,
+        target_nodes: Optional[list[str]] = None
+    ):
+        super().__init__(runtime, job_id, target_nodes)
+        self.execution_order = None
+        self.current_index = 0
+
+    @property
+    def is_finished(self) -> bool:
+        if self.execution_order is None:
+            return False
+
+        return self.current_index >= len(self.execution_order)
