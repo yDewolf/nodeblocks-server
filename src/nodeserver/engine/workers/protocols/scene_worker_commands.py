@@ -15,44 +15,49 @@ class StopWorkerCommand(IPCSceneWorkerCommand): pass
 
 
 # Mode Updates
+class RuntimeCommand(IPCSceneWorkerCommand):
+    pass
 
 @dataclass(frozen=True)
-class UpdateExecutionStateCmd(IPCSceneWorkerCommand):
+class UpdateExecutionStateCmd(RuntimeCommand):
     state: SceneWorkerExecutionState
     # iteration is a full graph (or full subgraph) execution
     target_iterations: Optional[int] = None
 
 @dataclass(frozen=True)
-class UpdateExecutionModeCmd(IPCSceneWorkerCommand):
+class UpdateExecutionModeCmd(RuntimeCommand):
     mode: SceneWorkerExecutionMode
 
 @dataclass(frozen=True)
-class UpdateTargetNodesCmd(IPCSceneWorkerCommand):
+class UpdateTargetNodesCmd(RuntimeCommand):
     target_nodes: Optional[list[str]]
 
 
 @dataclass(frozen=True)
-class PauseGraphCommand(IPCSceneWorkerCommand): pass
+class PauseGraphCommand(RuntimeCommand): pass
 
 @dataclass(frozen=True)
-class GraphStepCommand(IPCSceneWorkerCommand): 
+class GraphStepCommand(RuntimeCommand): 
     pass
 
 
 # Scene Commands
+class SceneUpdateCommand(IPCSceneWorkerCommand):
+    pass
+
 @dataclass(frozen=True)
-class LoadSceneCommand(IPCSceneWorkerCommand):
+class LoadSceneCommand(SceneUpdateCommand):
     scene_data: SceneData
 
 
 @dataclass(frozen=True)
-class AddNodeCommand(IPCSceneWorkerCommand):
+class AddNodeCommand(SceneUpdateCommand):
     nodetype_fqn: str
     node_data: Optional[NodeSceneData]
 
 
 @dataclass(frozen=True)
-class AddConnectionCommand(IPCSceneWorkerCommand):
+class AddConnectionCommand(SceneUpdateCommand):
     from_node_id: str
     from_slot_id: str
     to_node_id: str
@@ -60,8 +65,7 @@ class AddConnectionCommand(IPCSceneWorkerCommand):
 
 # Node Commands
 
-@dataclass(frozen=True)
-class SceneWorkerNodeCommand(IPCSceneWorkerCommand):
+class SceneWorkerNodeCommand(SceneUpdateCommand):
     node_uid: str
 
 @dataclass(frozen=True)
@@ -75,7 +79,9 @@ class RemoveNodeCommand(SceneWorkerNodeCommand):
 
 
 # Connection Commands:
+class SceneWorkerConnCommand(SceneUpdateCommand):
+    conn_uid: str
 
 @dataclass(frozen=True)
-class RemoveConnectionCommand(IPCSceneWorkerCommand):
-    conn_uid: str
+class RemoveConnectionCommand(SceneWorkerConnCommand):
+    pass
