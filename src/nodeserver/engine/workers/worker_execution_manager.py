@@ -1,13 +1,11 @@
-# TODO: refatorar essa classe para incluir alguns submanagers
 import logging
 from typing import Optional
 
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, IPCEngineEvent, JobStatus
+from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, JobStatus
 from nodeserver.engine.runtime.job_graph_engine import JobStlGraphEngine
 from nodeserver.engine.runtime.job_runtime_context import JobExecutionContext, SceneSuperContext, StepJobExecutionContext
-from nodeserver.engine.workers.protocols.scene_worker_commands import IPCSceneWorkerCommand, StopWorkerCommand
-from nodeserver.engine.workers.protocols.scene_worker_protocol import ISceneWorker, SceneWorkerCommandResponse, WorkerEngineEventWrapper
+from nodeserver.engine.workers.protocols.scene_worker_protocol import ISceneWorker, WorkerEngineEventWrapper
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -24,8 +22,9 @@ class SceneWorkerRunManager:
     execution_state: SceneWorkerExecutionState
     execution_mode: SceneWorkerExecutionMode
 
-    target_fps: float = 60.0
-    _target_execution_time: float = 1.0 / target_fps
+    target_nodes: Optional[list[str]] = None
+    _target_iterations: Optional[int] = None
+    _current_iteration: Optional[int] = None
 
     def __init__(
         self,
@@ -44,7 +43,7 @@ class SceneWorkerRunManager:
 
     def execute_graph(self) -> bool:
         if self.is_running():
-            self._execute_scene_graph()
+            self._handle_execute_graph()
             return True
         
         return False
@@ -69,7 +68,7 @@ class SceneWorkerRunManager:
 
     # Runtime Stuff:
 
-    def _execute_scene_graph(self) -> Optional[WorkerEngineEventWrapper]:
+    def _handle_execute_graph(self) -> Optional[WorkerEngineEventWrapper]:
         if not self.context:
             logger.error("Attempted to execute scene action without a loaded context")
             self.execution_state = SceneWorkerExecutionState.STOPPED
@@ -79,18 +78,13 @@ class SceneWorkerRunManager:
             return
 
         try:
-            if self.execution_mode == SceneWorkerExecutionMode.FULL_GRAPH:
-                job_context = JobExecutionContext(runtime=self.context)
-                self.engine.execute_graph(job_context, reraise_exception=True)
-            
-            elif self.execution_mode == SceneWorkerExecutionMode.GRAPH_STEP:
-                if self._active_step_job is None or self._active_step_job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.PARTIAL_SUCCESS):
-                    self._active_step_job = StepJobExecutionContext(runtime=self.context)
-                
-                self.engine.execute_step(self._active_step_job, reraise_exception=True)
-                if self._active_step_job.is_finished:
-                    self._active_step_job = None
-
+            finished_iteration = self._execute_graph()
+            # Finished iteration and has target iterations set up
+            if finished_iteration and not (self._current_iteration is None or self._target_iterations is None):
+                self._current_iteration += 1
+                if self._current_iteration == self._target_iterations:
+                    self.execution_state = SceneWorkerExecutionState.STOPPED
+    
             if self.execution_state != SceneWorkerExecutionState.RUNNING_CONTINUOUS:
                 self.execution_state = SceneWorkerExecutionState.STOPPED
 
@@ -102,3 +96,24 @@ class SceneWorkerRunManager:
             return WorkerEngineEventWrapper(
                 engine_event=EvtFailedProcess(error=str(e))
             )
+
+    # Returns if the current iteration finished
+    def _execute_graph(self) -> bool:
+        if not self.context: return False
+
+        if self.execution_mode == SceneWorkerExecutionMode.FULL_GRAPH:
+            job_context = JobExecutionContext(runtime=self.context, target_nodes=self.target_nodes)
+            self.engine.execute_graph(job_context, reraise_exception=True)
+
+            return True
+        
+        elif self.execution_mode == SceneWorkerExecutionMode.GRAPH_STEP:
+            if self._active_step_job is None or self._active_step_job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.PARTIAL_SUCCESS):
+                self._active_step_job = StepJobExecutionContext(runtime=self.context, target_nodes=self.target_nodes)
+            
+            self.engine.execute_step(self._active_step_job, reraise_exception=True)
+            if self._active_step_job.is_finished:
+                self._active_step_job = None
+                return True
+
+        return False

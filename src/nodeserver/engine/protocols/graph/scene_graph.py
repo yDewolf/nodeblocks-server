@@ -109,7 +109,15 @@ class SceneGraph:
         return self._connections.all()
 
 
+    # Validation Utility:
+    def nodes_exist(self, node_uids: list[str]) -> bool:
+        return not any(
+            # A node in the list doesn't exist
+            (not uid in self._nodes.node_index) for uid in node_uids
+        )
+
     # Utility:
+
     def get_topological_order(self) -> list[str]:
         in_degree: dict[str, int] = {uid: 0 for uid in self.all_nodes.keys()}
         adjacency: dict[str, list[str]] = {uid: [] for uid in self.all_nodes.keys()}

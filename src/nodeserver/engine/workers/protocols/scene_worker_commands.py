@@ -10,30 +10,33 @@ from nodeserver.protocols.manifest.structs.scene_structs import Vector2
 class IPCSceneWorkerCommand(IPCCommand):
     pass
 
-
-# Graph Execution
 @dataclass(frozen=True)
 class StopWorkerCommand(IPCSceneWorkerCommand): pass
 
-@dataclass(frozen=True)
-class PauseGraphCommand(IPCSceneWorkerCommand): pass
-
-@dataclass(frozen=True)
-class GraphStepCommand(IPCSceneWorkerCommand): 
-    # TODO: target_node
-    pass
 
 # Mode Updates
 
 @dataclass(frozen=True)
 class UpdateExecutionStateCmd(IPCSceneWorkerCommand):
     state: SceneWorkerExecutionState
-    # TODO: iterations: Optional[int] = None # Only if continuous mode
+    # iteration is a full graph (or full subgraph) execution
+    target_iterations: Optional[int] = None
 
 @dataclass(frozen=True)
 class UpdateExecutionModeCmd(IPCSceneWorkerCommand):
     mode: SceneWorkerExecutionMode
 
+@dataclass(frozen=True)
+class UpdateTargetNodesCmd(IPCSceneWorkerCommand):
+    target_nodes: Optional[list[str]]
+
+
+@dataclass(frozen=True)
+class PauseGraphCommand(IPCSceneWorkerCommand): pass
+
+@dataclass(frozen=True)
+class GraphStepCommand(IPCSceneWorkerCommand): 
+    pass
 
 
 # Scene Commands

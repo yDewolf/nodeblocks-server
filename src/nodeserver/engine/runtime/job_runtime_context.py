@@ -45,8 +45,8 @@ class JobExecutionContext(EngineRuntimeContext):
     def __init__(
         self, 
         runtime: SceneSuperContext, 
-        job_id: Optional[str] = None,
-        target_nodes: Optional[list[str]] = None
+        target_nodes: Optional[list[str]] = None,
+        job_id: Optional[str] = None
     ):
         self.global_context = runtime
         self.job_id = job_id or IDGenerator.generate_generic_id(6)
@@ -84,11 +84,11 @@ class StepJobExecutionContext(JobExecutionContext):
 
     def __init__(
         self, 
-        runtime: "SceneSuperContext", 
+        runtime: SceneSuperContext, 
+        target_nodes: Optional[list[str]] = None,
         job_id: Optional[str] = None,
-        target_nodes: Optional[list[str]] = None
     ):
-        super().__init__(runtime, job_id, target_nodes)
+        super().__init__(runtime, target_nodes, job_id)
         self.execution_order = None
         self.current_index = 0
 
