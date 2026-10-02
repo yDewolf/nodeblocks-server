@@ -10,13 +10,12 @@ from typing import Optional
 from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.plugin_node_provider import PluginNodeProvider
-from nodeserver.engine.protocols.ipc_protocol import CmdStatus
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.node_provider import INodeProvider
 from nodeserver.engine.registry.type_registry import TypeRegistry
-from nodeserver.engine.runtime.engine_events import EvtFailedProcess, IPCEngineEvent
-from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
-from nodeserver.engine.runtime.runtime_context import GraphRunContext
+from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, IPCEngineEvent
+from nodeserver.engine.runtime.job_graph_engine import JobStlGraphEngine
+from nodeserver.engine.runtime.job_runtime_context import JobExecutionContext, SceneSuperContext
 from nodeserver.engine.workers.protocols.scene_worker_commands import IPCSceneWorkerCommand, StopWorkerCommand
 from nodeserver.engine.workers.protocols.scene_worker_protocol import EvtWorkerReady, IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -43,8 +42,8 @@ class BaseSceneWorker:
     command_queue: Queue[IPCSceneWorkerCommand]
     event_queue: Queue[IPCSceneWorkerEvent]
 
-    engine: StatelessGraphEngine
-    context: Optional[GraphRunContext] = None
+    engine: JobStlGraphEngine
+    context: Optional[SceneSuperContext] = None
     execution_state: WorkerExecutionState
 
     active: bool
@@ -106,13 +105,13 @@ class BaseSceneWorker:
 
 
     def _build_engine(self):
-        self.engine = StatelessGraphEngine()
+        self.engine = JobStlGraphEngine()
     
     def _build_context(self, node_scene: NodeScene):
         if hasattr(self, "context"):
             logger.warning("SceneWorker context is being rebuilt")
         
-        self.context = GraphRunContext(
+        self.context = SceneSuperContext(
             node_scene,
             emit_event_callback=self.engine_event_receiver
         )
@@ -170,13 +169,19 @@ class BaseSceneWorker:
             self.execution_state = WorkerExecutionState.STOPPED
             return
 
+        if self.execution_state == WorkerExecutionState.STOPPED:
+            return
+
         try:
-            match self.execution_state:
+            if self.execution_state == WorkerExecutionState.RUNNING_SINGLE:
                 # TODO:
-                # case WorkerExecutionState.RUNNING_SINGLE:
-                #     self.engine.execute_job_step(self.context, reraise_exception=True)
-                case _:
-                    self.engine.execute_job(self.context, reraise_exception=True)
+                return
+
+            job_context = JobExecutionContext(runtime=self.context)
+            self.engine.execute_graph(job_context, reraise_exception=True)
+
+            if self.execution_state == WorkerExecutionState.RUNNING_FULL_GRAPH:
+                self.execution_state = WorkerExecutionState.STOPPED
 
         except Exception as e:
             logger.error("Failed to process scene graph")

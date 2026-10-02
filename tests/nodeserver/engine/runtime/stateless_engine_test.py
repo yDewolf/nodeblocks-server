@@ -5,9 +5,11 @@ from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, N
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.node_provider import BaseNodeProvider
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
-from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
-from nodeserver.engine.runtime.runtime_context import GraphRunContext, JobStatus, NodeExecutionStatus
+from nodeserver.engine.runtime.job_graph_engine import JobStlGraphEngine
+from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.job_runtime_context import GraphRunContext
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
+from nodeserver.engine.runtime.job_runtime_context import JobStatus
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 
 
@@ -108,7 +110,7 @@ class ParamTestNode(BaseNode[NodeInputs, ParamTestOut]):
 
 @pytest.fixture
 def engine():
-    return StatelessGraphEngine()
+    return JobStlGraphEngine()
 
 @pytest.fixture
 def scene(default_registry):
