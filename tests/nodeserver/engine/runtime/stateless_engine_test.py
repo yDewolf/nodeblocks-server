@@ -5,11 +5,9 @@ from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, N
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.node_provider import BaseNodeProvider
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
-from nodeserver.engine.runtime.job_graph_engine import JobStlGraphEngine
-from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
-from nodeserver.engine.runtime.job_runtime_context import GraphRunContext
+from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
+from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus, EnclosedEngineContext
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
-from nodeserver.engine.runtime.job_runtime_context import JobStatus
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 
 
@@ -110,7 +108,7 @@ class ParamTestNode(BaseNode[NodeInputs, ParamTestOut]):
 
 @pytest.fixture
 def engine():
-    return JobStlGraphEngine()
+    return StatelessGraphEngine()
 
 @pytest.fixture
 def scene(default_registry):
@@ -139,10 +137,9 @@ class TestStatelessGraphEngineRealNodes:
             to_node_id=node_b.uid, to_slot_id="val"
         )
 
-        context = GraphRunContext(job_id="job_001", scene=scene)
-        result_context = engine.execute_job(context)
+        context = EnclosedEngineContext(scene=scene)
+        result_context = engine.execute_graph(context)
 
-        assert result_context.status == JobStatus.COMPLETED
         assert result_context.node_status[node_a.uid] == NodeExecutionStatus.SUCCESS
         assert result_context.node_status[node_b.uid] == NodeExecutionStatus.SUCCESS
 
@@ -160,10 +157,9 @@ class TestStatelessGraphEngineRealNodes:
             to_node_id=node_b.uid, to_slot_id="val"
         )
 
-        context = GraphRunContext(job_id="job_002", scene=scene)
-        result_context = engine.execute_job(context)
+        context = EnclosedEngineContext(scene=scene)
+        result_context = engine.execute_graph(context)
 
-        assert result_context.status == JobStatus.PARTIAL_SUCCESS
         assert result_context.node_status[node_fail.uid] == NodeExecutionStatus.FAILED
         assert result_context.node_status[node_b.uid] == NodeExecutionStatus.SKIPPED
         assert node_fail.uid in result_context.errors
@@ -171,10 +167,10 @@ class TestStatelessGraphEngineRealNodes:
     def test_process_node_persistent_cache_hit(self, engine, scene):
         node_fail = scene.create_node("test:failing")
         
-        context = GraphRunContext(job_id="job_003", scene=scene)
+        context = EnclosedEngineContext(scene=scene)
         computed_hash = EngineRuntimeHelper._compute_node_hash(node_fail, context)
 
-        context.persistent_cache[node_fail.uid] = {
+        context._persistent_cache[node_fail.uid] = {
             "hash": computed_hash,
             "outputs": {"out": 999}
         }
@@ -200,10 +196,9 @@ class TestStatelessGraphEngineRealNodes:
             to_node_id=node_sum.uid, to_slot_id="items"
         )
 
-        context = GraphRunContext(job_id="job_004", scene=scene)
-        result_context = engine.execute_job(context)
+        context = EnclosedEngineContext(scene=scene)
+        result_context = engine.execute_graph(context)
 
-        assert result_context.status == JobStatus.COMPLETED
         sum_key = result_context.get_cache_key(node_sum.uid, "total")
         
         assert result_context.output_cache[sum_key] == 2
@@ -219,10 +214,9 @@ class TestNodeParametersAndDefaults:
             to_node_id=node_target.uid, to_slot_id="required_val"
         )
 
-        context = GraphRunContext(job_id="job_params_1", scene=scene)
-        result_context = engine.execute_job(context)
+        context = EnclosedEngineContext(scene=scene)
+        result_context = engine.execute_graph(context)
 
-        assert result_context.status == JobStatus.COMPLETED
         assert result_context.node_status[node_target.uid] == NodeExecutionStatus.SUCCESS
 
         res_key = result_context.get_cache_key(node_target.uid, "result")
@@ -236,10 +230,9 @@ class TestNodeParametersAndDefaults:
     def test_missing_required_slot_fails_validation(self, engine, scene):
         node_target = scene.create_node("test:input_test")
 
-        context = GraphRunContext(job_id="job_params_3", scene=scene)
-        result_context = engine.execute_job(context)
+        context = EnclosedEngineContext(scene=scene)
+        result_context = engine.execute_graph(context)
 
-        assert result_context.status == JobStatus.PARTIAL_SUCCESS
         assert result_context.node_status[node_target.uid] == NodeExecutionStatus.FAILED
         
         assert node_target.uid in result_context.errors
@@ -254,8 +247,8 @@ class TestNodeParametersAndDefaults:
             to_node_id=target_node.uid, to_slot_id="required_val"
         )
 
-        context = GraphRunContext(job_id="job_params_4", scene=scene)
-        result_context = engine.execute_job(context)
+        context = EnclosedEngineContext(scene=scene)
+        result_context = engine.execute_graph(context)
 
         assert result_context.node_status[str_node.uid] == NodeExecutionStatus.SUCCESS
         assert result_context.node_status[target_node.uid] == NodeExecutionStatus.FAILED
@@ -275,9 +268,9 @@ class TestNodeParameterReprocessing:
 
     def test_node_reprocessed_on_direct_parameter_mutation(self, engine, scene):
         node_target = scene.create_node("test:param_test")
-        context = GraphRunContext(job_id="job_reprocess_1", scene=scene)
+        context = EnclosedEngineContext(scene=scene)
         
-        engine.execute_job(context)
+        engine.execute_graph(context)
 
         logic_target: InputTestNode = scene.get_logic_node(node_target.uid)
         assert logic_target.execution_count == 1
@@ -288,13 +281,13 @@ class TestNodeParameterReprocessing:
         assert context.output_cache[res_key] == 10
         assert context.output_cache[text_key] == "mode_standard_run_1"
 
-        engine.execute_job(context)
+        engine.execute_graph(context)
         assert logic_target.execution_count == 1
 
         logic_target.params.mode = "custom"
         logic_target.params.multiplier = 5
 
-        engine.execute_job(context)
+        engine.execute_graph(context)
 
         assert logic_target.execution_count == 2
         assert context.output_cache[res_key] == 25 # (5 * 5)
@@ -302,9 +295,9 @@ class TestNodeParameterReprocessing:
 
     def test_node_reprocessed_on_update_parameters_method(self, engine, scene):
         node_target = scene.create_node("test:param_test")
-        context = GraphRunContext(job_id="job_reprocess_2", scene=scene)
+        context = EnclosedEngineContext(scene=scene)
 
-        engine.execute_job(context)
+        engine.execute_graph(context)
         logic_target: InputTestNode = scene.get_logic_node(node_target.uid)
         assert logic_target.execution_count == 1
 
@@ -312,7 +305,7 @@ class TestNodeParameterReprocessing:
         assert context.output_cache[res_key] == 10
 
         logic_target.update_parameters({"mode": "custom", "multiplier": 5})
-        engine.execute_job(context)
+        engine.execute_graph(context)
 
         assert logic_target.execution_count == 2
         assert context.output_cache[res_key] == 25
@@ -320,7 +313,7 @@ class TestNodeParameterReprocessing:
 
     def test_node_hash_changes_when_parameters_change(self, scene):
         node_target = scene.create_node("test:param_test")
-        context = GraphRunContext(job_id="job_hash_test", scene=scene)
+        context = EnclosedEngineContext(scene=scene)
         logic_target: InputTestNode = scene.get_logic_node(node_target.uid)
 
         hash_before = EngineRuntimeHelper._compute_node_hash(node_target, context)
