@@ -30,7 +30,7 @@ class IPCEvent:
 @dataclass(frozen=True, kw_only=True)
 class IPCCommand:
     # Server -> Worker
-    request_id: str = IDGenerator.generate_generic_id(length=4)
+    request_id: str = field(default_factory=lambda : IDGenerator.generate_generic_id(length=6))
 
 @dataclass(frozen=True)
 class IPCCommandResponse(IPCEvent):

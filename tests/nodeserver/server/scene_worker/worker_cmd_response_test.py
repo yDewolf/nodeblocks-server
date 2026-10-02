@@ -1,9 +1,19 @@
+import pytest
+
 from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, LoadSceneCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
 from nodeserver.engine.workers.protocols.scene_worker_protocol import AddNodeCommandResponse, SceneWorkerCommandResponse
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.scene_worker import SceneWorker
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
+@pytest.fixture
+def scene_data() -> SceneData:
+    return SceneData(
+        package_id="test_package",
+        package_version="0.0.0",
+        nodes={},
+        connections={}
+    )
 
 class TestSceneWorkerCommandResponses:
     def test_update_execution_state_cmd(self, worker: SceneWorker):
