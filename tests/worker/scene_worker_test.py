@@ -18,7 +18,7 @@ if __name__ == "__main__":
     controller.start(wait_ready=True)
     controller.send_command(LoadSceneCommand(
         scene_data=SceneData(
-            package_id="core", package_version="0.1.0"
+            dependencies={"core": "0.1.0"}
         )
     ))
     controller.send_command(

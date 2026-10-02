@@ -9,8 +9,9 @@ from nodeserver.protocols.manifest.node.node_graph import SceneData
 @pytest.fixture
 def scene_data() -> SceneData:
     return SceneData(
-        package_id="test_package",
-        package_version="0.0.0",
+        dependencies={
+            "test_package": "0.0.0"
+        },
         nodes={},
         connections={}
     )
