@@ -73,7 +73,7 @@ class SceneWorker(BaseSceneWorker):
     @BaseSceneWorker.dispatch.register
     def _(self, cmd: AddNodeCommand) -> SceneWorkerCommandResponse:
         if not self.execution_manager.context:
-            return SceneWorkerCommandResponse.failed("No active scene context loaded")
+            return AddNodeCommandResponse.failed("No active scene context loaded")
 
         try:
             node_instance = self.execution_manager.context.scene.create_node(
