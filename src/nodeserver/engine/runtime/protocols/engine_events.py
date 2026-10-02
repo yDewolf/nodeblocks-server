@@ -1,22 +1,9 @@
 from dataclasses import dataclass
-from enum import Enum, StrEnum
 from typing import Optional
 
 from nodeserver.engine.protocols.ipc_protocol import IPCEvent
-
-class JobStatus(StrEnum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    PARTIAL_SUCCESS = "partial_success"
-
-class NodeExecutionStatus(StrEnum):
-    PENDING = "pending"
-    SUCCESS = "success"
-    FAILED = "failed"
-    SKIPPED = "skipped"
-
+from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.job_runtime_context import JobStatus
 
 class IPCEngineEvent(IPCEvent):
     job_id: str
