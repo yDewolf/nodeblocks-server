@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from nodeserver.engine.workers.protocols.scene_worker_commands import IPCSceneWorkerCommand, StopWorkerCommand
-from nodeserver.engine.workers.protocols.scene_worker_protocol import IPCSceneWorkerEvent
+from nodeserver.engine.workers.protocols.scene_worker_protocol import EvtWorkerReady, IPCSceneWorkerEvent
 from nodeserver.engine.workers.scene_worker import run_scene_worker_loop
 
 class SceneWorkerController:
@@ -39,6 +39,15 @@ class SceneWorkerController:
             daemon=True
         )
         self._process.start()
+        if wait_ready:
+            is_ready = False
+            
+            while not is_ready:
+                events = self.get_events()
+                for event in events:
+                    if isinstance(event, EvtWorkerReady):
+                        is_ready = True
+                        break
 
 
     def stop(self, timeout: float = 3.0):
