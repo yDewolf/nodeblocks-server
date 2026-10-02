@@ -6,5 +6,6 @@ if __name__ == "__main__":
 
     server = NodeServer(
         plugins_folder=tests_folder.parent / "test_plugins",
+        scenes_folder=tests_folder.parent / "scenes",
     )
     server.run()

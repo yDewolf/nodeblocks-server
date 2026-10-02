@@ -8,8 +8,8 @@ from nodeserver.server.protocols.session_protocols import SceneConnectionSession
 logger = logging.getLogger("nds.server")
 
 class SceneSessionManager:
-    _scenes: dict[str, dict[str, SceneConnectionSession]] # scene_id -> {token -> session}
-    _connections: dict[str, SceneConnectionSession] # token -> session
+    _scenes: dict[str, dict[str, SceneConnectionSession]] # scene_id -> {id -> session}
+    _connections: dict[str, SceneConnectionSession] # id -> session
 
     def __init__(self) -> None:
         self._scenes = {}
@@ -18,7 +18,7 @@ class SceneSessionManager:
 
     def register_connection(self, session: SceneConnectionSession):
         if not session.scene_id in self._scenes:
-            raise Exception("Tried to connect to a not initialized scene") # TODO: better exception
+            self._scenes[session.scene_id] = {}
         
         self._scenes[session.scene_id][session.id] = session
         self._connections[session.id] = session
