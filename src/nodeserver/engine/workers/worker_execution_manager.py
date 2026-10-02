@@ -38,6 +38,14 @@ class SceneWorkerRunManager:
         self.execution_state = SceneWorkerExecutionState.STOPPED
         self.execution_mode = SceneWorkerExecutionMode.GRAPH_STEP
 
+    def reset_state(self):
+        self._current_iteration = None
+        self._target_iterations = None
+        self.execution_state = SceneWorkerExecutionState.STOPPED
+        self.context = None
+        self._last_finished_job = None
+        self._active_step_job = None
+    
 
     def is_running(self) -> bool:
         return self.execution_state != SceneWorkerExecutionState.STOPPED

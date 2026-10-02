@@ -7,6 +7,7 @@ import time
 
 from nodeserver.engine.helpers.node_scene_helper import NodeSceneHelper
 from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper
+from nodeserver.engine.helpers.scene_file_reader import SceneFileReader
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.plugin_node_provider import PluginNodeProvider
 from nodeserver.engine.protocols.node.node_scene import NodeScene
@@ -27,8 +28,11 @@ benchmark_logger = logging.getLogger("nds.benchmark")
 # Server -> SceneWorker -> NodeScene
 #           SceneWorker -> Engine
 class BaseSceneWorker(ISceneWorker):
+    scene_id: str
+
     plugin_manager: PluginManager
     node_provider: INodeProvider
+    scene_file_reader: SceneFileReader
 
     execution_manager: SceneWorkerRunManager
 
@@ -42,17 +46,22 @@ class BaseSceneWorker(ISceneWorker):
     target_fps: float = 60.0
 
     def __init__(
-        self, 
-        plugins_folder: Path, 
+        self,
+        scene_id: str,
+        plugins_folder: Path,
+        scenes_folder: Path,
         command_queue: Queue[IPCSceneWorkerCommand], 
         event_queue: Queue[IPCSceneWorkerEvent]
     ) -> None:
+        self.scene_id = scene_id
         self.command_queue = command_queue
         self.event_queue = event_queue
 
         self.plugins_folder = plugins_folder
         self.plugin_manager = PluginManager(registry=TypeRegistry())
         self.node_provider = PluginNodeProvider(self.plugin_manager)
+        
+        self.scene_file_reader = SceneFileReader(self.plugin_manager, scenes_folder)
 
         self.execution_manager = SceneWorkerRunManager(self)
         self.active = True
@@ -93,7 +102,7 @@ class BaseSceneWorker(ISceneWorker):
         ))
 
     def _create_new_scene(self, scene_data: SceneData) -> NodeScene:
-        return NodeSceneHelper.create_new_scene(self.plugin_manager, self.node_provider, scene_data)
+        return NodeSceneHelper.create_new_scene(self.plugin_manager, self.node_provider, scene_data, scene_id=self.scene_id)
 
     # Runtime Stuff:
 

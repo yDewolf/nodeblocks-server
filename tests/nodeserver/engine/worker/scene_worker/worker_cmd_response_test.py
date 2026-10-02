@@ -1,6 +1,6 @@
 import pytest
 
-from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, LoadSceneCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
+from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
 from nodeserver.engine.workers.protocols.scene_worker_protocol import AddNodeCommandResponse, SceneWorkerCommandResponse
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.scene_worker import SceneWorker
@@ -88,7 +88,7 @@ class TestSceneWorkerCommandResponses:
         assert worker.execution_manager.execution_mode == SceneWorkerExecutionMode.GRAPH_STEP
 
     def test_load_scene_command(self, worker: SceneWorker, scene_data: SceneData):
-        cmd = LoadSceneCommand(scene_data=scene_data)
+        cmd = LoadSceneDataCommand(scene_data=scene_data)
 
         response = worker.dispatch(cmd)
 

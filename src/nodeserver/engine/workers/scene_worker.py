@@ -6,9 +6,10 @@ from pathlib import Path
 
 from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
-from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, IPCSceneWorkerCommand, LoadSceneCommand, PauseGraphCommand, UpdateTargetNodesCmd
+from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, LoadSceneCommand, ResetSceneCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, IPCSceneWorkerCommand, LoadSceneDataCommand, PauseGraphCommand, UpdateTargetNodesCmd
 from nodeserver.engine.workers.protocols.scene_worker_protocol import AddNodeCommandResponse, EvtFatalError, IPCSceneWorkerEvent, SceneWorkerCommandResponse
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
+from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 logger = logging.getLogger("nds.worker")
 
@@ -60,9 +61,25 @@ class SceneWorker(BaseSceneWorker):
         return SceneWorkerCommandResponse.successful()
 
     # Scene Actions:
+    @dispatch.register
+    def _(self, cmd: ResetSceneCommand):
+        self.execution_manager.reset_state()
+        return SceneWorkerCommandResponse.successful()
 
     @dispatch.register
     def _(self, cmd: LoadSceneCommand):
+        scene_data = self.scene_file_reader.load_from_folder(cmd.scene_uid)
+        if not scene_data:
+            if not cmd.create_if_nonexistent:
+                return SceneWorkerCommandResponse.failed(message="Couldn't find scene file")
+
+            scene_data = SceneData(uid=self.scene_id, dependencies={})
+            self.scene_file_reader.save_to_folder(scene_data)
+
+        return self.dispatch(LoadSceneDataCommand(scene_data=scene_data, request_id=cmd.request_id))
+
+    @dispatch.register
+    def _(self, cmd: LoadSceneDataCommand):
         try:
             self.execution_manager._load_scene_into_context(cmd.scene_data)
         except Exception as e:
@@ -89,12 +106,13 @@ class SceneWorker(BaseSceneWorker):
 def run_scene_worker_loop(
     scene_id: str, 
     plugins_folder: Path, 
+    scenes_folder: Path, 
     command_queue: Queue[IPCSceneWorkerCommand], 
     event_queue: Queue[IPCSceneWorkerEvent]
 ):
     logger.info(f"Starting worker for scene {scene_id}")
-
-    scene_worker = SceneWorker(plugins_folder, command_queue, event_queue)
+    
+    scene_worker = SceneWorker(scene_id, plugins_folder, scenes_folder, command_queue, event_queue)
     with scoped_sys_path(plugins_folder.parent):
         scene_worker.setup_plugins()
         scene_worker.runtime_loop()

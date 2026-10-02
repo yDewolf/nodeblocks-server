@@ -8,11 +8,11 @@ from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 class NodeSceneHelper:
     @staticmethod
-    def create_new_scene(plugin_manager: PluginManager, node_provider: INodeProvider, scene_data: Optional[SceneData] = None):
-        node_scene = NodeScene(plugin_manager.registry, node_provider)
+    def create_new_scene(plugin_manager: PluginManager, node_provider: INodeProvider, scene_data: Optional[SceneData] = None, scene_id: Optional[str] = None):
+        node_scene = NodeScene(plugin_manager.registry, node_provider, id=scene_id)
         if scene_data:
             plugin_manager.version_manager.validate_scene_dependencies(
-                scene_data.uid, scene_data.dependencies, plugin_manager._installed_plugins
+                scene_data.uid, scene_data.dependencies, plugin_manager.get_all_loaded_packages()
             )
 
             node_scene.load_from_scene_data(scene_data)
