@@ -1,7 +1,19 @@
 from dataclasses import dataclass
-from typing import Optional
-from nodeserver.engine.protocols.ipc_protocol import IPCCommandResponse, IPCCommandStatus, CmdStatus, IPCEvent
+from typing import Optional, Protocol
+from nodeserver.engine.protocols.ipc_protocol import IPCCommandResponse, IPCEvent
+from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
+from nodeserver.protocols.manifest.node.node_graph import SceneData
+
+class ISceneWorker(Protocol):
+    def engine_event_receiver(self, event: IPCEngineEvent):
+        pass
+
+    def _create_new_scene(self, scene_data: SceneData) -> NodeScene:
+        raise NotImplementedError()
+
+
+# IPC
 
 class IPCSceneWorkerEvent(IPCEvent):
     pass

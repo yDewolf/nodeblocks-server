@@ -1,13 +1,13 @@
+import logging.config
+logging.config.fileConfig("logging.conf")
 
 from pathlib import Path
 
-from nodeserver.engine.workers.protocols.scene_worker_commands import UpdateExecutionStateCmd, GraphExecutionModes, LoadSceneCommand
+from nodeserver.engine.workers.protocols.scene_worker_commands import UpdateExecutionStateCmd, LoadSceneCommand
 from nodeserver.engine.workers.protocols.scene_worker_protocol import EvtWorkerReady
+from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.server.workers.scene_worker_controller import SceneWorkerController
-import logging.config
-
-logging.config.fileConfig("logging.conf")
 
 if __name__ == "__main__":
     plugins_folder = Path(__file__).parent.parent.parent / "test_plugins"
@@ -24,12 +24,12 @@ if __name__ == "__main__":
 
     controller.send_command(LoadSceneCommand(
         scene_data=SceneData(
-            package_id="core", package_version="0.0.0"
+            package_id="core", package_version="0.1.0"
         )
     ))
     controller.send_command(
         UpdateExecutionStateCmd(
-            state=GraphExecutionModes.CONTINUOUS
+            state=SceneWorkerExecutionState.RUNNING_CONTINUOUS
         )
     )
     input("Press enter to quit")

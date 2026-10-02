@@ -2,7 +2,6 @@ from contextlib import contextmanager
 from pathlib import Path
 import sys
 
-
 @contextmanager
 def scoped_sys_path(path: Path):
     path_str = str(path.resolve())

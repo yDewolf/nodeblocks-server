@@ -22,25 +22,25 @@ class SceneWorker(BaseSceneWorker):
     # Mode Updates:
     @dispatch.register
     def _(self, cmd: UpdateExecutionStateCmd):
-        self.execution_state = cmd.state
+        self.execution_manager.execution_state = cmd.state
         return SceneWorkerCommandResponse.successful()
     
     @dispatch.register
     def _(self, cmd: UpdateExecutionModeCmd):
-        self.execution_mode = cmd.mode
+        self.execution_manager.execution_mode = cmd.mode
         return SceneWorkerCommandResponse.successful()
 
     # Runtime Control:
 
     @dispatch.register
     def _(self, cmd: PauseGraphCommand):
-        self.execution_state = SceneWorkerExecutionState.STOPPED
+        self.execution_manager.execution_state = SceneWorkerExecutionState.STOPPED
         return SceneWorkerCommandResponse.successful(request_id=cmd.request_id)
 
     @dispatch.register
     def _(self, cmd: GraphStepCommand):
-        self.execution_state = SceneWorkerExecutionState.RUNNING
-        self.execution_mode = SceneWorkerExecutionMode.GRAPH_STEP
+        self.execution_manager.execution_state = SceneWorkerExecutionState.RUNNING
+        self.execution_manager.execution_mode = SceneWorkerExecutionMode.GRAPH_STEP
         return SceneWorkerCommandResponse.successful()
 
     # Scene Actions:
@@ -48,7 +48,7 @@ class SceneWorker(BaseSceneWorker):
     @dispatch.register
     def _(self, cmd: LoadSceneCommand):
         try:
-            self._load_scene_into_context(cmd.scene_data)
+            self.execution_manager._load_scene_into_context(cmd.scene_data)
         except Exception as e:
             return SceneWorkerCommandResponse.failed(message=str(e))
         
@@ -56,11 +56,11 @@ class SceneWorker(BaseSceneWorker):
 
     @BaseSceneWorker.dispatch.register
     def _(self, cmd: AddNodeCommand) -> SceneWorkerCommandResponse:
-        if not self.context:
+        if not self.execution_manager.context:
             return SceneWorkerCommandResponse.failed("No active scene context loaded")
 
         try:
-            node_instance = self.context.scene.create_node(
+            node_instance = self.execution_manager.context.scene.create_node(
                 node_fqn=cmd.nodetype_fqn,
                 node_scene_data=cmd.node_data
             )
