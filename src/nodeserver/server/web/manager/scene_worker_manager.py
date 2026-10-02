@@ -10,18 +10,23 @@ from nodeserver.server.workers.scene_worker_controller import SceneWorkerControl
 EventCallback = Callable[[str, IPCSceneWorkerEvent], Coroutine[Any, Any, None]]
 class SceneWorkerManager:
     plugins_folder: Path
+    scenes_folder: Path
+
     _event_dispatcher_task: Optional[asyncio.Task]
     _on_event_callback: Optional[EventCallback] = None
     
     # scene id -> worker controller
     active_workers: dict[str, SceneWorkerController]
     
-    def __init__(self, plugins_folder: Path) -> None:
-        self.active_workers = {}
+    def __init__(self, plugins_folder: Path, scenes_folder: Path) -> None:
         self.plugins_folder = plugins_folder
+        self.scenes_folder = scenes_folder
+
+        self.active_workers = {}
         self._event_dispatcher_task = None
 
     def get_or_create_worker(self, scene_id: str) -> SceneWorkerController:
+        # TODO: carregar a cena automaticamente a partir do scene id e da pasta
         if scene_id not in self.active_workers:
             controller = SceneWorkerController(scene_id, self.plugins_folder)
             controller.start()
