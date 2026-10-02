@@ -1,8 +1,7 @@
-from enum import StrEnum
 from typing import Any, Callable, Optional
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_context import EngineRuntimeContext, NodeExecutionStatus
-from nodeserver.engine.runtime.protocols.engine_events import EvtJobStatusChanged, EvtNodeStatusChanged, IPCEngineEvent
+from nodeserver.engine.runtime.protocols.engine_events import EvtJobStatusChanged, EvtNodeStatusChanged, IPCEngineEvent, JobStatus
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
 class SceneSuperContext:
@@ -37,14 +36,6 @@ class SceneSuperContext:
             self._emit_event_callback(event)
 
 
-class JobStatus(StrEnum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    PARTIAL_SUCCESS = "partial_success"
-
-
 class JobExecutionContext(EngineRuntimeContext):
     global_context: SceneSuperContext
     job_id: str
@@ -61,10 +52,8 @@ class JobExecutionContext(EngineRuntimeContext):
         self.job_id = job_id or IDGenerator.generate_generic_id(6)
         self.status = JobStatus.PENDING
         self.target_nodes = target_nodes
-        
-        self.output_cache = {}
-        self.errors = {}
-        
+
+        super().__init__(runtime.scene)
         nodes_to_track = target_nodes if target_nodes else list(runtime.scene.graph.all_nodes.keys())
         self.node_status = {node_uid: NodeExecutionStatus.PENDING for node_uid in nodes_to_track}
 
