@@ -6,9 +6,10 @@ from multiprocessing import Queue
 from pathlib import Path
 
 from nodeserver.engine.utils.context_managers import scoped_sys_path
-from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker, WorkerExecutionState
-from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, ExecuteGraphCommand, GraphExecutionModes, IPCSceneWorkerCommand, LoadSceneCommand, PauseGraphCommand
+from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
+from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, IPCSceneWorkerCommand, LoadSceneCommand, PauseGraphCommand
 from nodeserver.engine.workers.protocols.scene_worker_protocol import AddNodeCommandResponse, EvtFatalError, IPCSceneWorkerEvent, SceneWorkerCommandResponse
+from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 
 logger = logging.getLogger("nds.worker")
 
@@ -18,26 +19,31 @@ class SceneWorker(BaseSceneWorker):
     def dispatch(self, cmd: IPCSceneWorkerCommand) -> SceneWorkerCommandResponse:
         return super().dispatch(cmd)
 
-    # Runtime Control:
+    # Mode Updates:
     @dispatch.register
-    def _(self, cmd: ExecuteGraphCommand):
-        if not self.context:
-            return SceneWorkerCommandResponse.failed("SceneWorker context wasn't built")
-
-        if cmd.mode == GraphExecutionModes.CONTINUOUS:
-            self.execution_state = WorkerExecutionState.RUNNING_CONTINUOUS
-        elif cmd.mode == GraphExecutionModes.FULL_GRAPH:
-            self.execution_state = WorkerExecutionState.RUNNING_FULL_GRAPH
-        elif cmd.mode == GraphExecutionModes.GRAPH_STEP:
-            self.execution_state = WorkerExecutionState.RUNNING_SINGLE
-
+    def _(self, cmd: UpdateExecutionStateCmd):
+        self.execution_state = cmd.state
         return SceneWorkerCommandResponse.successful()
+    
+    @dispatch.register
+    def _(self, cmd: UpdateExecutionModeCmd):
+        self.execution_mode = cmd.mode
+        return SceneWorkerCommandResponse.successful()
+
+    # Runtime Control:
 
     @dispatch.register
     def _(self, cmd: PauseGraphCommand):
-        self.execution_state = WorkerExecutionState.STOPPED
+        self.execution_state = SceneWorkerExecutionState.STOPPED
         return SceneWorkerCommandResponse.successful(request_id=cmd.request_id)
 
+    @dispatch.register
+    def _(self, cmd: GraphStepCommand):
+        self.execution_state = SceneWorkerExecutionState.RUNNING
+        self.execution_mode = SceneWorkerExecutionMode.GRAPH_STEP
+        return SceneWorkerCommandResponse.successful()
+
+    # Scene Actions:
 
     @dispatch.register
     def _(self, cmd: LoadSceneCommand):
