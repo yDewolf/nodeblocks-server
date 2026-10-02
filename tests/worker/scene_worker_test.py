@@ -15,15 +15,7 @@ if __name__ == "__main__":
     plugins_folder = Path(__file__).parent.parent.parent / "test_plugins"
     controller = SceneWorkerController("test_0", plugins_folder)
 
-    controller.start()
-    is_ready = False
-    while not is_ready:
-        events = controller.get_events()
-        for event in events:
-            if isinstance(event, EvtWorkerReady):
-                is_ready = True
-                break
-
+    controller.start(wait_ready=True)
     controller.send_command(LoadSceneCommand(
         scene_data=SceneData(
             package_id="core", package_version="0.1.0"

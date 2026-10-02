@@ -29,6 +29,11 @@ def setup_logging(default_level=logging.INFO):
                 "handlers": ["consoleHandler"],
                 "propagate": False,
             },
+            "nds.server": {
+                "level": "INFO",
+                "handlers": ["consoleHandler"],
+                "propagate": False,
+            },
             "nds.spec": {
                 "level": "INFO",
                 "handlers": ["consoleHandler"],
