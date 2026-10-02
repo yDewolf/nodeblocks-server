@@ -11,9 +11,8 @@ class NodeSceneHelper:
     def create_new_scene(plugin_manager: PluginManager, node_provider: INodeProvider, scene_data: Optional[SceneData] = None):
         node_scene = NodeScene(plugin_manager.registry, node_provider)
         if scene_data:
-            plugin_manifest = plugin_manager.ensure_plugin_manifest(scene_data.package_id)
-            plugin_manager.version_manager.validate_plugin_version(
-                scene_data.package_version, plugin_manifest, plugin_id=scene_data.uid
+            plugin_manager.version_manager.validate_scene_dependencies(
+                scene_data.uid, scene_data.dependencies, plugin_manager._installed_plugins
             )
 
             node_scene.load_from_scene_data(scene_data)
