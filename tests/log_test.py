@@ -1,17 +1,14 @@
 from pathlib import Path
 import sys
-from typing import Any
+
+import logging
+from nodeserver.engine.logging_config import setup_logging
+setup_logging(default_level=logging.DEBUG)
 
 from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.registry.type_registry import TypeRegistry
-from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
-
-import logging.config
-logging.config.fileConfig("logging.conf")
-
 
 if __name__ == "__main__":
     root_path = Path(__file__).parent.parent
@@ -29,7 +26,7 @@ if __name__ == "__main__":
         compiler=PluginCompiler(registry=dummy_registry, plugins_base_package="test_plugins")
     )
     # dummy_manager.load_or_compile_plugins(plugins_path, save_to_disk=True)
-
+    
     PluginSubprocessHelper.setup_and_load_plugins(
         plugins_path, dummy_manager
     )

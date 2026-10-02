@@ -1,5 +1,7 @@
-import logging.config
-logging.config.fileConfig("logging.conf")
+import logging
+from nodeserver.engine.logging_config import setup_logging
+
+setup_logging(default_level=logging.DEBUG)
 
 from pathlib import Path
 
