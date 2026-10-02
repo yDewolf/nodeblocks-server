@@ -44,3 +44,7 @@ class IPCCommandResponse(IPCEvent):
     @classmethod
     def successful(cls, message: Optional[str] = None, request_id: Optional[str] = None, **kwargs):
         return cls(request_id=request_id, status=CmdStatus.successful(message), **kwargs)
+
+    @property
+    def is_success(self):
+        return self.status.status == IPCCommandStatus.SUCCESSFUL
