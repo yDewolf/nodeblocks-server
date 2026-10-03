@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import ClassVar, Any
+from typing import ClassVar, Any, Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from nodeserver.engine.protocols.node.scene_states import LogicNodeState
+from nodeserver.engine.protocols.scene_state_provider import ISceneStateProvider
 from nodeserver.engine.protocols.spec_dataclasses import LogicNodeConfig
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
@@ -42,12 +44,29 @@ class BaseNode[inputModel: NodeInputs, outputModel: NodeOutputs](ABC):
     def post_forward_cleanup(self):
         pass
 
-    # TODO: reimplementar o sistema de estados
-    def load_state(self, state: dict[str, Any]) -> None:
+    def load_state(self, state: LogicNodeState) -> None:
+        """
+        Load your custom files or your state data
+        """
         pass
+    
+    def save_state(self, state_provider: ISceneStateProvider) -> Optional[LogicNodeState]:
+        """
+        Use state_provider to get a path where you can save your node state if you need it
 
-    def save_state(self):
-        return
+        Example Usage:
+        ```
+        states_folder = state_provider.get_node_state_folder(self.scene_data.uid)
+        with open(states_folder / "my_save.md", "w") as file:
+            file.write("Some data you can't save in a .json file")
+
+        return LogicNodeState(
+            extra_files={"my_file": states_folder / "my_save.md"},
+            state_data={"some_state": 900, "another": "state"}
+        )
+        ```
+        """
+        pass
 
 
     def update_parameters(self, new_params: dict[str, Any]) -> dict[str, Any]:

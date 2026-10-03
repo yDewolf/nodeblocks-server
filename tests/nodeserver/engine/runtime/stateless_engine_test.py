@@ -5,6 +5,8 @@ from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, N
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.node_provider import BaseNodeProvider
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
+from nodeserver.engine.protocols.scene_provider import NoSceneDataProvider
+from nodeserver.engine.protocols.scene_state_provider import NoSceneStateProvider
 from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus, EnclosedEngineContext
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
@@ -121,7 +123,12 @@ def scene(default_registry):
     default_registry.register_node_type(spec_builder.build_node_spec("test", "input_test", InputTestNode), InputTestNode)
     default_registry.register_node_type(spec_builder.build_node_spec("test", "param_test", ParamTestNode), ParamTestNode)
 
-    scene = NodeScene(registry=default_registry, node_provider=BaseNodeProvider(registry=default_registry))
+    scene = NodeScene(
+        registry=default_registry, 
+        node_provider=BaseNodeProvider(registry=default_registry),
+        scene_data_provider=NoSceneDataProvider(),
+        scene_state_provider=NoSceneStateProvider("")
+    )
     return scene
 
 

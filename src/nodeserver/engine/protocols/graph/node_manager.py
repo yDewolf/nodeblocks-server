@@ -2,6 +2,7 @@ from typing import Optional
 
 from nodeserver.engine.exceptions.graph_exceptions import DuplicateNodeUIDError
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
+from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 
 
 class NodeManager:
@@ -39,3 +40,9 @@ class NodeManager:
 
     def all(self) -> dict[str, NodeInstance]:
         return self._nodes
+
+
+    def get_as_data(self) -> dict[str, NodeSceneData]:
+        return {
+            uid: instance.node_data for uid, instance in self._nodes.items()
+        }

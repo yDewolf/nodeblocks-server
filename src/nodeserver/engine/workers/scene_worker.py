@@ -68,13 +68,13 @@ class SceneWorker(BaseSceneWorker):
 
     @dispatch.register
     def _(self, cmd: LoadSceneCommand):
-        scene_data = self.scene_file_reader.load_from_folder(cmd.scene_uid)
+        scene_data = self.scene_data_provider.load_scene_data(cmd.scene_uid)
         if not scene_data:
             if not cmd.create_if_nonexistent:
                 return SceneWorkerCommandResponse.failed(message="Couldn't find scene file")
 
             scene_data = SceneData(uid=self.scene_id, dependencies={})
-            self.scene_file_reader.save_to_folder(scene_data)
+            self.scene_data_provider.save_scene_data(scene_data)
 
         return self.dispatch(LoadSceneDataCommand(scene_data=scene_data, request_id=cmd.request_id))
 

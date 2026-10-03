@@ -21,13 +21,16 @@ class SceneFileReader:
         )
         return scene_data
 
-    def load_from_folder(self, scene_uid: str, folder_path: Optional[Path] = None) -> Optional[SceneData]:
-        file_path = folder_path or self.default_folder_path / f"{scene_uid}.json"
+    def load_from_folder(self, folder_path: Optional[Path] = None) -> Optional[SceneData]:
+        file_path = (folder_path or self.default_folder_path) / "graph_data.json"
         if not file_path.exists():
             return None
         
         return self.load_from_file(file_path)
 
     def save_to_folder(self, scene_data: SceneData, folder_path: Optional[Path] = None):
-        file_path = folder_path or self.default_folder_path / f"{scene_data.uid}.json"
+        scene_folder = folder_path or self.default_folder_path
+        scene_folder.mkdir(exist_ok=True)
+
+        file_path = scene_folder / "graph_data.json"
         file_path.write_text(scene_data.model_dump_json())

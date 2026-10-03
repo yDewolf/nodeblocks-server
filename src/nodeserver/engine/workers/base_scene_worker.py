@@ -12,6 +12,9 @@ from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.plugin_node_provider import PluginNodeProvider
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.node_provider import INodeProvider
+from nodeserver.engine.protocols.scene_provider import ISceneDataProvider
+from nodeserver.engine.protocols.scene_state_provider import ISceneStateProvider
+from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.engine.utils.benchmark_managers import BenchmarkTimer, FramePacer
@@ -32,7 +35,8 @@ class BaseSceneWorker(ISceneWorker):
 
     plugin_manager: PluginManager
     node_provider: INodeProvider
-    scene_file_reader: SceneFileReader
+    scene_data_provider: ISceneDataProvider
+    scene_state_provider: ISceneStateProvider
 
     execution_manager: SceneWorkerRunManager
 
@@ -61,8 +65,9 @@ class BaseSceneWorker(ISceneWorker):
         self.plugin_manager = PluginManager(registry=TypeRegistry())
         self.node_provider = PluginNodeProvider(self.plugin_manager)
         
-        self.scene_file_reader = SceneFileReader(self.plugin_manager, scenes_folder)
-
+        self.scene_state_provider = FileSceneStateProvider(self.scene_id)
+        self.scene_data_provider = FileSceneDataProvider(self.scene_id, self.plugin_manager, scenes_folder) 
+        
         self.execution_manager = SceneWorkerRunManager(self)
         self.active = True
 
@@ -102,7 +107,12 @@ class BaseSceneWorker(ISceneWorker):
         ))
 
     def _create_new_scene(self, scene_data: SceneData) -> NodeScene:
-        return NodeSceneHelper.create_new_scene(self.plugin_manager, self.node_provider, scene_data, scene_id=self.scene_id)
+        return NodeSceneHelper.create_new_scene(
+            self.plugin_manager, 
+            self.node_provider, self.scene_data_provider, self.scene_state_provider, 
+            scene_data, 
+            scene_id=self.scene_id
+        )
 
     # Runtime Stuff:
 
