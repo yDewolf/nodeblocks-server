@@ -81,6 +81,9 @@ class ConnectionManager:
     def all(self) -> dict[str, ConnectionSceneData]:
         return self._connections
 
+    def get_as_data(self) -> dict[str, ConnectionSceneData]:
+        return self.all()
+
     # Validation
 
     def validate_connection(self, from_slot: SlotInstance, to_slot: SlotInstance) -> None:

@@ -110,8 +110,8 @@ class  NodeSpecBuilder:
 
         return param_specs
 
-
-    def extract_datatype_dependencies(self, node_type: NodeTypeSpec) -> set[str]:
+    @classmethod
+    def extract_datatype_dependencies(cls, node_type: NodeTypeSpec) -> set[str]:
         datatype_fqns: set[str] = set()
 
         for id, param in node_type.parameters.items():

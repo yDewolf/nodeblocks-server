@@ -130,6 +130,12 @@ class PluginSpecManager:
 
     # Ensures
 
+    def ensure_package(self, package_id: str) -> ManifestPackage:
+        if not package_id in self._loaded_packages:
+            raise KeyError(f"Package {package_id} is not loaded") # TODO: exception
+
+        return self._loaded_packages[package_id]
+
     def ensure_plugin_manifest(self, package_id: str) -> PluginManifest:
         if not package_id in self._installed_plugins:
             raise PluginNotLoadedError(package_id)

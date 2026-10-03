@@ -88,6 +88,14 @@ class SceneGraph:
             to_slot.connection_count = max(0, to_slot.connection_count - 1)
 
     # Node and Connection Getters
+
+    def get_nodes_as_data(self):
+        return self._nodes.get_as_data()
+
+    def get_conns_as_data(self):
+        return self._connections.get_as_data()
+
+
     def ensure_node(self, node_id: str) -> NodeInstance:
         return self._nodes.ensure(node_id)
 

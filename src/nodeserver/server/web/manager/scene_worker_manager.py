@@ -31,8 +31,8 @@ class SceneWorkerManager:
             controller.start()
             self.active_workers[scene_id] = controller
 
-        if auto_load:
-            controller.send_command(LoadSceneCommand(scene_uid=scene_id, create_if_nonexistent=True))
+            if auto_load:
+                controller.send_command(LoadSceneCommand(scene_uid=scene_id, create_if_nonexistent=True))
         
         return self.active_workers[scene_id]
     
