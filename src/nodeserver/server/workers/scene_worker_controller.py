@@ -51,7 +51,6 @@ class SceneWorkerController:
                         is_ready = True
                         break
 
-
     def stop(self, timeout: float = 3.0):
         if not self._process or not self._process.is_alive():
             return

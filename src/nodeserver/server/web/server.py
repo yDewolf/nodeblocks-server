@@ -1,16 +1,19 @@
 
+import asyncio
+import datetime
 from json import JSONDecodeError
 import logging
 from pathlib import Path
+import time
 from typing import Optional
 
 from aiohttp import WSMsgType, web
 from pydantic import ValidationError
 
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent
-from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.policies.perm_policy_protocol import BasePermissionPolicy, DevPermissionPolicy
-from nodeserver.server.protocols.session_protocols import SceneConnectionSession, SceneSessionToken, UserSession
+from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
 from nodeserver.server.protocols.web.session_messages import CreateSessionTokenModel
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.handlers.scene_websocket_handler import SceneWebsocketHandler
@@ -19,9 +22,10 @@ from nodeserver.server.web.manager.scene_session_manager import SceneSessionMana
 
 
 logger = logging.getLogger("nds.server")
+SCENE_WORKER_GRACE_PERIOD = 5 * 60 # seconds
+INACTIVITY_CHECK_INTERVAL = 15.0 # seconds
 
 # TODO: reimplement previous protocols
-# TODO: implement scene grace period (stopped scenes without any connections)
 class NodeServer:
     app: NodeServerWebApp
 
@@ -35,6 +39,7 @@ class NodeServer:
     scene_worker_manager: SceneWorkerManager
     
     scene_websocket_handler: SceneWebsocketHandler 
+    _tasks: list[asyncio.Task]
 
     def __init__(
         self,
@@ -44,6 +49,7 @@ class NodeServer:
         host: str = "127.0.0.1",
         port: int = 8080
     ) -> None:
+        self._tasks = []
         self.host = host
         self.port = port
         self.plugins_folder = plugins_folder
@@ -80,11 +86,35 @@ class NodeServer:
 
     async def _on_startup(self, app: web.Application):
         logger.info("Starting Nodeserver on %s:%s...", self.host, self.port)
+        self._tasks.append(
+            asyncio.create_task(self._clear_inactive_workers_task())
+        )
         await self.scene_worker_manager.start()
 
     async def _on_cleanup(self, app: web.Application):
         logger.info("Finishing Nodeserver. Cleaning subprocesses...")
+        for task in self._tasks:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+        
         await self.scene_worker_manager.stop()
+
+
+    async def _clear_inactive_workers_task(self):
+        while True:
+            stopped_scenes = self.scene_worker_manager.get_scene_id_by_state(
+                SceneWorkerExecutionState.STOPPED, min_elapsed_time=SCENE_WORKER_GRACE_PERIOD
+            )
+            for scene_id, timestamp in stopped_scenes:
+                sessions = self.session_manager.get_scene_sessions(scene_id)
+                if len(sessions) == 0:
+                    logger.info("Killing %s's scene worker because of inactivity. Stopped since %s", scene_id, time.ctime(timestamp))
+                    self.scene_worker_manager.kill_scene_worker(scene_id)
+            
+            await asyncio.sleep(INACTIVITY_CHECK_INTERVAL)
 
 
     async def _on_worker_event(self, scene_id: str, event: IPCSceneWorkerEvent):
