@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommand
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
-from nodeserver.protocols.manifest.node.node_graph import NodeSceneData, SceneData
+from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodeSceneData, SceneData
 from nodeserver.protocols.manifest.structs.scene_structs import Vector2
 
 
