@@ -8,7 +8,8 @@ from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
-from nodeserver.engine.workers.scene_worker import SceneWorker
+from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
+from nodeserver.engine.workers.scene_worker_cmd_handler import SceneWorkerCommandHandler
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodeSceneData, SceneData
@@ -76,13 +77,13 @@ def populated_scene(packages):
     )
 
 @pytest.fixture
-def worker(tmp_path: Path, packages) -> SceneWorker:
-    cmd_queue: Queue = Queue()
-    evt_queue: Queue = Queue()
+def worker(tmp_path: Path, packages) -> BaseSceneWorker:
     plugins_folder = tmp_path / "plugins"
     plugins_folder.mkdir(parents=True, exist_ok=True)
 
-    worker = SceneWorker("test_scene", plugins_folder, tmp_path / "scenes", cmd_queue, evt_queue)
+    worker = BaseSceneWorker("test_scene", plugins_folder, tmp_path / "scenes")
+    command_handler = SceneWorkerCommandHandler(worker, Queue(), Queue())
+    worker.set_command_handler(command_handler)
 
     test_plugin, test_package, package_id = packages
     worker.plugin_manager.register_compiled_package(test_package)

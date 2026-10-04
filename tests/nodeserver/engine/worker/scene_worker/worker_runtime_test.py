@@ -4,27 +4,28 @@ import time
 
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_events import EvtNodeStatusChanged
+from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
 from nodeserver.engine.workers.protocols.scene_worker_commands import GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd
 from nodeserver.engine.workers.protocols.scene_worker_protocol import IPCSceneWorkerEvent, WorkerEngineEventWrapper
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
-from nodeserver.engine.workers.scene_worker import SceneWorker
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 
 class TestSceneWorkerExecutionMatrix:
 
     def test_running_and_graph_step_executes_single_node_and_pauses(
-        self, worker: SceneWorker, populated_scene: SceneData
+        self, worker: BaseSceneWorker, populated_scene: SceneData
     ):
-        worker.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
-        worker.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.GRAPH_STEP))
-        worker.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING))
+        assert worker.command_handler
+        worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
+        worker.command_handler.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.GRAPH_STEP))
+        worker.command_handler.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING))
 
         thread = threading.Thread(target=worker.runtime_loop, daemon=True)
         thread.start()
         time.sleep(0.4)
 
-        worker.command_queue.put(StopWorkerCommand())
+        worker.command_handler.command_queue.put(StopWorkerCommand())
         thread.join()
 
         ctx = worker.execution_manager._active_step_job
@@ -35,17 +36,18 @@ class TestSceneWorkerExecutionMatrix:
         assert ctx.node_status.get("node_1") == NodeExecutionStatus.PENDING
 
     def test_running_and_full_graph_executes_all_nodes_and_pauses(
-        self, worker: SceneWorker, populated_scene: SceneData
+        self, worker: BaseSceneWorker, populated_scene: SceneData
     ):
-        worker.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
-        worker.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.FULL_GRAPH))
-        worker.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING))
+        assert worker.command_handler
+        worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
+        worker.command_handler.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.FULL_GRAPH))
+        worker.command_handler.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING))
 
         thread = threading.Thread(target=worker.runtime_loop, daemon=True)
         thread.start()
 
         time.sleep(0.4)
-        worker.command_queue.put(StopWorkerCommand())
+        worker.command_handler.command_queue.put(StopWorkerCommand())
         thread.join()
 
         ctx = worker.execution_manager._last_finished_job
@@ -56,25 +58,26 @@ class TestSceneWorkerExecutionMatrix:
         assert ctx.node_status.get("node_1") == NodeExecutionStatus.SUCCESS
 
     def test_running_continuous_and_graph_step_steps_continuously(
-        self, worker: SceneWorker, populated_scene: SceneData
+        self, worker: BaseSceneWorker, populated_scene: SceneData
     ):
-        worker.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
-        worker.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.GRAPH_STEP))
-        worker.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING_CONTINUOUS))
+        assert worker.command_handler
+        worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
+        worker.command_handler.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.GRAPH_STEP))
+        worker.command_handler.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING_CONTINUOUS))
 
         thread = threading.Thread(target=worker.runtime_loop, daemon=True)
         thread.start()
 
         time.sleep(0.4)
-        worker.command_queue.put(PauseGraphCommand())
-        worker.command_queue.put(StopWorkerCommand())
+        worker.command_handler.command_queue.put(PauseGraphCommand())
+        worker.command_handler.command_queue.put(StopWorkerCommand())
         thread.join(timeout=2.0)
         assert worker.execution_manager.execution_state == SceneWorkerExecutionState.STOPPED
 
         events: list[IPCSceneWorkerEvent] = []
         try:
             while True:
-                events.append(worker.event_queue.get(timeout=0.03))
+                events.append(worker.command_handler.event_queue.get(timeout=0.03))
         except Empty:
             pass
 
@@ -90,25 +93,26 @@ class TestSceneWorkerExecutionMatrix:
         assert worker.execution_manager.execution_state == SceneWorkerExecutionState.STOPPED
 
     def test_running_continuous_and_full_graph_executes_full_graph_repeatedly(
-        self, worker: SceneWorker, populated_scene: SceneData
+        self, worker: BaseSceneWorker, populated_scene: SceneData
     ):
-        worker.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
-        worker.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.FULL_GRAPH))
-        worker.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING_CONTINUOUS))
+        assert worker.command_handler
+        worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
+        worker.command_handler.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.FULL_GRAPH))
+        worker.command_handler.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING_CONTINUOUS))
 
         thread = threading.Thread(target=worker.runtime_loop, daemon=True)
         thread.start()
 
         time.sleep(0.4)
-        worker.command_queue.put(PauseGraphCommand())
-        worker.command_queue.put(StopWorkerCommand())
+        worker.command_handler.command_queue.put(PauseGraphCommand())
+        worker.command_handler.command_queue.put(StopWorkerCommand())
         thread.join(timeout=2.0)
         assert worker.execution_manager.execution_state == SceneWorkerExecutionState.STOPPED
 
         events: list[IPCSceneWorkerEvent] = []
         try:
             while True:
-                events.append(worker.event_queue.get(timeout=0.03))
+                events.append(worker.command_handler.event_queue.get(timeout=0.03))
         except Empty:
             pass
 
@@ -120,16 +124,17 @@ class TestSceneWorkerExecutionMatrix:
         assert worker.execution_manager.execution_state == SceneWorkerExecutionState.STOPPED
 
     def test_graph_step_command_shortcut_behavior(
-        self, worker: SceneWorker, populated_scene: SceneData
+        self, worker: BaseSceneWorker, populated_scene: SceneData
     ):
-        worker.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
+        assert worker.command_handler
+        worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
         
-        worker.command_queue.put(GraphStepCommand())
+        worker.command_handler.command_queue.put(GraphStepCommand())
         thread = threading.Thread(target=worker.runtime_loop, daemon=True)
         thread.start()
         time.sleep(0.4)
 
-        worker.command_queue.put(StopWorkerCommand())
+        worker.command_handler.command_queue.put(StopWorkerCommand())
         thread.join(timeout=2.0)
 
         ctx = worker.execution_manager._active_step_job

@@ -1,9 +1,9 @@
 import pytest
 
+from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
 from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
 from nodeserver.engine.workers.protocols.scene_worker_protocol import AddNodeCommandResponse, SceneWorkerCommandResponse
 from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
-from nodeserver.engine.workers.scene_worker import SceneWorker
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def scene_data() -> SceneData:
     )
 
 class TestSceneWorkerCommandResponses:
-    def test_update_execution_state_cmd(self, worker: SceneWorker):
+    def test_update_execution_state_cmd(self, worker: BaseSceneWorker):
         cmd = UpdateExecutionStateCmd(
             state=SceneWorkerExecutionState.RUNNING_CONTINUOUS,
             target_iterations=10
@@ -31,7 +31,7 @@ class TestSceneWorkerCommandResponses:
         assert worker.execution_manager._target_iterations == 10
         assert worker.execution_manager._current_iteration == 0
 
-    def test_update_execution_mode_cmd(self, worker: SceneWorker):
+    def test_update_execution_mode_cmd(self, worker: BaseSceneWorker):
         cmd = UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.GRAPH_STEP)
 
         response = worker.dispatch(cmd)
@@ -40,7 +40,7 @@ class TestSceneWorkerCommandResponses:
         assert response.is_success
         assert worker.execution_manager.execution_mode == SceneWorkerExecutionMode.GRAPH_STEP
 
-    def test_update_target_nodes_without_context(self, worker: SceneWorker):
+    def test_update_target_nodes_without_context(self, worker: BaseSceneWorker):
         cmd = UpdateTargetNodesCmd(target_nodes=["node_1"])
 
         response = worker.dispatch(cmd)
@@ -48,7 +48,7 @@ class TestSceneWorkerCommandResponses:
         assert isinstance(response, SceneWorkerCommandResponse)
         assert not response.is_success
 
-    def test_update_target_nodes_non_existent_node(self, worker: SceneWorker, scene_data: SceneData):
+    def test_update_target_nodes_non_existent_node(self, worker: BaseSceneWorker, scene_data: SceneData):
         worker.execution_manager._load_scene_into_context(scene_data)
 
         cmd = UpdateTargetNodesCmd(target_nodes=["non_existent_node_id"])
@@ -57,7 +57,7 @@ class TestSceneWorkerCommandResponses:
         assert isinstance(response, SceneWorkerCommandResponse)
         assert not response.is_success
 
-    def test_update_target_nodes_empty_list_success(self, worker: SceneWorker, scene_data: SceneData):
+    def test_update_target_nodes_empty_list_success(self, worker: BaseSceneWorker, scene_data: SceneData):
         worker.execution_manager._load_scene_into_context(scene_data)
 
         cmd = UpdateTargetNodesCmd(target_nodes=[])
@@ -67,7 +67,7 @@ class TestSceneWorkerCommandResponses:
         assert response.is_success
         assert worker.execution_manager.target_nodes == []
 
-    def test_pause_graph_command(self, worker: SceneWorker):
+    def test_pause_graph_command(self, worker: BaseSceneWorker):
         worker.execution_manager.execution_state = SceneWorkerExecutionState.RUNNING
         cmd = PauseGraphCommand()
 
@@ -77,7 +77,7 @@ class TestSceneWorkerCommandResponses:
         assert response.is_success
         assert worker.execution_manager.execution_state == SceneWorkerExecutionState.STOPPED
 
-    def test_graph_step_command(self, worker: SceneWorker):
+    def test_graph_step_command(self, worker: BaseSceneWorker):
         cmd = GraphStepCommand()
 
         response = worker.dispatch(cmd)
@@ -87,7 +87,7 @@ class TestSceneWorkerCommandResponses:
         assert worker.execution_manager.execution_state == SceneWorkerExecutionState.RUNNING
         assert worker.execution_manager.execution_mode == SceneWorkerExecutionMode.GRAPH_STEP
 
-    def test_load_scene_command(self, worker: SceneWorker, scene_data: SceneData):
+    def test_load_scene_command(self, worker: BaseSceneWorker, scene_data: SceneData):
         cmd = LoadSceneDataCommand(scene_data=scene_data)
 
         response = worker.dispatch(cmd)
@@ -97,7 +97,7 @@ class TestSceneWorkerCommandResponses:
         assert worker.execution_manager.context is not None
         assert worker.execution_manager.context.scene is not None
 
-    def test_add_node_command_without_context(self, worker: SceneWorker):
+    def test_add_node_command_without_context(self, worker: BaseSceneWorker):
         cmd = AddNodeCommand(nodetype_fqn="math.Add", node_data=None)
 
         response = worker.dispatch(cmd)
@@ -105,7 +105,7 @@ class TestSceneWorkerCommandResponses:
         assert isinstance(response, AddNodeCommandResponse)
         assert not response.is_success
 
-    def test_add_node_command_unregistered_type(self, worker: SceneWorker, scene_data: SceneData):
+    def test_add_node_command_unregistered_type(self, worker: BaseSceneWorker, scene_data: SceneData):
         worker.execution_manager._load_scene_into_context(scene_data)
         cmd = AddNodeCommand(nodetype_fqn="unknown_package:NonExistentNode", node_data=None)
 
@@ -114,7 +114,7 @@ class TestSceneWorkerCommandResponses:
         assert isinstance(response, AddNodeCommandResponse)
         assert not response.is_success
 
-    def test_stop_worker_command(self, worker: SceneWorker):
+    def test_stop_worker_command(self, worker: BaseSceneWorker):
         cmd = StopWorkerCommand()
 
         response = worker.dispatch(cmd)
