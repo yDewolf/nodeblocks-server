@@ -24,16 +24,9 @@ class SceneHTTPRouter(BaseRouter):
 
     async def get_scene_perms(self, request: web.Request):
         scene_uid = request.match_info["uid"]
-        try:
-            data = await request.json()
-        except JSONDecodeError as e:
-            return web.json_response({"error": "invalid_json", "message": str(e)})
-        try:
-            parsed_data = GetScenePermsModel.model_validate(data)
-        except ValidationError as e:
-            return web.json_response({"error": "invalid_body", "message": str(e)})
 
-        perms = self.app.scene_provider.get_scene_permissions(scene_uid, parsed_data.user_id)
+        user = await self.app.auth_policy.authenticate(request)
+        perms = await self.app.scene_perm_policy.get_scene_permissions(user, scene_uid)
         return web.json_response({
             "user_perms": perms.value
         })
@@ -49,14 +42,12 @@ class SceneHTTPRouter(BaseRouter):
         except ValidationError as e:
             return web.json_response({"error": "invalid_body", "message": str(e)})
 
-        actor_perms = self.app.scene_provider.get_scene_permissions(
-            scene_uid, parsed_data.user_id
-        )
-
-        if not ScenePermission.ADMIN in actor_perms:
-            return web.HTTPUnauthorized(reason="User must have admin permissions to update another user's permission")
-
-        self.app.scene_provider.update_scene_permissions(
-            scene_uid, parsed_data.target_user_id, parsed_data.user_perms
-        )
-        return web.HTTPAccepted()
+        user = await self.app.auth_policy.authenticate(request)
+        try:
+            await self.app.scene_perm_policy.update_scene_permissions(
+                user, parsed_data.target_user_id, scene_uid, parsed_data.user_perms
+            )
+        except Exception as e:
+            return web.json_response({"error": "failed", "message": str(e)})
+    
+        return web.json_response()

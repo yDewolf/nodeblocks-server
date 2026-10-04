@@ -10,12 +10,15 @@ from aiohttp import web
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.engine.registry.type_registry import TypeSpecRegistry
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
-from nodeserver.server.protocols.policies.perm_policy_protocol import BasePermissionPolicy, DevPermissionPolicy
+from nodeserver.server.protocols.policies.auth_policy_protocol import IAuthPolicy
+from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeserver.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
 from nodeserver.server.providers.scene_provider import SceneProvider
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
+from nodeserver.server.web.policies.dev_policies import DevAuthPolicy, DevScenePermPolicy
+from nodeserver.server.web.policies.scene_permission_policy import FilePermissionPolicy
 from nodeserver.server.web.routing.plugin_http_router import PluginHTTPRouter
 from nodeserver.server.web.routing.scene_http_router import SceneHTTPRouter
 from nodeserver.server.web.routing.scene_ws_router import SceneWebsocketRouter
@@ -46,7 +49,8 @@ class NodeServer:
         self,
         plugins_folder: Path,
         scenes_folder: Path,
-        permission_policy: Optional[BasePermissionPolicy] = None,
+        permission_policy: Optional[IScenePermPolicy] = None,
+        auth_policy: Optional[IAuthPolicy] = None,
         scene_provider: Optional[IServerSceneProvider] = None,
         host: str = "127.0.0.1",
         port: int = 8080
@@ -65,7 +69,8 @@ class NodeServer:
             PluginSpecManager.new(),
             SceneSessionManager(),
             SceneWorkerManager(self.plugins_folder, self.scenes_folder),
-            permission_policy or DevPermissionPolicy(),
+            permission_policy or FilePermissionPolicy(self.app),
+            auth_policy or DevAuthPolicy(),
             scene_provider or SceneProvider(self.scenes_folder)
         )
         self.app._setup_plugins(self.plugins_folder)
