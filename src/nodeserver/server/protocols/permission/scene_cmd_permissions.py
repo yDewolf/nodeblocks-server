@@ -1,4 +1,4 @@
-from nodeserver.engine.workers.protocols.scene_worker_commands import *
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import *
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 
 

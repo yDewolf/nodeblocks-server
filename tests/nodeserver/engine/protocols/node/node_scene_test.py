@@ -3,9 +3,9 @@ import pytest
 from nodeserver.engine.exceptions.graph_exceptions import CyclicConnectionError, CyclicGraphError, DuplicateConnectionError, MaxConnectionReached
 from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.protocols.node_provider import BaseNodeProvider
-from nodeserver.engine.protocols.scene_provider import NoSceneDataProvider
-from nodeserver.engine.protocols.scene_state_provider import NoSceneStateProvider
+from nodeserver.engine.providers.base_node_providers import BaseNodeProvider
+from nodeserver.engine.providers.base_scene_providers import NoSceneDataProvider
+from nodeserver.engine.providers.base_scene_providers import NoSceneStateProvider
 from tests.nodeserver.engine.conftest import MockNode
 
 @pytest.fixture

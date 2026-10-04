@@ -4,9 +4,9 @@ from queue import Empty
 from pathlib import Path
 from typing import Any, Optional
 
-from nodeserver.engine.workers.protocols.scene_worker_commands import IPCSceneWorkerCommand, StopWorkerCommand
-from nodeserver.engine.workers.protocols.scene_worker_protocol import EvtWorkerReady, IPCSceneWorkerEvent
-from nodeserver.engine.workers.scene_worker import run_scene_worker_loop
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand, StopWorkerCommand
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import EvtWorkerReady, IPCSceneWorkerEvent
+from nodeserver.engine.workers.scene.scene_worker_setup import run_scene_worker_loop
 
 class SceneWorkerController:
     scene_id: str

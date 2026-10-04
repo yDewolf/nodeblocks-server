@@ -9,7 +9,7 @@ from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef, PluginDatatypeSpec
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
-from nodeserver.engine.protocols.node_provider import INodeProvider
+from nodeserver.engine.protocols.providers.node_provider import INodeProvider
 from nodeserver.protocols.manifest.base_manifest import split_fqn
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Optional
 
-from nodeserver.engine.protocols.ipc_protocol import IPCEvent
+from nodeserver.engine.workers.protocols.ipc_protocol import IPCEvent
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
 
 class IPCEngineEvent(IPCEvent):

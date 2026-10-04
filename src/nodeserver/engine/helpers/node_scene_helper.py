@@ -2,9 +2,9 @@ from typing import Optional
 
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.protocols.node_provider import INodeProvider
-from nodeserver.engine.protocols.scene_provider import ISceneDataProvider
-from nodeserver.engine.protocols.scene_state_provider import ISceneStateProvider
+from nodeserver.engine.protocols.providers.node_provider import INodeProvider
+from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvider
+from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 

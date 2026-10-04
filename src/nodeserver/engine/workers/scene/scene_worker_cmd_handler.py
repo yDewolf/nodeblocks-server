@@ -2,10 +2,10 @@ from functools import singledispatchmethod
 import logging
 from multiprocessing import Queue
 
-from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
-from nodeserver.engine.workers.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
-from nodeserver.engine.workers.protocols.scene_worker_protocol import AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse
-from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
+from nodeserver.engine.workers.scene.scene_worker import SceneWorker
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
@@ -14,11 +14,11 @@ logger = logging.getLogger("nds.worker")
 class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCSceneWorkerEvent, SceneWorkerCommandResponse]):
     command_queue: Queue[IPCSceneWorkerCommand]
     event_queue: Queue[IPCSceneWorkerEvent]
-    scene_worker: BaseSceneWorker
+    scene_worker: SceneWorker
 
     def __init__(
         self,
-        scene_worker: BaseSceneWorker,
+        scene_worker: SceneWorker,
         command_queue: Queue[IPCSceneWorkerCommand],
         event_queue: Queue[IPCSceneWorkerEvent],
     ) -> None:

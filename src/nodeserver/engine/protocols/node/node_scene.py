@@ -3,9 +3,9 @@ from typing import Optional
 from nodeserver.engine.protocols.graph.scene_graph import SceneGraph
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
-from nodeserver.engine.protocols.node_provider import INodeProvider
-from nodeserver.engine.protocols.scene_provider import ISceneDataProvider
-from nodeserver.engine.protocols.scene_state_provider import ISceneStateProvider
+from nodeserver.engine.protocols.providers.node_provider import INodeProvider
+from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvider
+from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData, SceneData
