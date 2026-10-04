@@ -3,7 +3,7 @@ import logging
 from multiprocessing import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionCommand, AddNodeCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionCommand, RemoveNodeCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionCommand, AddNodeCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionCommand, RemoveNodeCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodeCommand, UpdateTargetNodesCmd
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
@@ -153,7 +153,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
     @dispatch.register
     def _(self, cmd: RemoveNodeCommand) -> SceneWorkerCommandResponse:
         if not self.execution_manager.context:
-            return SceneWorkerCommandResponse.failed("No scene is loaded")
+            return AddNodeCommandResponse.failed("No active scene context loaded")
 
         successful = self.execution_manager.context.scene.delete_node(cmd.node_uid)
         if not successful:
@@ -161,6 +161,20 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
 
         return SceneWorkerCommandResponse.successful()
 
+    @dispatch.register
+    def _(self, cmd: UpdateNodeCommand) -> SceneWorkerCommandResponse:
+        if not self.execution_manager.context:
+            return SceneWorkerCommandResponse.failed("No active scene context loaded")
+        
+        node = self.execution_manager.context.scene.get_logic_node(cmd.node_uid)
+        if not node:
+            return SceneWorkerCommandResponse.failed("This node doesn't exist in the current scene")
+
+        node.update_parameters(cmd.data)
+        if cmd.position:
+            node.scene_data.position = cmd.position
+        
+        return SceneWorkerCommandResponse.successful()
 
     # Connection Commands:
 
@@ -181,7 +195,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
 
         except Exception as e:
             # TODO: better exception handling here
-            return AddConnCommandResponse.failed(mesasge=str(e))
+            return AddConnCommandResponse.failed(message=str(e))
 
     
     @dispatch.register

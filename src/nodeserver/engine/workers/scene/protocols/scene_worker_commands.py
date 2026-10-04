@@ -86,7 +86,6 @@ class UpdateNodeCommand(SceneWorkerNodeCommand):
 class RemoveNodeCommand(SceneWorkerNodeCommand):
     pass
 
-
 # Connection Commands:
 class SceneWorkerConnCommand(SceneUpdateCommand):
     conn_uid: str
