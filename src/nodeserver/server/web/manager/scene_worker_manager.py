@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from pathlib import Path
 import time
 from typing import Any, Callable, Coroutine, Optional
@@ -8,9 +9,10 @@ from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCS
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.workers.scene_worker_controller import SceneWorkerController
 
+logger = logging.getLogger("nds.server")
 
-EventCallback = Callable[[str, IPCSceneWorkerEvent], Coroutine[Any, Any, None]]
 CHECK_STATUS_INTERVAL = 10.0 # seconds
+EventCallback = Callable[[str, IPCSceneWorkerEvent], Coroutine[Any, Any, None]]
 class SceneWorkerManager:
     plugins_folder: Path
     scenes_folder: Path
@@ -58,19 +60,22 @@ class SceneWorkerManager:
 
     async def start(self):
         self._tasks.append(
-            asyncio.create_task(self._poll_worker_events())
+            asyncio.create_task(self._poll_worker_events(), name="worker_event_poller")
         )
         self._tasks.append(
-            asyncio.create_task(self._poll_worker_status())
+            asyncio.create_task(self._poll_worker_status(), name="worker_status_tracker")
         )
 
     async def stop(self):
+        logger.info("Finishing Scene Worker Manager...")
         for task in self._tasks:
             task.cancel()
             try:
                 await task
             except asyncio.CancelledError:
                 pass
+            
+            logger.info("Finished scene worker manager task: %s", task.get_name())
 
         for worker in self.active_workers.values():
             worker.stop()

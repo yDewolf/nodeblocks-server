@@ -9,15 +9,15 @@ from nodeserver.server.protocols.session_protocols import SceneSessionToken, Use
 from nodeserver.server.protocols.web.session_messages import CreateSessionTokenModel
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.handlers.scene_websocket_handler import SceneWebsocketHandler
+from nodeserver.server.web.routing.base_router import BaseRouter
 
 logger = logging.getLogger("nds.server")
 
-class SceneWebsocketRouter:
-    app: NodeServerWebApp
+class SceneWebsocketRouter(BaseRouter):
     scene_websocket_handler: SceneWebsocketHandler
 
     def __init__(self, app: NodeServerWebApp) -> None:
-        self.app = app
+        super().__init__(app)
         self.scene_websocket_handler = SceneWebsocketHandler(
             self.app.permission_policy, 
             self.app.scene_worker_manager, 

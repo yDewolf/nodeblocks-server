@@ -1,7 +1,7 @@
 from collections import deque
 import logging
 from pathlib import Path
-from typing import Optional, Type
+from typing import Optional, Self, Type
 
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import DuplicatePluginError, PluginCircularDependencyError, PluginMissingDependency, PluginNotLoadedError
@@ -35,6 +35,12 @@ class PluginSpecManager:
         self.registry = registry
         self.scanner = scanner or PluginScanner()
         self.reset_packages()
+
+    @classmethod
+    def new(cls) -> Self:
+        return cls(
+            registry=TypeSpecRegistry()
+        )
 
 
     def reset_packages(self):
@@ -164,6 +170,9 @@ class PluginSpecManager:
 
     def get_all_loaded_packages(self) -> dict[str, ManifestPackage]:
         return self._loaded_packages.copy()
+
+    def get_installed_plugins(self) -> dict[str, PluginManifest]:
+        return self._installed_plugins.copy()
 
     # Datatype Getters
 
