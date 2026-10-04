@@ -2,6 +2,8 @@ import logging
 from multiprocessing import Queue
 from pathlib import Path
 
+from nodeserver.engine.plugins.plugin_manager import PluginManager
+from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
 from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand
@@ -19,7 +21,16 @@ def run_scene_worker_loop(
 ):
     logger.info(f"Starting worker for scene {scene_id}")
 
-    scene_worker = SceneWorker(scene_id, plugins_folder, scenes_folder)
+
+    plugin_manager = PluginManager.new()
+    file_data_provider = FileSceneDataProvider(scene_id, plugin_manager, scenes_folder)
+    state_provider = FileSceneStateProvider(scene_id)
+
+    scene_worker = SceneWorker(
+        scene_id, plugins_folder, 
+        file_data_provider, state_provider,
+        plugin_manager=plugin_manager
+    )
     command_handler = SceneWorkerCommandHandler(scene_worker, command_queue, event_queue)
     scene_worker.set_command_handler(command_handler)
     
