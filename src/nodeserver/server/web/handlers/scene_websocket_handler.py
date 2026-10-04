@@ -2,7 +2,7 @@ import logging
 from aiohttp import web
 
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
-from nodeserver.server.protocols.policies.perm_policy_protocol import BasePermissionPolicy
+from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession, SceneSessionToken, UserSession
 from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
 from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
@@ -10,13 +10,13 @@ from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManage
 logger = logging.getLogger("nds.server") # TODO: talvez separar em nds.websocket
 
 class SceneWebsocketHandler:
-    permission_policy: BasePermissionPolicy
+    permission_policy: IScenePermPolicy
     scene_worker_manager: SceneWorkerManager
     session_manager: SceneSessionManager
 
     def __init__(
         self,
-        permission_policy: BasePermissionPolicy,
+        permission_policy: IScenePermPolicy,
         scene_worker_manager: SceneWorkerManager,
         session_manager: SceneSessionManager
     ) -> None:

@@ -19,7 +19,7 @@ class SceneWebsocketRouter(BaseRouter):
     def __init__(self, app: NodeServerWebApp) -> None:
         super().__init__(app)
         self.scene_websocket_handler = SceneWebsocketHandler(
-            self.app.permission_policy, 
+            self.app.scene_perm_policy, 
             self.app.scene_worker_manager, 
             self.app.session_manager
         )
