@@ -12,7 +12,8 @@ class IPCSceneWorkerCommand(IPCCommand):
 
 @dataclass(frozen=True)
 class StopWorkerCommand(IPCSceneWorkerCommand): pass
-
+@dataclass(frozen=True)
+class CheckExecutionState(IPCSceneWorkerCommand): pass
 
 # Mode Updates
 class RuntimeCommand(IPCSceneWorkerCommand):

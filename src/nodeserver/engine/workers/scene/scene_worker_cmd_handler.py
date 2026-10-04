@@ -3,8 +3,8 @@ import logging
 from multiprocessing import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionCommand, AddNodeCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionCommand, RemoveNodeCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodeCommand, UpdateTargetNodesCmd
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionCommand, AddNodeCommand, CheckExecutionState, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionCommand, RemoveNodeCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodeCommand, UpdateTargetNodesCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse, CheckExecutionStateResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -57,6 +57,13 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         self.scene_worker.active = False
         return SceneWorkerCommandResponse.successful()
 
+
+    @dispatch.register
+    def _(self, cmd: CheckExecutionState) -> CheckExecutionStateResponse:
+        return CheckExecutionStateResponse.successful(
+            state=self.execution_manager.execution_state,
+            mode=self.execution_manager.execution_mode
+        )
 
     # Mode Updates:
     @dispatch.register

@@ -3,6 +3,7 @@ from typing import Optional, Protocol
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommandResponse, IPCEvent
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 class ISceneWorker(Protocol):
@@ -34,10 +35,20 @@ class WorkerEngineEventWrapper(IPCSceneWorkerEvent):
 
 
 # Command Responses
-
 @dataclass(frozen=True)
 class SceneWorkerCommandResponse(IPCCommandResponse, IPCSceneWorkerEvent):
     pass
+
+
+# Check Responses
+@dataclass(frozen=True)
+class CheckExecutionStateResponse(SceneWorkerCommandResponse):
+    state: SceneWorkerExecutionState
+    mode: SceneWorkerExecutionMode
+
+    @classmethod
+    def successful(cls, state: SceneWorkerExecutionState, mode: SceneWorkerExecutionMode, request_id: str | None = None):
+        return super().successful("", request_id, state=state, mode=mode)
 
 # Scene Actions:
 
