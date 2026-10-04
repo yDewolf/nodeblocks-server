@@ -11,10 +11,13 @@ from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.engine.registry.type_registry import TypeSpecRegistry
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.policies.perm_policy_protocol import BasePermissionPolicy, DevPermissionPolicy
+from nodeserver.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
+from nodeserver.server.providers.scene_provider import SceneProvider
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
 from nodeserver.server.web.routing.plugin_http_router import PluginHTTPRouter
+from nodeserver.server.web.routing.scene_http_router import SceneHTTPRouter
 from nodeserver.server.web.routing.scene_ws_router import SceneWebsocketRouter
 
 
@@ -29,6 +32,7 @@ class NodeServer:
     # TODO: Talvez fazer uma lista de routers
     scene_ws_router: SceneWebsocketRouter
     plugin_http_router: PluginHTTPRouter
+    scene_http_router: SceneHTTPRouter
 
     plugins_folder: Path
     scenes_folder: Path
@@ -43,6 +47,7 @@ class NodeServer:
         plugins_folder: Path,
         scenes_folder: Path,
         permission_policy: Optional[BasePermissionPolicy] = None,
+        scene_provider: Optional[IServerSceneProvider] = None,
         host: str = "127.0.0.1",
         port: int = 8080
     ) -> None:
@@ -60,18 +65,21 @@ class NodeServer:
             PluginSpecManager.new(),
             SceneSessionManager(),
             SceneWorkerManager(self.plugins_folder, self.scenes_folder),
-            permission_policy or DevPermissionPolicy()
+            permission_policy or DevPermissionPolicy(),
+            scene_provider or SceneProvider(self.scenes_folder)
         )
         self.app._setup_plugins(self.plugins_folder)
 
         self.scene_ws_router = SceneWebsocketRouter(self.app)
         self.plugin_http_router = PluginHTTPRouter(self.app)
+        self.scene_http_router = SceneHTTPRouter(self.app)
         self._setup_routes()
 
 
     def _setup_routes(self):
-        self.scene_ws_router._setup_routes()
         self.plugin_http_router._setup_routes()
+        self.scene_http_router._setup_routes()
+        self.scene_ws_router._setup_routes()
 
     
     def run(self):

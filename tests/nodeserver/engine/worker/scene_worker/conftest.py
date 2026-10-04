@@ -6,8 +6,10 @@ from pathlib import Path
 
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
+from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
+from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.scene_worker_cmd_handler import SceneWorkerCommandHandler
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
@@ -81,7 +83,15 @@ def worker(tmp_path: Path, packages) -> SceneWorker:
     plugins_folder = tmp_path / "plugins"
     plugins_folder.mkdir(parents=True, exist_ok=True)
 
-    worker = SceneWorker("test_scene", plugins_folder, tmp_path / "scenes")
+    scene_id = "test_scene"
+
+    plugin_manager = PluginManager.new()
+    worker = SceneWorker(
+        scene_id, plugins_folder,
+        FileSceneDataProvider(scene_id, plugin_manager, tmp_path / "scenes"),
+        FileSceneStateProvider(scene_id),
+        plugin_manager=plugin_manager
+    )
     command_handler = SceneWorkerCommandHandler(worker, Queue(), Queue())
     worker.set_command_handler(command_handler)
 

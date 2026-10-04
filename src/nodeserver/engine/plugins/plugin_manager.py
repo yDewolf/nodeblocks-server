@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Self
 
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import  PluginMissingSourceHash
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
@@ -38,6 +38,12 @@ class PluginManager(PluginSpecManager):
         self.compiler = compiler or PluginCompiler(registry=registry)
         super().__init__(
             registry, scanner, plugin_version_manager
+        )
+
+    @classmethod
+    def new(cls) -> Self:
+        return cls(
+            registry=TypeRegistry()
         )
 
     def load_or_compile_plugins(self, source_folder: Path, save_to_disk: bool = True):

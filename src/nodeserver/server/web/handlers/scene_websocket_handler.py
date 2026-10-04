@@ -35,6 +35,7 @@ class SceneWebsocketHandler:
             self.session_manager.unregister_connection(session.id)
     
 
+    # TODO: use scene provider here
     async def handle_session_start(self, token_payload: SceneSessionToken, user: UserSession, request: web.Request) -> web.StreamResponse:
         permissions = await self.permission_policy.get_scene_permissions(user, token_payload.sid)
         if not (ScenePermission.READ in permissions):

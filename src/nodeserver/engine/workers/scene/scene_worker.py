@@ -10,8 +10,6 @@ from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.providers.node_provider import INodeProvider
 from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvider
 from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
-from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
-from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.engine.utils.benchmark_managers import BenchmarkTimer, FramePacer
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand
@@ -49,16 +47,18 @@ class SceneWorker(ISceneWorker):
         self,
         scene_id: str,
         plugins_folder: Path,
-        scenes_folder: Path,
+        scene_data_provider: ISceneDataProvider,
+        scene_state_provider: ISceneStateProvider,
+        plugin_manager: Optional[PluginManager] = None,
     ) -> None:
         self.scene_id = scene_id
 
         self.plugins_folder = plugins_folder
-        self.plugin_manager = PluginManager(registry=TypeRegistry())
+        self.plugin_manager = plugin_manager or PluginManager.new()
         self.node_provider = PluginNodeProvider(self.plugin_manager)
         
-        self.scene_state_provider = FileSceneStateProvider(self.scene_id)
-        self.scene_data_provider = FileSceneDataProvider(self.scene_id, self.plugin_manager, scenes_folder) 
+        self.scene_state_provider = scene_state_provider
+        self.scene_data_provider = scene_data_provider 
         
         self.execution_manager = SceneWorkerRunManager(self)
         self.active = True
