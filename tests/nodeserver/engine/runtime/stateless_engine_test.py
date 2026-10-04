@@ -3,10 +3,10 @@ import pytest
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.protocols.node_provider import BaseNodeProvider
+from nodeserver.engine.providers.base_node_providers import BaseNodeProvider
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
-from nodeserver.engine.protocols.scene_provider import NoSceneDataProvider
-from nodeserver.engine.protocols.scene_state_provider import NoSceneStateProvider
+from nodeserver.engine.providers.base_scene_providers import NoSceneDataProvider
+from nodeserver.engine.providers.base_scene_providers import NoSceneStateProvider
 from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus, EnclosedEngineContext
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper

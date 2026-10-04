@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, Protocol
-from nodeserver.engine.protocols.ipc_protocol import IPCCommandResponse, IPCEvent
+from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommandResponse, IPCEvent
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.protocols.manifest.node.node_graph import SceneData

@@ -7,7 +7,7 @@ from typing import Optional
 from aiohttp import WSMsgType, web
 from pydantic import ValidationError
 
-from nodeserver.engine.workers.protocols.scene_worker_protocol import IPCSceneWorkerEvent
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.policies.perm_policy_protocol import BasePermissionPolicy, DevPermissionPolicy
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession, SceneSessionToken, UserSession

@@ -5,9 +5,9 @@ from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, JobStatus
 from nodeserver.engine.runtime.job_graph_engine import JobStlGraphEngine
 from nodeserver.engine.runtime.job_runtime_context import JobExecutionContext, SceneSuperContext, StepJobExecutionContext
-from nodeserver.engine.workers.protocols.scene_worker_protocol import ISceneWorker, WorkerEngineEventWrapper
-from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionState
-from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import ISceneWorker, WorkerEngineEventWrapper
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 logger = logging.getLogger("nds.worker")

@@ -18,13 +18,3 @@ class ISceneDataProvider(Protocol):
     def save_scene_data(self, scene_data: SceneData):
         pass
 
-
-class NoSceneDataProvider(ISceneDataProvider):
-    def validate_scene_data(self, scene_data: SceneData) -> None:
-        raise NotImplementedError()
-
-    def load_scene_data(self, scene_uid: str) -> SceneData | None:
-        raise NotImplementedError()
-
-    def save_scene_data(self, scene_data: SceneData):
-        raise NotImplementedError()

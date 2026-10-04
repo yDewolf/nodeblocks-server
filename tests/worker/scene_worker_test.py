@@ -5,8 +5,8 @@ setup_logging(default_level=logging.DEBUG)
 
 from pathlib import Path
 
-from nodeserver.engine.workers.protocols.scene_worker_commands import UpdateExecutionStateCmd, LoadSceneDataCommand
-from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionState
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import UpdateExecutionStateCmd, LoadSceneDataCommand
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.server.workers.scene_worker_controller import SceneWorkerController
 

@@ -4,7 +4,7 @@ from typing import ClassVar, Any, Optional
 from pydantic import BaseModel, ConfigDict
 
 from nodeserver.engine.protocols.node.scene_states import LogicNodeState
-from nodeserver.engine.protocols.scene_state_provider import ISceneStateProvider
+from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
 from nodeserver.engine.protocols.spec_dataclasses import LogicNodeConfig
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData

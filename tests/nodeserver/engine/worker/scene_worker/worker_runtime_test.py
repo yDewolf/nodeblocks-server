@@ -4,17 +4,17 @@ import time
 
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_events import EvtNodeStatusChanged
-from nodeserver.engine.workers.base_scene_worker import BaseSceneWorker
-from nodeserver.engine.workers.protocols.scene_worker_commands import GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd
-from nodeserver.engine.workers.protocols.scene_worker_protocol import IPCSceneWorkerEvent, WorkerEngineEventWrapper
-from nodeserver.engine.workers.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
+from nodeserver.engine.workers.scene.scene_worker import SceneWorker
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, WorkerEngineEventWrapper
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 
 class TestSceneWorkerExecutionMatrix:
 
     def test_running_and_graph_step_executes_single_node_and_pauses(
-        self, worker: BaseSceneWorker, populated_scene: SceneData
+        self, worker: SceneWorker, populated_scene: SceneData
     ):
         assert worker.command_handler
         worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
@@ -36,7 +36,7 @@ class TestSceneWorkerExecutionMatrix:
         assert ctx.node_status.get("node_1") == NodeExecutionStatus.PENDING
 
     def test_running_and_full_graph_executes_all_nodes_and_pauses(
-        self, worker: BaseSceneWorker, populated_scene: SceneData
+        self, worker: SceneWorker, populated_scene: SceneData
     ):
         assert worker.command_handler
         worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
@@ -58,7 +58,7 @@ class TestSceneWorkerExecutionMatrix:
         assert ctx.node_status.get("node_1") == NodeExecutionStatus.SUCCESS
 
     def test_running_continuous_and_graph_step_steps_continuously(
-        self, worker: BaseSceneWorker, populated_scene: SceneData
+        self, worker: SceneWorker, populated_scene: SceneData
     ):
         assert worker.command_handler
         worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
@@ -93,7 +93,7 @@ class TestSceneWorkerExecutionMatrix:
         assert worker.execution_manager.execution_state == SceneWorkerExecutionState.STOPPED
 
     def test_running_continuous_and_full_graph_executes_full_graph_repeatedly(
-        self, worker: BaseSceneWorker, populated_scene: SceneData
+        self, worker: SceneWorker, populated_scene: SceneData
     ):
         assert worker.command_handler
         worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
@@ -124,7 +124,7 @@ class TestSceneWorkerExecutionMatrix:
         assert worker.execution_manager.execution_state == SceneWorkerExecutionState.STOPPED
 
     def test_graph_step_command_shortcut_behavior(
-        self, worker: BaseSceneWorker, populated_scene: SceneData
+        self, worker: SceneWorker, populated_scene: SceneData
     ):
         assert worker.command_handler
         worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))

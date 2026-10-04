@@ -2,8 +2,8 @@ import asyncio
 from pathlib import Path
 from typing import Any, Callable, Coroutine, Optional
 
-from nodeserver.engine.workers.protocols.scene_worker_commands import IPCSceneWorkerCommand, LoadSceneCommand
-from nodeserver.engine.workers.protocols.scene_worker_protocol import IPCSceneWorkerEvent
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand, LoadSceneCommand
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent
 from nodeserver.server.workers.scene_worker_controller import SceneWorkerController
 
 

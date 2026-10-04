@@ -26,16 +26,3 @@ class ISceneStateProvider(Protocol):
         """Returns a folder path that a node might use to save its data in"""
         pass
 
-
-class NoSceneStateProvider(ISceneStateProvider):
-    def _setup_folder(self):
-        raise NotImplementedError()
-
-    def _save_node_state(self, node_uid: str, node_state: LogicNodeState):
-        raise NotImplementedError()
-
-    def _load_node_state(self, node_uid: str) -> LogicNodeState | None:
-        raise NotImplementedError()
-
-    def get_node_state_folder(self, node_uid: str) -> Path:
-        raise NotImplementedError()

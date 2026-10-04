@@ -4,7 +4,7 @@ from multiprocessing import Queue
 from queue import Empty
 from typing import Generic, TypeVar, Union
 
-from nodeserver.engine.protocols.ipc_protocol import IPCCommand, IPCCommandResponse, IPCEvent
+from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommand, IPCCommandResponse, IPCEvent
 
 logger = logging.getLogger("nds.worker")
 
