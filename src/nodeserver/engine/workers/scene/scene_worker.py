@@ -67,6 +67,7 @@ class SceneWorker(ISceneWorker):
         self.command_handler = handler
 
     def setup_plugins(self):
+        logger.info("Setting up %s's scene worker plugins...", self.scene_id)
         PluginSubprocessHelper.setup_and_load_plugins(
             self.plugins_folder, self.plugin_manager
         )
