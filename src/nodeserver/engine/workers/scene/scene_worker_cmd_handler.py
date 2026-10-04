@@ -3,8 +3,8 @@ import logging
 from multiprocessing import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionCommand, AddNodeCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionCommand, RemoveNodeCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -49,11 +49,14 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
             message="Command was not implemented",
         )
 
+    # Commands:
+
     @dispatch.register
     def _(self, cmd: StopWorkerCommand):
         logger.info("Stopping scene worker...")
         self.scene_worker.active = False
         return SceneWorkerCommandResponse.successful()
+
 
     # Mode Updates:
     @dispatch.register
@@ -64,11 +67,13 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
             self.execution_manager._current_iteration = 0
         
         return SceneWorkerCommandResponse.successful()
+
     
     @dispatch.register
     def _(self, cmd: UpdateExecutionModeCmd):
         self.execution_manager.execution_mode = cmd.mode
         return SceneWorkerCommandResponse.successful()
+
 
     @dispatch.register
     def _(self, cmd: UpdateTargetNodesCmd):
@@ -83,6 +88,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         self.execution_manager.target_nodes = cmd.target_nodes
         return SceneWorkerCommandResponse.successful()
 
+
     # Runtime Control:
 
     @dispatch.register
@@ -96,7 +102,9 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         self.execution_manager.execution_mode = SceneWorkerExecutionMode.GRAPH_STEP
         return SceneWorkerCommandResponse.successful()
 
+
     # Scene Actions:
+
     @dispatch.register
     def _(self, cmd: ResetSceneCommand):
         self.execution_manager.reset_state()
@@ -114,6 +122,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
 
         return self.dispatch(LoadSceneDataCommand(scene_data=scene_data, request_id=cmd.request_id))
 
+
     @dispatch.register
     def _(self, cmd: LoadSceneDataCommand):
         try:
@@ -123,8 +132,11 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         
         return SceneWorkerCommandResponse.successful()
 
+
+    # Node Commands:
+
     @dispatch.register
-    def _(self, cmd: AddNodeCommand) -> SceneWorkerCommandResponse:
+    def _(self, cmd: AddNodeCommand) -> AddNodeCommandResponse:
         if not self.execution_manager.context:
             return AddNodeCommandResponse.failed("No active scene context loaded")
 
@@ -137,3 +149,48 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
 
         except Exception as e:
             return AddNodeCommandResponse.failed(message=str(e))
+
+    @dispatch.register
+    def _(self, cmd: RemoveNodeCommand) -> SceneWorkerCommandResponse:
+        if not self.execution_manager.context:
+            return SceneWorkerCommandResponse.failed("No scene is loaded")
+
+        successful = self.execution_manager.context.scene.delete_node(cmd.node_uid)
+        if not successful:
+            return SceneWorkerCommandResponse.failed("Failed to remove node")
+
+        return SceneWorkerCommandResponse.successful()
+
+
+    # Connection Commands:
+
+    @dispatch.register
+    def _(self, cmd: AddConnectionCommand) -> AddConnCommandResponse:
+        if not self.execution_manager.context:
+            return AddConnCommandResponse.failed("No active scene context loaded")
+
+        try:
+            conn_data = self.execution_manager.context.scene.graph.connect(
+                from_node_id=cmd.from_node_id, from_slot_id=cmd.from_slot_id,
+                to_node_id=cmd.to_node_id, to_slot_id=cmd.to_slot_id
+            )
+            if not conn_data:
+                return AddConnCommandResponse.failed("Couldn't connect the slots")
+            
+            return AddConnCommandResponse.successful(conn_data.uid)
+
+        except Exception as e:
+            # TODO: better exception handling here
+            return AddConnCommandResponse.failed(mesasge=str(e))
+
+    
+    @dispatch.register
+    def _(self, cmd: RemoveConnectionCommand) -> SceneWorkerCommandResponse:
+        if not self.execution_manager.context:
+            return SceneWorkerCommandResponse.failed("No active scene context loaded")
+        
+        successful = self.execution_manager.context.scene.graph.disconnect(cmd.conn_uid)
+        if not successful:
+            return SceneWorkerCommandResponse.failed("Failed to remove connection")
+
+        return SceneWorkerCommandResponse.successful()

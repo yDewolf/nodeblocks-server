@@ -28,14 +28,16 @@ class SceneGraph:
 
     # Node Manipulation
 
-    def remove_node(self, node_id: str):
+    def remove_node(self, node_id: str) -> bool:
         node = self._nodes.remove(node_id)
         if not node:
-            return
+            return False
 
         attached_connections = self._connections.get_by_node(node_id)
         for conn in attached_connections:
             self.disconnect(conn.uid)
+        
+        return True
 
     def add_node(self, node: NodeInstance):
         self._nodes.add(node)
@@ -69,15 +71,14 @@ class SceneGraph:
 
         return self.connect_slots(from_slot, to_slot, conn_uid)
 
-    def disconnect(self, conn_id: str):
+    def disconnect(self, conn_id: str) -> bool:
         conn = self._connections.remove(conn_id)
-        if not conn:
-            return
+        if not conn: return False
 
         from_node = self._nodes.get(conn.from_slot.node_id)
         to_node = self._nodes.get(conn.to_slot.node_id)
         if not from_node or not to_node:
-            return
+            return True
 
         from_slot = from_node.slots.get(conn.from_slot.slot_id)
         to_slot = to_node.slots.get(conn.to_slot.slot_id)
@@ -86,6 +87,8 @@ class SceneGraph:
         
         if to_slot:
             to_slot.connection_count = max(0, to_slot.connection_count - 1)
+
+        return True
 
     # Node and Connection Getters
 

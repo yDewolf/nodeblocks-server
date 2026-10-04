@@ -45,9 +45,10 @@ class NodeScene:
         
         return node_instance
 
-    def delete_node(self, node_id: str):
-        self.graph.remove_node(node_id)
+    def delete_node(self, node_id: str) -> bool:
+        removed: bool = self.graph.remove_node(node_id)
         self._logic_nodes.pop(node_id)
+        return removed
 
 
     # Getters
