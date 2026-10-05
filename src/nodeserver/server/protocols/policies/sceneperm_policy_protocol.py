@@ -6,6 +6,10 @@ from nodeserver.server.protocols.session_protocols import UserSession
 
 class IScenePermPolicy(ABC):
     @abstractmethod
+    async def get_default_scene_perms(self, scene_id: str) -> ScenePermission:
+        pass
+    
+    @abstractmethod
     async def get_scene_permissions(self, user: UserSession, scene_id: str) -> ScenePermission:
         pass
 
