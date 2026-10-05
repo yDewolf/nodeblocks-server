@@ -1,10 +1,6 @@
-from pydantic import BaseModel, ConfigDict, field_serializer
+from pydantic import BaseModel, ConfigDict
 
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
-
-
-class GetScenePermsModel(BaseModel):
-    user_id: str
 
 class UpdateScenePermsModel(BaseModel):
     model_config = ConfigDict(use_enum_values=True)

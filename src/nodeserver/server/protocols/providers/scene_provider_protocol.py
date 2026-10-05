@@ -14,7 +14,11 @@ class IServerSceneProvider(Protocol):
     @abstractmethod
     def get_listed_scenes(self) -> list[ListedScene]: 
         pass
-    
+
+    @abstractmethod
+    def get_default_scene_perms(self, scene_uid: str) -> ScenePermission:
+        pass
+
     @abstractmethod
     def get_scene_permissions(self, scene_uid: str, user_id: str) -> ScenePermission: 
         pass

@@ -1,9 +1,12 @@
 from json import JSONDecodeError
+from typing import Optional
 
 from aiohttp import web
 from pydantic import ValidationError
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
-from nodeserver.server.protocols.web.scene_messages import GetScenePermsModel, UpdateScenePermsModel
+from nodeserver.server.protocols.scene_list_protocol import ListedScene
+from nodeserver.server.protocols.session_protocols import UserSession
+from nodeserver.server.protocols.web.scene_messages import UpdateScenePermsModel
 from nodeserver.server.web.routing.base_router import BaseRouter
 
 
@@ -16,9 +19,28 @@ class SceneHTTPRouter(BaseRouter):
 
     async def get_scene_list(self, request: web.Request):
         listed_scenes = self.app.scene_provider.get_listed_scenes()
+        user: Optional[UserSession] = None
+        try:
+            user = await self.app.auth_policy.authenticate(request)
+        except Exception as e:
+            pass
+
+        filtered_scenes: list[ListedScene] = []
+        for scene in listed_scenes:
+            if user:
+                perms = await self.app.scene_perm_policy.get_scene_permissions(user, scene.uid)
+            else:
+                perms = await self.app.scene_perm_policy.get_default_scene_perms(scene.uid)
+            
+            if not ScenePermission.READ in perms:
+                continue
+
+            filtered_scenes.append(scene)
+
+
         return web.json_response({
             "scenes": [
-                scene.model_dump() for scene in listed_scenes
+                scene.model_dump() for scene in filtered_scenes
             ]
         })
 

@@ -9,6 +9,9 @@ from nodeserver.server.web.policies.base_policy import BaseWebPolicy
 
 
 class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
+    async def get_default_scene_perms(self, scene_id: str) -> ScenePermission:
+        return self.app.scene_provider.get_default_scene_perms(scene_id)
+
     async def get_scene_permissions(self, user: UserSession, scene_id: str) -> ScenePermission:
         return self.app.scene_provider.get_scene_permissions(
             scene_id, user.user_id
