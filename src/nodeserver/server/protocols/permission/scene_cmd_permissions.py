@@ -9,8 +9,8 @@ COMMAND_PERMISSIONS: dict[type[IPCSceneWorkerCommand], ScenePermission] = {
     AddNodesCommand: ScenePermission.EDIT,
     RemoveNodesCommand: ScenePermission.EDIT,
     UpdateNodesCommand: ScenePermission.EDIT,
-    AddConnectionCommand: ScenePermission.EDIT,
-    RemoveConnectionCommand: ScenePermission.EDIT,
+    AddConnectionsCommand: ScenePermission.EDIT,
+    RemoveConnectionsCommand: ScenePermission.EDIT,
     
     UpdateExecutionStateCmd: ScenePermission.EXECUTE,
     UpdateExecutionModeCmd: ScenePermission.EXECUTE,

@@ -39,7 +39,7 @@ class NodeScene:
     # para certificar de que os parâmetros vão ser definidos corretamente
     def create_node(self, node_fqn: str, node_scene_data: Optional[NodeSceneData] = None) -> NodeInstance:
         node_instance, logic_node = self.node_provider.create_node(node_fqn, node_scene_data)
-        
+
         self._logic_nodes[node_instance.uid] = logic_node
         self.graph.add_node(node_instance)
         
