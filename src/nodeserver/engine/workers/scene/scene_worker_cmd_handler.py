@@ -3,7 +3,7 @@ import logging
 from multiprocessing import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionCommand, AddNodesCommand, CheckExecutionState, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionCommand, RemoveNodesCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionsCommand, AddNodesCommand, CheckExecutionState, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionsCommand, RemoveNodesCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse, CheckExecutionStateResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
@@ -149,6 +149,10 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
 
         try:
             for cmd_data in cmd.nodes:
+                # FIXME: this might cause problems
+                if cmd_data.node_data and cmd_data.uid:
+                    cmd_data.node_data.uid = cmd_data.uid
+                
                 node_instance = self.execution_manager.context.scene.create_node(
                     node_fqn=cmd_data.nodetype_fqn,
                     node_scene_data=cmd_data.node_data
@@ -189,15 +193,17 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
     # Connection Commands:
 
     @dispatch.register
-    def _(self, cmd: AddConnectionCommand) -> AddConnCommandResponse:
+    def _(self, cmd: AddConnectionsCommand) -> AddConnCommandResponse:
         if not self.execution_manager.context:
             return AddConnCommandResponse.failed("No active scene context loaded")
 
         try:
-            conn_data = self.execution_manager.context.scene.graph.connect(
-                from_node_id=cmd.from_node_id, from_slot_id=cmd.from_slot_id,
-                to_node_id=cmd.to_node_id, to_slot_id=cmd.to_slot_id
-            )
+            for conn in cmd.connections:
+                conn_data = self.execution_manager.context.scene.graph.connect(
+                    conn_uid=conn.uid,
+                    from_node_id=conn.from_node_id, from_slot_id=conn.from_slot_id,
+                    to_node_id=conn.to_node_id, to_slot_id=conn.to_slot_id
+                )
             if not conn_data:
                 return AddConnCommandResponse.failed("Couldn't connect the slots")
             
@@ -209,12 +215,13 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
 
     
     @dispatch.register
-    def _(self, cmd: RemoveConnectionCommand) -> SceneWorkerCommandResponse:
+    def _(self, cmd: RemoveConnectionsCommand) -> SceneWorkerCommandResponse:
         if not self.execution_manager.context:
             return SceneWorkerCommandResponse.failed("No active scene context loaded")
-        
-        successful = self.execution_manager.context.scene.graph.disconnect(cmd.conn_uid)
-        if not successful:
-            return SceneWorkerCommandResponse.failed("Failed to remove connection")
+
+        for conn_uid in cmd.uids:
+            successful = self.execution_manager.context.scene.graph.disconnect(conn_uid)
+            if not successful:
+                return SceneWorkerCommandResponse.failed(f"Failed to remove connection: {conn_uid}")
 
         return SceneWorkerCommandResponse.successful()

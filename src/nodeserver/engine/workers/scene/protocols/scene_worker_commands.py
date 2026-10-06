@@ -66,6 +66,7 @@ class SceneGraphCommand(SceneUpdateCommand):
 
 @dataclass(frozen=True)
 class AddNodeData:
+    uid: Optional[str]
     nodetype_fqn: str
     node_data: Optional[NodeSceneData]
 
@@ -74,18 +75,41 @@ class AddNodesCommand(SceneGraphCommand):
     nodes: list[AddNodeData]
     
     @classmethod
-    def single(cls, nodetype_fqn: str, node_data: Optional[NodeSceneData]):
+    def single(cls, nodetype_fqn: str, node_data: Optional[NodeSceneData], uid: Optional[str] = None):
         return cls(nodes=[AddNodeData(
+            uid=uid,
             nodetype_fqn=nodetype_fqn,
             node_data=node_data
         )])
 
 @dataclass(frozen=True)
-class AddConnectionCommand(SceneGraphCommand):
+class AddConnData:
+    uid: Optional[str]
     from_node_id: str
     from_slot_id: str
     to_node_id: str
     to_slot_id: str
+
+@dataclass(frozen=True)
+class AddConnectionsCommand(SceneGraphCommand):
+    connections: list[AddConnData]
+
+    @classmethod
+    def single(
+        cls,
+        uid: str,
+        from_node_id: str,
+        from_slot_id: str,
+        to_node_id: str,
+        to_slot_id: str
+    ):
+        return cls(connections=[AddConnData(
+            uid=uid,
+            from_node_id=from_node_id,
+            from_slot_id=from_slot_id,
+            to_node_id=to_node_id,
+            to_slot_id=to_slot_id
+        )])
 
 # Node Commands
 
@@ -102,9 +126,6 @@ class RemoveNodesCommand(SceneGraphCommand):
     uids: list[str]
 
 # Connection Commands:
-class SceneWorkerConnCommand(SceneGraphCommand):
-    conn_uid: str
-
 @dataclass(frozen=True)
-class RemoveConnectionCommand(SceneWorkerConnCommand):
-    pass
+class RemoveConnectionsCommand(SceneGraphCommand):
+    uids: list[str]
