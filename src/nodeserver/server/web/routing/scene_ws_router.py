@@ -56,7 +56,9 @@ class SceneWebsocketRouter(BaseRouter):
         if not message:
             logger.error("No wrap implementation for engine event: %s", event)
             raise Exception(f"Unhandled worker event: {event}")
-        
+
+        # TODO: instead of sending a dummy successful message
+        # we should wait for the actual command result (resulting engine event)
         await self.app.session_manager.broadcast_to_scene(
             scene_id=scene_id, 
             message=message
