@@ -4,7 +4,7 @@ from pydantic import Field
 
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodeSceneData
 from nodeserver.server.protocols.web.base_socket_model import BaseSocketModel
-from nodeserver.server.protocols.web.messages.client_message_enums import GraphActionTypes
+from nodeserver.server.protocols.web.messages.client.client_message_enums import GraphActionTypes
 
 # -- Node Actions:
 

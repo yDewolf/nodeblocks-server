@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
+from nodeserver.server.protocols.web.messages.server.base_server_messages import BaseServerMessage
 
 logger = logging.getLogger("nds.server")
 
@@ -42,7 +43,7 @@ class SceneSessionManager:
     async def broadcast_to_scene(
         self,
         scene_id: str,
-        message: dict,
+        message: BaseServerMessage,
         exclude_conn_id: Optional[str] = None,
     ):
         sessions = self.get_scene_sessions(scene_id)
@@ -50,7 +51,7 @@ class SceneSessionManager:
             if exclude_conn_id and session.id == exclude_conn_id:
                 continue
             try:
-                await session.socket.send_json(message)
+                await session.socket.send_json(message.model_dump())
             
             except Exception as e:
                 logger.error(

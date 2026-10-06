@@ -1,11 +1,13 @@
 from json import JSONDecodeError
 import logging
+from typing import Optional
 
 from aiohttp import web
 from pydantic import ValidationError
 
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
+from nodeserver.server.protocols.web.messages.server.base_server_messages import BaseServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper
 from nodeserver.server.protocols.web.session_body_model import CreateSessionTokenModel
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.handlers.scene_websocket_handler import SceneWebsocketHandler
@@ -34,14 +36,30 @@ class SceneWebsocketRouter(BaseRouter):
     # also, some events should become other things like notifications 
     async def _on_worker_event(self, scene_id: str, event: IPCSceneWorkerEvent):
         logger.debug("Event from scene: '%s': %s", scene_id, event)
-        # TODO: pydantic model based websocket messages
+        message: Optional[BaseServerMessage] = None
+        if isinstance(event, SceneWorkerCommandResponse):
+            if not event.request_id: 
+                # FIXME: exception
+                raise Exception("Command response is missing request id (command id)")
+
+            message = BaseServerCmdResponse(
+                cmd_uid=event.request_id,
+                response_payload=event
+            )
+
+        elif isinstance(event, WorkerEngineEventWrapper):
+            message = ServerEngineEventWrapper(
+                event_type=event.engine_event.__class__.__name__, # FIXME: event name
+                data=event.engine_event
+            )
+
+        if not message:
+            logger.error("No wrap implementation for engine event: %s", event)
+            raise Exception(f"Unhandled worker event: {event}")
+        
         await self.app.session_manager.broadcast_to_scene(
             scene_id=scene_id, 
-            message={
-                "type": "SCENE_EVENT",
-                "event_type": event.__class__.__name__,
-                "data": event.__dict__
-            }
+            message=message
         )
     
 

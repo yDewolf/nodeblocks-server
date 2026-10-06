@@ -6,9 +6,9 @@ from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddC
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
-from nodeserver.server.protocols.web.messages.client_message_enums import GraphActionTypes
-from nodeserver.server.protocols.web.messages.graph.client_graph_commands import ClientGraphCommand, ConnGraphCommand, NodeGraphCommand
-from nodeserver.server.protocols.web.messages.graph.graph_action_payloads import ConnActionPayloadAdapter, ConnAddUpdateAction, ConnRemoveAction, NodeActionPayloadAdapter, NodeAddUpdateAction, NodeRemoveAction
+from nodeserver.server.protocols.web.messages.client.client_message_enums import GraphActionTypes
+from nodeserver.server.protocols.web.messages.client.graph.client_graph_commands import ClientGraphCommand, ConnGraphCommand, NodeGraphCommand
+from nodeserver.server.protocols.web.messages.client.graph.graph_action_payloads import ConnActionPayloadAdapter, ConnAddUpdateAction, ConnRemoveAction, NodeActionPayloadAdapter, NodeAddUpdateAction, NodeRemoveAction
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 
 # TODO: implement command stacks (multiple subcommands that map to a single request id)

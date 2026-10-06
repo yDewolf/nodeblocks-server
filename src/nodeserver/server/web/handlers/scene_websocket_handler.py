@@ -4,9 +4,10 @@ from aiohttp import WSMsgType, web
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession, SceneSessionToken, UserSession
-from nodeserver.server.protocols.web.messages.base_client_command import CommandGroups
+from nodeserver.server.protocols.web.messages.client.base_client_command import CommandGroups
 from nodeserver.server.web.dispatchers.scene_command_dispatcher import WSSceneCommandDispatcher
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
+from nodeserver.server.web.handlers.command.execution_command_handler import ExecutionCommandHandler
 from nodeserver.server.web.handlers.command.graph_command_handler import GraphCommandHandler
 from nodeserver.server.web.handlers.command.scene_command_handler import SceneCommandHandler
 from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
@@ -34,27 +35,29 @@ class SceneWebsocketHandler:
         self.dispatcher = WSSceneCommandDispatcher({
             CommandGroups.GRAPH: GraphCommandHandler(),
             CommandGroups.SCENE: SceneCommandHandler(),
-            CommandGroups.EXECUTION: SceneCommandHandler(),
+            CommandGroups.EXECUTION: ExecutionCommandHandler(),
             # TODO: notification command handler
         })
 
 
     async def socket_listen_loop(self, socket: web.WebSocketResponse, session: SceneConnectionSession):
-        try:
-            async for msg in socket:
-                if msg.type == WSMsgType.TEXT:
-                    logger.debug("Received message from %s", session.user.user_id)
-                    try:
-                        data = msg.json()
-                        await self.dispatcher.dispatch(data, session, self.scene_worker_manager)
-                    except ValueError as e:
-                        await socket.send_json({"error": "invalid_body", "message": str(e)})
-                
-                elif msg.type == WSMsgType.ERROR:
-                    logger.error("WebSocket connection closed with exception %s", socket.exception())
-                    break
-        finally:
-            self.session_manager.unregister_connection(session.id)
+        while True:
+            try:
+                async for msg in socket:
+                    if msg.type == WSMsgType.TEXT:
+                        logger.debug("Received message from %s", session.user.user_id)
+                        try:
+                            data = msg.json()
+                            await self.dispatcher.dispatch(data, session, self.scene_worker_manager)
+                        except ValueError as e:
+                            await socket.send_json({"error": "invalid_body", "message": str(e)})
+                    
+                    elif msg.type == WSMsgType.ERROR:
+                        logger.error("WebSocket connection closed with exception %s", socket.exception())
+                        break
+            finally:
+                self.session_manager.unregister_connection(session.id)
+
     
 
     async def handle_session_start(self, token_payload: SceneSessionToken, user: UserSession, request: web.Request) -> web.StreamResponse:

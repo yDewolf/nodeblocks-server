@@ -17,8 +17,11 @@ class SceneWorkerRunManager:
 
     engine: JobStlGraphEngine
     context: Optional[SceneSuperContext] = None
+
+    # FIXME simplify these:
     _active_step_job: Optional[StepJobExecutionContext] = None
     _last_finished_job: Optional[JobExecutionContext] = None
+    _last_started_job: Optional[JobExecutionContext] = None
 
     execution_state: SceneWorkerExecutionState
     execution_mode: SceneWorkerExecutionMode
@@ -100,10 +103,10 @@ class SceneWorkerRunManager:
         except Exception as e:
             logger.error("Failed to process scene graph")
             self.execution_state = SceneWorkerExecutionState.STOPPED
-            
+            job_id: str = self._last_started_job.job_id if self._last_started_job else "unknown_job" 
             self._active_step_job = None
             return WorkerEngineEventWrapper(
-                engine_event=EvtFailedProcess(error=str(e))
+                engine_event=EvtFailedProcess(job_id=job_id, error=str(e))
             )
 
     # Returns if the current iteration finished
@@ -112,6 +115,8 @@ class SceneWorkerRunManager:
 
         if self.execution_mode == SceneWorkerExecutionMode.FULL_GRAPH:
             job_context = JobExecutionContext(runtime=self.context, target_nodes=self.target_nodes)
+            self._last_started_job = job_context
+
             self.engine.execute_graph(job_context, reraise_exception=True)
             self._last_finished_job = job_context
             return True
@@ -119,6 +124,7 @@ class SceneWorkerRunManager:
         elif self.execution_mode == SceneWorkerExecutionMode.GRAPH_STEP:
             if self._active_step_job is None or self._active_step_job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.PARTIAL_SUCCESS):
                 self._active_step_job = StepJobExecutionContext(runtime=self.context, target_nodes=self.target_nodes)
+                self._last_started_job = self._active_step_job
             
             self.engine.execute_step(self._active_step_job, reraise_exception=True)
             if self._active_step_job.is_finished:

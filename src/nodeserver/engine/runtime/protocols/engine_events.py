@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from enum import StrEnum
 from typing import Optional
 
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCEvent
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
 
+@dataclass(frozen=True)
 class IPCEngineEvent(IPCEvent):
     job_id: str
 
