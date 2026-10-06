@@ -1,6 +1,6 @@
 from typing import Annotated, Union
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from nodeserver.server.protocols.web.base_socket_model import BaseSocketModel
 from nodeserver.server.protocols.web.messages.graph.client_graph_commands import SceneGraphCommandAdapter
@@ -13,6 +13,8 @@ ClientCommandAdapter = Annotated[
     ], # TODO: implementar notificações aqui
     Field(discriminator="cmd_group")
 ]
+
+ClientCommandPayloadAdapter = TypeAdapter(ClientCommandAdapter)
 
 class ClientMessageWrapper(BaseSocketModel):
     payload: ClientCommandAdapter

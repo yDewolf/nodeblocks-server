@@ -16,7 +16,7 @@ class ExecutionCommandHandler(BaseSceneCmdHandler):
     def required_permission(self) -> ScenePermission:
         return ScenePermission.EXECUTE
 
-    def handle(
+    async def handle(
         self, 
         message: BaseClientCommand, 
         session: SceneConnectionSession, 
@@ -39,14 +39,14 @@ class ExecutionCommandHandler(BaseSceneCmdHandler):
         # FIXME: better exception
         raise Exception(f"Command '{cmd.__class__.__name__}' is not implemented")
 
-    @generate_engine_cmd.dispatcher
+    @generate_engine_cmd.register
     def _(self, cmd: SetExecutionStateCommand):
         return UpdateExecutionStateCmd(
             request_id=cmd.cmd_uid,
             state=cmd.state, target_iterations=cmd.target_iterations
         )
 
-    @generate_engine_cmd.dispatcher
+    @generate_engine_cmd.register
     def _(self, cmd: SetExecutionModeCommand):
         return UpdateExecutionModeCmd(
             request_id=cmd.cmd_uid,

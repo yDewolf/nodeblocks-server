@@ -11,7 +11,7 @@ class SceneCommandHandler(BaseSceneCmdHandler):
     def required_permission(self) -> ScenePermission:
         return ScenePermission.ADMIN # TODO: talvez mudar essa permissão aqui
 
-    def handle(
+    async def handle(
         self, 
         message: BaseClientCommand, 
         session: SceneConnectionSession, 
