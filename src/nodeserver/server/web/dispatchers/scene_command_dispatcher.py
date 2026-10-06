@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from nodeserver.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
 from nodeserver.server.protocols.web.messages.base_client_command import CommandGroups
-from nodeserver.server.protocols.web.messages.client_message_wrapper import ClientMessageWrapper
+from nodeserver.server.protocols.web.messages.client_message_wrapper import ClientCommandAdapter, ClientCommandPayloadAdapter, ClientMessageWrapper
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 
 logger = logging.getLogger("nds.server")
@@ -18,13 +18,12 @@ class WSSceneCommandDispatcher(ABC):
 
     async def dispatch(
         self,
-        raw_json: dict,
+        raw_payload: dict,
         session: SceneConnectionSession,
         worker_manager: ISceneWorkerManager
     ):
         try:
-            wrapper = ClientMessageWrapper(payload=raw_json)
-            parsed_message = wrapper.payload
+            parsed_message = ClientCommandPayloadAdapter.validate_python(raw_payload)
         
         except ValidationError as e:
             logger.warning(f"Invalid websocket message from {session.user.user_id}: {e}")

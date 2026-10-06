@@ -18,7 +18,7 @@ class GraphCommandHandler(BaseSceneCmdHandler):
     def required_permission(self) -> ScenePermission:
         return ScenePermission.EDIT
 
-    def handle(
+    async def handle(
         self, 
         message: ClientGraphCommand, 
         session: SceneConnectionSession, 
@@ -43,7 +43,7 @@ class GraphCommandHandler(BaseSceneCmdHandler):
         raise Exception(f"Command not implemented for payload: {payload.__class__.__name__}")
     
 
-    @generate_node_cmd.dispatcher
+    @generate_node_cmd.register
     def _(self, payload: NodeAddUpdateAction, cmd_uid: str):
         if payload.action == GraphActionTypes.ADD:
             return AddNodesCommand(
@@ -68,7 +68,9 @@ class GraphCommandHandler(BaseSceneCmdHandler):
                 }
             )
 
-    @generate_node_cmd.dispatcher
+        raise Exception(f"Command not implemented for payload: {payload.__class__.__name__}")
+
+    @generate_node_cmd.register
     def _(self, payload: NodeRemoveAction, cmd_uid: str):
         return RemoveNodesCommand(
             request_id=cmd_uid,
@@ -82,7 +84,7 @@ class GraphCommandHandler(BaseSceneCmdHandler):
         # FIXME: exception
         raise Exception(f"Command not implemented for payload: {payload.__class__.__name__}")
 
-    @generate_conn_cmd.dispatcher
+    @generate_conn_cmd.register
     def _(self, payload: ConnAddUpdateAction, cmd_uid: str):
         if payload.action == GraphActionTypes.ADD:
             return AddConnectionsCommand(
@@ -100,8 +102,10 @@ class GraphCommandHandler(BaseSceneCmdHandler):
 
         if payload.action == GraphActionTypes.UPDATE:
             raise Exception("Can't update a connection (for now). You should remove it then add another")
+        
+        raise Exception(f"Command not implemented for payload: {payload.__class__.__name__}")
 
-    @generate_conn_cmd.dispatcher
+    @generate_conn_cmd.register
     def _(self, payload: ConnRemoveAction, cmd_uid: str):
         return RemoveConnectionsCommand(
             request_id=cmd_uid,
