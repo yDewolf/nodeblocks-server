@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
-from nodeserver.server.protocols.web.session_messages import CreateSessionTokenModel
+from nodeserver.server.protocols.web.session_body_model import CreateSessionTokenModel
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.handlers.scene_websocket_handler import SceneWebsocketHandler
 from nodeserver.server.web.routing.base_router import BaseRouter

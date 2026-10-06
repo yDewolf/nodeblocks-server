@@ -4,7 +4,6 @@ from nodeserver.server.protocols.permission.scene_permissions import ScenePermis
 
 class UpdateScenePermsModel(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
-
     user_id: str # Logged User
 
     target_user_id: str

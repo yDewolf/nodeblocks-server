@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.scene_list_protocol import ListedScene
 from nodeserver.server.protocols.session_protocols import UserSession
-from nodeserver.server.protocols.web.scene_messages import UpdateScenePermsModel
+from nodeserver.server.protocols.web.scene_body_model import UpdateScenePermsModel
 from nodeserver.server.web.routing.base_router import BaseRouter
 
 
