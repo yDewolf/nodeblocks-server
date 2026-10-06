@@ -16,11 +16,11 @@ class SceneWebsocketHandler:
 
     def __init__(
         self,
-        permission_policy: IScenePermPolicy,
+        scene_perm_policy: IScenePermPolicy,
         scene_worker_manager: SceneWorkerManager,
         session_manager: SceneSessionManager
     ) -> None:
-        self.permission_policy = permission_policy
+        self.permission_policy = scene_perm_policy
         self.scene_worker_manager = scene_worker_manager
         self.session_manager = session_manager
 
@@ -35,7 +35,6 @@ class SceneWebsocketHandler:
             self.session_manager.unregister_connection(session.id)
     
 
-    # TODO: use scene provider here
     async def handle_session_start(self, token_payload: SceneSessionToken, user: UserSession, request: web.Request) -> web.StreamResponse:
         permissions = await self.permission_policy.get_scene_permissions(user, token_payload.sid)
         if not (ScenePermission.READ in permissions):
