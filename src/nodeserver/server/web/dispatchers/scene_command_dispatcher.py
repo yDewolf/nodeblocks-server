@@ -5,8 +5,8 @@ from pydantic import ValidationError
 
 from nodeserver.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
-from nodeserver.server.protocols.web.messages.base_client_command import CommandGroups
-from nodeserver.server.protocols.web.messages.client_message_wrapper import ClientCommandAdapter, ClientCommandPayloadAdapter, ClientMessageWrapper
+from nodeserver.server.protocols.web.messages.client.base_client_command import CommandGroups
+from nodeserver.server.protocols.web.messages.client.client_message_wrapper import ClientCommandAdapter, ClientCommandPayloadAdapter, ClientMessageWrapper
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 
 logger = logging.getLogger("nds.server")

@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field
+from pydantic import Field
+from pydantic.dataclasses import dataclass
 from enum import StrEnum
 from typing import Optional, Self
 
@@ -22,7 +23,7 @@ class CmdStatus:
     def successful(cls, message: Optional[str] = None) -> Self:
         return cls(status=IPCCommandStatus.SUCCESSFUL, message=message)
 
-
+@dataclass(frozen=True)
 class IPCEvent:
     # Engine -> ...
     pass
@@ -30,7 +31,7 @@ class IPCEvent:
 @dataclass(frozen=True, kw_only=True)
 class IPCCommand:
     # Server -> Worker
-    request_id: str = field(default_factory=lambda : IDGenerator.generate_generic_id(length=6))
+    request_id: str = Field(default_factory=lambda : IDGenerator.generate_generic_id(length=6))
 
 @dataclass(frozen=True)
 class IPCCommandResponse(IPCEvent):

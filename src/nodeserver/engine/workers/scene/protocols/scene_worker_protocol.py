@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from typing import Optional, Protocol
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommandResponse, IPCEvent
 from nodeserver.engine.protocols.node.node_scene import NodeScene
@@ -17,7 +17,7 @@ class ISceneWorker(Protocol):
 
 
 # IPC
-
+@dataclass(frozen=True)
 class IPCSceneWorkerEvent(IPCEvent):
     pass
 

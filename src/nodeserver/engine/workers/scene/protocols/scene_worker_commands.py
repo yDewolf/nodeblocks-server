@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field
+from pydantic import Field
+from pydantic.dataclasses import dataclass
 from typing import Any, Optional
 
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommand
@@ -116,7 +117,7 @@ class AddConnectionsCommand(SceneGraphCommand):
 @dataclass(frozen=True)
 class UpdateNodeData:
     position: Optional[Vector2] = None
-    data: dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
 @dataclass(frozen=True)
 class UpdateNodesCommand(SceneGraphCommand):
     nodes: dict[str, UpdateNodeData]

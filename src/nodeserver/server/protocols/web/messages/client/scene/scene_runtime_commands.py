@@ -3,8 +3,8 @@ from typing import Annotated, Literal, Optional, Union
 from pydantic import Field
 
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
-from nodeserver.server.protocols.web.messages.base_client_command import BaseClientCommand, CommandGroups
-from nodeserver.server.protocols.web.messages.client_message_enums import ExecutionShortcuts, SceneExecutionCmdTypes
+from nodeserver.server.protocols.web.messages.client.base_client_command import BaseClientCommand, CommandGroups
+from nodeserver.server.protocols.web.messages.client.client_message_enums import ExecutionShortcuts, SceneExecutionCmdTypes
 
 
 class SceneExecutionCommand(BaseClientCommand):

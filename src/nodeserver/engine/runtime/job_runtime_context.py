@@ -59,11 +59,14 @@ class JobExecutionContext(EngineRuntimeContext):
 
     def update_node_status(self, node_uid: str, status: NodeExecutionStatus, result: Any = None):
         super().update_node_status(node_uid, status)
-        self.global_context.emit_event(EvtNodeStatusChanged(node_uid, status, node_result=result))
+        self.global_context.emit_event(EvtNodeStatusChanged(self.job_id, node_uid, status, node_result=result))
 
     def set_job_status(self, status: JobStatus):
+        is_same = self.status == status
         self.status = status
-        self.global_context.emit_event(EvtJobStatusChanged(status))
+        
+        if not is_same:
+            self.global_context.emit_event(EvtJobStatusChanged(self.job_id, status))
 
     @property
     def scene(self) -> NodeScene:
