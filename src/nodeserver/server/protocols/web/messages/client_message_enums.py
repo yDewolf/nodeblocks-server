@@ -23,6 +23,7 @@ class SceneExecutionCmdTypes(StrEnum):
     SET_EXECUTION_STATE = "set_execution_state"
     SET_EXECUTION_MODE = "set_execution_mode"
     EXECUTION_SHORTCUT = "execution_shortcut"
+    # TODO: update target nodes
 
 # TODO repensar o nome desse enum
 # 

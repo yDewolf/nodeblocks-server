@@ -9,5 +9,6 @@ class CommandGroups(StrEnum):
 
 
 class BaseClientCommand(BaseSocketModel):
+    cmd_uid: str # used for command responses
     cmd_group: CommandGroups
 

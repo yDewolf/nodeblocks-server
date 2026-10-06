@@ -131,6 +131,13 @@ class SceneWorkerManager(ISceneWorkerManager):
         worker_controller.stop()
         del self.worker_statuses[scene_id]
     
+
+    def get_scene_state(self, scene_id: str) -> SceneWorkerExecutionState:
+        if scene_id in self.worker_statuses:
+            state, _ = self.worker_statuses[scene_id]
+            return state
+        
+        return SceneWorkerExecutionState.STOPPED
     
     def get_scene_id_by_state(self, state: SceneWorkerExecutionState, min_elapsed_time: float = 0) -> list[tuple[str, float]]:
         workers: list[tuple[str, float]] = []
