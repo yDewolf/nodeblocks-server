@@ -12,11 +12,11 @@ class ClientGraphCommand(BaseClientCommand):
     type: ClientGraphCommandTypes
 
 
-class NodeGraphCommand(BaseClientCommand):
+class NodeGraphCommand(ClientGraphCommand):
     type: Literal[ClientGraphCommandTypes.NODE]
     payload: NodeActionPayloadAdapter
 
-class ConnGraphCommand(BaseClientCommand):
+class ConnGraphCommand(ClientGraphCommand):
     type: Literal[ClientGraphCommandTypes.CONN]
     payload: ConnActionPayloadAdapter
 

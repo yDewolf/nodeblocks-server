@@ -3,7 +3,7 @@ import logging
 from multiprocessing import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionCommand, AddNodeCommand, CheckExecutionState, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionCommand, RemoveNodeCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodeCommand, UpdateTargetNodesCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionCommand, AddNodesCommand, CheckExecutionState, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionCommand, RemoveNodesCommand, ResetSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse, CheckExecutionStateResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
@@ -143,43 +143,46 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
     # Node Commands:
 
     @dispatch.register
-    def _(self, cmd: AddNodeCommand) -> AddNodeCommandResponse:
+    def _(self, cmd: AddNodesCommand) -> AddNodeCommandResponse:
         if not self.execution_manager.context:
             return AddNodeCommandResponse.failed("No active scene context loaded")
 
         try:
-            node_instance = self.execution_manager.context.scene.create_node(
-                node_fqn=cmd.nodetype_fqn,
-                node_scene_data=cmd.node_data
-            )
+            for cmd_data in cmd.nodes:
+                node_instance = self.execution_manager.context.scene.create_node(
+                    node_fqn=cmd_data.nodetype_fqn,
+                    node_scene_data=cmd_data.node_data
+                )
             return AddNodeCommandResponse.successful(node_uid=node_instance.uid)
 
         except Exception as e:
             return AddNodeCommandResponse.failed(message=str(e))
 
     @dispatch.register
-    def _(self, cmd: RemoveNodeCommand) -> SceneWorkerCommandResponse:
+    def _(self, cmd: RemoveNodesCommand) -> SceneWorkerCommandResponse:
         if not self.execution_manager.context:
             return AddNodeCommandResponse.failed("No active scene context loaded")
 
-        successful = self.execution_manager.context.scene.delete_node(cmd.node_uid)
-        if not successful:
-            return SceneWorkerCommandResponse.failed("Failed to remove node")
+        for uid in cmd.uids:
+            successful = self.execution_manager.context.scene.delete_node(uid)
+            if not successful:
+                return SceneWorkerCommandResponse.failed(f"Failed to remove node: {uid}")
 
         return SceneWorkerCommandResponse.successful()
 
     @dispatch.register
-    def _(self, cmd: UpdateNodeCommand) -> SceneWorkerCommandResponse:
+    def _(self, cmd: UpdateNodesCommand) -> SceneWorkerCommandResponse:
         if not self.execution_manager.context:
             return SceneWorkerCommandResponse.failed("No active scene context loaded")
         
-        node = self.execution_manager.context.scene.get_logic_node(cmd.node_uid)
-        if not node:
-            return SceneWorkerCommandResponse.failed("This node doesn't exist in the current scene")
+        for uid, cmd_data in cmd.nodes.items():
+            node = self.execution_manager.context.scene.get_logic_node(uid)
+            if not node:
+                return SceneWorkerCommandResponse.failed("This node doesn't exist in the current scene")
 
-        node.update_parameters(cmd.data)
-        if cmd.position:
-            node.scene_data.position = cmd.position
+            node.update_parameters(cmd_data.data)
+            if cmd_data.position:
+                node.scene_data.position = cmd_data.position
         
         return SceneWorkerCommandResponse.successful()
 
