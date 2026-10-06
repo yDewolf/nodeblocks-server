@@ -55,8 +55,14 @@ class SceneWebsocketHandler:
                     elif msg.type == WSMsgType.ERROR:
                         logger.error("WebSocket connection closed with exception %s", socket.exception())
                         break
-            finally:
-                self.session_manager.unregister_connection(session.id)
+            except RuntimeError:
+                break
+
+            except Exception as e:
+                logger.warning("Websocket Exception: %s", e)
+            
+        logger.warning("Closed Scene Connection: %s - Scene id: %s", session.id, session.scene_id)
+        self.session_manager.unregister_connection(session.id)
 
     
 
