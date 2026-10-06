@@ -60,14 +60,28 @@ class LoadSceneDataCommand(SceneUpdateCommand):
     scene_data: SceneData
 
 
+class SceneGraphCommand(SceneUpdateCommand):
+    pass
+
+
 @dataclass(frozen=True)
-class AddNodeCommand(SceneUpdateCommand):
+class AddNodeData:
     nodetype_fqn: str
     node_data: Optional[NodeSceneData]
 
+@dataclass(frozen=True)
+class AddNodesCommand(SceneGraphCommand):
+    nodes: list[AddNodeData]
+    
+    @classmethod
+    def single(cls, nodetype_fqn: str, node_data: Optional[NodeSceneData]):
+        return cls(nodes=[AddNodeData(
+            nodetype_fqn=nodetype_fqn,
+            node_data=node_data
+        )])
 
 @dataclass(frozen=True)
-class AddConnectionCommand(SceneUpdateCommand):
+class AddConnectionCommand(SceneGraphCommand):
     from_node_id: str
     from_slot_id: str
     to_node_id: str
@@ -75,20 +89,20 @@ class AddConnectionCommand(SceneUpdateCommand):
 
 # Node Commands
 
-class SceneWorkerNodeCommand(SceneUpdateCommand):
-    node_uid: str
-
 @dataclass(frozen=True)
-class UpdateNodeCommand(SceneWorkerNodeCommand):
+class UpdateNodeData:
     position: Optional[Vector2] = None
     data: dict[str, Any] = field(default_factory=dict)
+@dataclass(frozen=True)
+class UpdateNodesCommand(SceneGraphCommand):
+    nodes: dict[str, UpdateNodeData]
 
 @dataclass(frozen=True)
-class RemoveNodeCommand(SceneWorkerNodeCommand):
-    pass
+class RemoveNodesCommand(SceneGraphCommand):
+    uids: list[str]
 
 # Connection Commands:
-class SceneWorkerConnCommand(SceneUpdateCommand):
+class SceneWorkerConnCommand(SceneGraphCommand):
     conn_uid: str
 
 @dataclass(frozen=True)

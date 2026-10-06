@@ -1,7 +1,7 @@
 import pytest
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddNodeCommand, GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddNodesCommand, GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddNodeCommandResponse, SceneWorkerCommandResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -98,7 +98,7 @@ class TestSceneWorkerCommandResponses:
         assert worker.execution_manager.context.scene is not None
 
     def test_add_node_command_without_context(self, worker: SceneWorker):
-        cmd = AddNodeCommand(nodetype_fqn="math.Add", node_data=None)
+        cmd = AddNodesCommand.single(nodetype_fqn="math.Add", node_data=None)
 
         response = worker.dispatch(cmd)
 
@@ -107,7 +107,7 @@ class TestSceneWorkerCommandResponses:
 
     def test_add_node_command_unregistered_type(self, worker: SceneWorker, scene_data: SceneData):
         worker.execution_manager._load_scene_into_context(scene_data)
-        cmd = AddNodeCommand(nodetype_fqn="unknown_package:NonExistentNode", node_data=None)
+        cmd = AddNodesCommand.single(nodetype_fqn="unknown_package:NonExistentNode", node_data=None)
 
         response = worker.dispatch(cmd)
 
