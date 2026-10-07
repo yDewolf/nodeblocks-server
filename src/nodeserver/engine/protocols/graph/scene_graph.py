@@ -63,8 +63,8 @@ class SceneGraph:
         if not from_node or not to_node:
             return None
 
-        from_slot = from_node.slots.get(from_slot_id)
-        to_slot = to_node.slots.get(to_slot_id)
+        from_slot = from_node.get_slot(from_slot_id)
+        to_slot = to_node.get_slot(to_slot_id)
 
         if not from_slot or not to_slot:
             return None
@@ -80,8 +80,8 @@ class SceneGraph:
         if not from_node or not to_node:
             return True
 
-        from_slot = from_node.slots.get(conn.from_slot.slot_id)
-        to_slot = to_node.slots.get(conn.to_slot.slot_id)
+        from_slot = from_node.get_slot(conn.from_slot.slot_id)
+        to_slot = to_node.get_slot(conn.to_slot.slot_id)
         if from_slot:
             from_slot.connection_count = max(0, from_slot.connection_count - 1)
         
