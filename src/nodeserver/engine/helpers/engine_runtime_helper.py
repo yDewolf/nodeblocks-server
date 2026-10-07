@@ -9,7 +9,7 @@ class EngineRuntimeHelper:
     @staticmethod
     def _compute_node_hash(node_instance: NodeInstance, context: EngineRuntimeContext) -> str:
         state_dict = {
-            "type_id": node_instance.type_id,
+            "fqn": node_instance.fqn,
             "params": node_instance.node_data.data,
             "input_hashes": {}
         }

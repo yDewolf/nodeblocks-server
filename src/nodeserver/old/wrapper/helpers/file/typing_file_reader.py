@@ -64,7 +64,7 @@ class TypeFileReader:
         
         has_missing_constructor = False
         for node_data in scene_data.nodes.values():
-            if not self.node_constructors.__contains__(node_data.type_id):
+            if not self.node_constructors.__contains__(node_data.nodetype_fqn):
                 has_missing_constructor = True
                 break
         

@@ -51,7 +51,7 @@ class GraphCommandHandler(BaseSceneCmdHandler):
                 nodes=[
                     AddNodeData(
                         uid=uid,
-                        nodetype_fqn=scene_data.type_id,
+                        nodetype_fqn=scene_data.nodetype_fqn,
                         node_data=scene_data
                     ) for uid, scene_data in payload.action_data.items()
                 ]
