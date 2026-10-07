@@ -64,7 +64,7 @@ class NodeScene:
             self.graph.reset_graph()
 
         for node_id, data in scene_data.nodes.items():
-            self.create_node(data.type_id, data)
+            self.create_node(data.nodetype_fqn, data)
 
         for conn_id, data in scene_data.connections.items():
             self.graph.add_connection(data)

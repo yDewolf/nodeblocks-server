@@ -44,7 +44,7 @@ class NodeInstance:
     def uid(self): return self.node_data.uid
 
     @property
-    def type_id(self): return self.node_data.type_id
+    def fqn(self): return self.node_data.nodetype_fqn
 
 
     def add_slot(self, slot_id: str, spec: NodeSlotSpec) -> SlotInstance:

@@ -67,8 +67,8 @@ def populated_scene(packages):
             package_id: "0.0.0"
         },
         nodes={
-            "node_0": NodeSceneData(uid="node_0", type_id=f"{package_id}:node"),
-            "node_1": NodeSceneData(uid="node_1", type_id=f"{package_id}:node"),
+            "node_0": NodeSceneData(uid="node_0", nodetype_fqn=f"{package_id}:node"),
+            "node_1": NodeSceneData(uid="node_1", nodetype_fqn=f"{package_id}:node"),
         },
         connections={
             "conn_0": ConnectionSceneData.from_ids(

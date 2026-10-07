@@ -37,7 +37,7 @@ class TestNodeInstanceFactory:
         assert isinstance(logic_instance, BaseNode)
         assert isinstance(logic_instance, MockNode)
 
-        assert node_instance.node_data.type_id == fqn
+        assert node_instance.node_data.nodetype_fqn == fqn
         assert node_instance.node_data.uid is not None
         assert node_instance.node_data.data["title"] == "Default Title"
         assert node_instance.node_data.data["factor"] == 1.0
@@ -59,7 +59,7 @@ class TestNodeInstanceFactory:
 
         custom_scene_data = NodeSceneData(
             uid="node_custom_123",
-            type_id=fqn,
+            nodetype_fqn=fqn,
             data={"title": "Custom Title", "factor": 5.5, "unregistered_param": None},
         )
 

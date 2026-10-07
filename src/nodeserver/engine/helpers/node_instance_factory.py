@@ -22,7 +22,7 @@ class NodeInstanceFactory:
 
         node_scene_data = node_scene_data or NodeSceneData(
             uid=IDGenerator.generate_node_id(), 
-            type_id=spec.fqn
+            nodetype_fqn=spec.fqn
         )
 
         if not node_scene_data.data:

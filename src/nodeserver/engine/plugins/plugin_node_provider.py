@@ -26,7 +26,7 @@ class PluginNodeProvider(INodeProvider):
 
     def extract_node_dependencies(self, node: BaseNode) -> set[ManifestPackage]:
         dependencies: set[ManifestPackage] = set()
-        spec = self.plugin_manager.registry.get_node_type_spec(node.scene_data.type_id)
+        spec = self.plugin_manager.registry.get_node_type_spec(node.scene_data.nodetype_fqn)
         
         package = self.plugin_manager.ensure_package(spec.namespace)
         dependencies.add(package)

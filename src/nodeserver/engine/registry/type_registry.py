@@ -6,10 +6,10 @@ from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 from nodeserver.protocols.manifest.node.node_manifest import NodeTypeSpec
 
 class TypeSpecRegistry:
-    # type_id -> spec
+    # fqn -> spec
     node_types: dict[str, NodeTypeSpec]
 
-    # type_id -> spec
+    # fqn -> spec
     data_types: dict[str, DataTypeSpec]
 
     def __init__(self):
