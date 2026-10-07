@@ -6,6 +6,7 @@ import time
 from typing import Optional
 
 from aiohttp import web
+import aiohttp_cors
 
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.engine.registry.type_registry import TypeSpecRegistry
@@ -22,6 +23,7 @@ from nodeserver.server.web.policies.scene_permission_policy import FilePermissio
 from nodeserver.server.web.routing.plugin_http_router import PluginHTTPRouter
 from nodeserver.server.web.routing.scene_http_router import SceneHTTPRouter
 from nodeserver.server.web.routing.scene_ws_router import SceneWebsocketRouter
+from nodeserver.server.web.routing.user_http_router import UserHTTPRouter
 
 
 logger = logging.getLogger("nds.server")
@@ -36,6 +38,7 @@ class NodeServer:
     scene_ws_router: SceneWebsocketRouter
     plugin_http_router: PluginHTTPRouter
     scene_http_router: SceneHTTPRouter
+    user_http_router: UserHTTPRouter
 
     plugins_folder: Path
     scenes_folder: Path
@@ -78,13 +81,29 @@ class NodeServer:
         self.scene_ws_router = SceneWebsocketRouter(self.app)
         self.plugin_http_router = PluginHTTPRouter(self.app)
         self.scene_http_router = SceneHTTPRouter(self.app)
+        self.user_http_router = UserHTTPRouter(self.app)
         self._setup_routes()
+        self._setup_cors()
 
 
     def _setup_routes(self):
+        self.user_http_router._setup_routes()
         self.plugin_http_router._setup_routes()
         self.scene_http_router._setup_routes()
         self.scene_ws_router._setup_routes()
+
+    # FIXME: arrumar o cors pra ser menos abrangente e talvez específico de cada rota
+    def _setup_cors(self):
+        cors = aiohttp_cors.setup(self.app, defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+                allow_methods="*",
+            )
+        })
+        for route in list(self.app.router.routes()):
+            cors.add(route)
 
     
     def run(self):
