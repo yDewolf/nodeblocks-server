@@ -4,6 +4,8 @@ from typing import Any, Literal
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent
 from nodeserver.server.protocols.web.base_socket_model import BaseSocketModel
+from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommandResponse
+from nodeserver.server.protocols.web.messages.server.server_cmd_responses import CmdResponsePayloadAdapter
 
 class ServerMessageTypes(StrEnum):
     SCENE_EVENT = "scene_event"
@@ -23,4 +25,4 @@ class ServerEngineEventWrapper(BaseServerMessage):
 class BaseServerCmdResponse(BaseServerMessage):
     type: Literal[ServerMessageTypes.COMMAND_RESPONSE] = ServerMessageTypes.COMMAND_RESPONSE
     cmd_uid: str
-    response_payload: Any # TODO: create models for this
+    response_payload: CmdResponsePayloadAdapter # TODO: create models for this

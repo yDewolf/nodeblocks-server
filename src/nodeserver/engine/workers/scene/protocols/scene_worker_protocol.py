@@ -58,17 +58,25 @@ class SceneActionResult(SceneWorkerCommandResponse): pass
 # Add Commands
 @dataclass(frozen=True)
 class AddNodeCommandResponse(SceneActionResult):
-    node_uid: Optional[str]
+    nodes: Optional[list[str]]
 
     @classmethod
-    def successful(cls, node_uid: str, message: str | None = None, request_id: str | None = None):
-        return super().successful(message, request_id, node_uid=node_uid)
+    def successful(cls, added_nodes: list[str], message: str | None = None, request_id: str | None = None):
+        return super().successful(message, request_id, nodes=added_nodes)
 
     @classmethod
     def failed(cls, message: str | None = None, request_id: str | None = None):
-        return super().failed(message, request_id, node_uid=None)
+        return super().failed(message, request_id, nodes=None)
 
 @dataclass(frozen=True)
 class AddConnCommandResponse(SceneActionResult):
-    conn_uid: str
+    conns: Optional[list[str]]
 
+    
+    @classmethod
+    def successful(cls, conns: list[str], message: str | None = None, request_id: str | None = None):
+        return super().successful(message, request_id, conns=conns)
+
+    @classmethod
+    def failed(cls, message: str | None = None, request_id: str | None = None):
+        return super().failed(message, request_id, conns=None)
