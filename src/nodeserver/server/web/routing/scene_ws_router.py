@@ -1,15 +1,12 @@
-from json import JSONDecodeError
 import logging
 from typing import Optional
 
 from aiohttp import web
-from pydantic import ValidationError
 
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
 from nodeserver.server.protocols.web.messages.server.base_server_messages import BaseServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper
 from nodeserver.server.protocols.web.messages.server.cmd_response_map import get_response_payload
-from nodeserver.server.protocols.web.session_body_model import CreateSessionTokenModel
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.handlers.scene_websocket_handler import SceneWebsocketHandler
 from nodeserver.server.web.routing.base_router import BaseRouter
@@ -30,7 +27,6 @@ class SceneWebsocketRouter(BaseRouter):
 
     # Called by NodeServer
     def _setup_routes(self):
-        self.app.router.add_post("/api/scene/{scene_id}", self.handle_scene_token_create)
         self.app.router.add_get("/ws/scene", self.handle_scene_websocket)
 
     # TODO: intercept engine events and select which should be sent to the client
@@ -78,23 +74,3 @@ class SceneWebsocketRouter(BaseRouter):
 
         user = UserSession(user_id=token_payload.sub)
         return await self.scene_websocket_handler.handle_session_start(token_payload, user, request)
-
-
-    async def handle_scene_token_create(self, request: web.Request):
-        try:
-            data = await request.json()
-        except JSONDecodeError as e:
-            return web.json_response({"error": "invalid_json", "message": str(e)})
-
-        try:
-            model_data = CreateSessionTokenModel.model_validate(data)
-        except ValidationError as e:
-            return web.json_response({"error": "invalid_body", "message": str(e)})
-        
-        scene_id = request.match_info["scene_id"]
-        token = SceneSessionToken.new(model_data.user_id, scene_id)
-        return web.json_response({
-            "token": str(token),
-            "scene_id": scene_id
-        })
-

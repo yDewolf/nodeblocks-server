@@ -1,8 +1,8 @@
 from abc import abstractmethod
-from typing import Protocol
+from typing import Optional, Protocol
 
 from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvider
-from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
+from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.scene_list_protocol import ListedScene
 
@@ -27,3 +27,11 @@ class IServerSceneProvider(Protocol):
     def update_scene_permissions(self, scene_uid: str, user_id: str, permissions: ScenePermission):
         pass
 
+
+    @abstractmethod
+    def load_scene_data(self, scene_uid: str) -> Optional[SceneData]:
+        pass
+
+    @abstractmethod
+    def save_scene_data(self, scene_data: SceneData):
+        pass
