@@ -24,7 +24,7 @@ class FileSceneDataProvider(ISceneDataProvider):
         self.scene_uid = scene_uid
         self.plugin_manager = plugin_manager
         self.scenes_root = scenes_root
-        self.scene_file_reader = SceneFileReader(plugin_manager, scenes_root)
+        self.scene_file_reader = SceneFileReader(scenes_root)
 
     # ISceneDataProvider
 
@@ -37,7 +37,13 @@ class FileSceneDataProvider(ISceneDataProvider):
         self.scene_file_reader.save_to_folder(scene_data, self.get_scene_folder(scene_data.uid))
     
     def load_scene_data(self, scene_uid: str) -> Optional[SceneData]:
-        return self.scene_file_reader.load_from_folder(self.get_scene_folder(scene_uid))
+        scene_data = self.scene_file_reader.load_from_folder(self.get_scene_folder(scene_uid))
+        if not scene_data: return None
+
+        self.plugin_manager.version_manager.validate_scene_dependencies(
+            scene_data.uid, scene_data.dependencies, self.plugin_manager.get_all_loaded_packages()
+        )
+        return scene_data
 
     # Utils
 

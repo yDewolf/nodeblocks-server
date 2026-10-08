@@ -2,6 +2,7 @@ from typing import Any
 
 from aiohttp import web
 
+from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeserver.server.protocols.session_protocols import UserSession
@@ -29,3 +30,16 @@ class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
         self.app.scene_provider.update_scene_permissions(
             scene_id, target_user, perms
         )
+
+    async def get_scene_data(self, user: UserSession, scene_id: str) -> SceneData:
+        perms = self.app.scene_provider.get_scene_permissions(scene_id, user.user_id)
+        if not ScenePermission.VIEWER in perms:
+            # TODO: better exceptions I guess
+            raise Exception("User must have view permission to get scene data")
+        
+        scene_data = self.app.scene_provider.load_scene_data(scene_id)
+        if not scene_data:
+            # TODO: better exceptions I guess
+            raise Exception(f"Couldn't find scene data for scene: {scene_id}")
+
+        return scene_data

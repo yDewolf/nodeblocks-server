@@ -11,9 +11,11 @@ logger = logging.getLogger("nds.server")
 
 class SceneProvider(IServerSceneProvider):
     scenes_root: Path
+    file_reader: SceneFileReader
 
     def __init__(self, scenes_root: Path) -> None:
         self.scenes_root = scenes_root
+        self.file_reader = SceneFileReader(scenes_root)
     
     def setup(self):
         pass
@@ -55,6 +57,14 @@ class SceneProvider(IServerSceneProvider):
 
         perms_file = self.get_scene_perms_file(scene_uid)
         perms_file.write_text(perms.model_dump_json())
+
+    # Loader stuff:
+
+    def load_scene_data(self, scene_uid: str) -> SceneData | None:
+        return self.file_reader.load_from_folder(self.scenes_root / scene_uid)
+
+    def save_scene_data(self, scene_data: SceneData):
+        return self.file_reader.save_to_folder(scene_data, self.scenes_root / scene_data.uid)
 
     # Utils:
     
