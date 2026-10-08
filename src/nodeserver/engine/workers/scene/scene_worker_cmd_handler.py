@@ -148,6 +148,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
             return AddNodeCommandResponse.failed("No active scene context loaded")
 
         try:
+            added_nodes: list[str] = []
             for cmd_data in cmd.nodes:
                 # FIXME: this might cause problems
                 if cmd_data.node_data and cmd_data.uid:
@@ -157,7 +158,9 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
                     node_fqn=cmd_data.nodetype_fqn,
                     node_scene_data=cmd_data.node_data
                 )
-            return AddNodeCommandResponse.successful(node_uid=node_instance.uid)
+                added_nodes.append(node_instance.uid)
+            
+            return AddNodeCommandResponse.successful(added_nodes)
 
         except Exception as e:
             return AddNodeCommandResponse.failed(message=str(e))
@@ -167,6 +170,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         if not self.execution_manager.context:
             return AddNodeCommandResponse.failed("No active scene context loaded")
 
+        # TODO: return each node status
         for uid in cmd.uids:
             successful = self.execution_manager.context.scene.delete_node(uid)
             if not successful:
@@ -179,6 +183,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         if not self.execution_manager.context:
             return SceneWorkerCommandResponse.failed("No active scene context loaded")
         
+        # TODO: Return each node status
         for uid, cmd_data in cmd.nodes.items():
             node = self.execution_manager.context.scene.get_logic_node(uid)
             if not node:
@@ -198,16 +203,20 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
             return AddConnCommandResponse.failed("No active scene context loaded")
 
         try:
+            added_conns: list[str] = []
             for conn in cmd.connections:
                 conn_data = self.execution_manager.context.scene.graph.connect(
                     conn_uid=conn.uid,
                     from_node_id=conn.from_node_id, from_slot_id=conn.from_slot_id,
                     to_node_id=conn.to_node_id, to_slot_id=conn.to_slot_id
                 )
-            if not conn_data:
+                if conn_data:
+                    added_conns.append(conn_data.uid)
+            
+            if added_conns == []:            
                 return AddConnCommandResponse.failed("Couldn't connect the slots")
             
-            return AddConnCommandResponse.successful(conn_data.uid)
+            return AddConnCommandResponse.successful(added_conns)
 
         except Exception as e:
             # TODO: better exception handling here
@@ -219,6 +228,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         if not self.execution_manager.context:
             return SceneWorkerCommandResponse.failed("No active scene context loaded")
 
+        # TODO: return each conn status
         for conn_uid in cmd.uids:
             successful = self.execution_manager.context.scene.graph.disconnect(conn_uid)
             if not successful:
