@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
 from nodeserver.server.protocols.web.messages.server.base_server_messages import BaseServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper
+from nodeserver.server.protocols.web.messages.server.cmd_response_map import get_response_payload
 from nodeserver.server.protocols.web.session_body_model import CreateSessionTokenModel
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.handlers.scene_websocket_handler import SceneWebsocketHandler
@@ -44,7 +45,7 @@ class SceneWebsocketRouter(BaseRouter):
 
             message = BaseServerCmdResponse(
                 cmd_uid=event.request_id,
-                response_payload=event
+                response_payload=get_response_payload(event)
             )
 
         elif isinstance(event, WorkerEngineEventWrapper):

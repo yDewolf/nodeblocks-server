@@ -23,7 +23,7 @@ def get_required_permission(command: type[IPCSceneWorkerCommand]) -> ScenePermis
     if not permission:
         super_type = type(command.__class__)
         if issubclass(super_type, IPCSceneWorkerCommand):
-            get_required_permission(super_type)
+            permission = get_required_permission(super_type)
 
     if not permission:
         raise Exception("Couldn't find permission for command: ", command)
