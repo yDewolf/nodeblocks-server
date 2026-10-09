@@ -70,26 +70,32 @@ class NodeScene:
             self.graph.add_connection(data)
 
     
-    def save_state(self):
+    def as_scene_data(self) -> SceneData:
         self.state_provider._setup_folder()
         node_dependencies: set[ManifestPackage] = set()
         for uid, node in self._logic_nodes.items():
-            logic_state = node.save_state(self.state_provider)
-            if logic_state:
-                self.state_provider._save_node_state(uid, logic_state)
-
             node_dependencies.union(
                 self.node_provider.extract_node_dependencies(node)
             )
         
-        self.scene_data_provider.save_scene_data(SceneData(
+        return SceneData(
             uid=self.scene_id,
             dependencies={
                 manifest.package_id: manifest.version for manifest in node_dependencies
             },
             nodes=self.graph.get_nodes_as_data(),
             connections=self.graph.get_conns_as_data()
-        ))
+        )
+    
+    def save_state(self):
+        for uid, node in self._logic_nodes.items():
+            logic_state = node.save_state(self.state_provider)
+            if logic_state:
+                self.state_provider._save_node_state(uid, logic_state)
+
+        self.scene_data_provider.save_scene_data(
+            self.as_scene_data()
+        )
     
     def load_saved_state(self):
         scene_data = self.scene_data_provider.load_scene_data(self.scene_id)

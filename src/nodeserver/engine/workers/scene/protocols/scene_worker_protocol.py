@@ -25,6 +25,7 @@ class IPCSceneWorkerEvent(IPCEvent):
 class EvtWorkerReady(IPCSceneWorkerEvent):
     pass
 
+
 @dataclass(frozen=True)
 class EvtFatalError(IPCSceneWorkerEvent):
     error: str
@@ -49,6 +50,19 @@ class CheckExecutionStateResponse(SceneWorkerCommandResponse):
     @classmethod
     def successful(cls, state: SceneWorkerExecutionState, mode: SceneWorkerExecutionMode, request_id: str | None = None):
         return super().successful("", request_id, state=state, mode=mode)
+
+
+@dataclass(frozen=True)
+class GetSceneDataResponse(SceneWorkerCommandResponse):
+    scene_data: Optional[SceneData]
+
+    @classmethod
+    def successful(cls, scene_data: SceneData, message: str | None = None, request_id: str | None = None):
+        return super().successful(message, request_id, scene_data=scene_data)
+
+    @classmethod
+    def failed(cls, message: str | None = None, request_id: str | None = None):
+        return super().failed(message, request_id, scene_data=None)
 
 # Scene Actions:
 
