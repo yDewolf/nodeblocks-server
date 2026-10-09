@@ -16,6 +16,10 @@ class StopWorkerCommand(IPCSceneWorkerCommand): pass
 @dataclass(frozen=True)
 class CheckExecutionState(IPCSceneWorkerCommand): pass
 
+@dataclass(frozen=True)
+class GetSceneDataCommand(IPCSceneWorkerCommand):
+    pass
+
 # Mode Updates
 class RuntimeCommand(IPCSceneWorkerCommand):
     pass
@@ -59,6 +63,12 @@ class LoadSceneCommand(SceneUpdateCommand):
 @dataclass(frozen=True)
 class LoadSceneDataCommand(SceneUpdateCommand):
     scene_data: SceneData
+
+
+@dataclass(frozen=True)
+class SaveSceneCommand(SceneUpdateCommand):
+    pass
+
 
 
 class SceneGraphCommand(SceneUpdateCommand):

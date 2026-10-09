@@ -16,6 +16,8 @@ class ClientGraphCommandTypes(StrEnum):
 
 class ClientSceneCommandTypes(StrEnum):
     LOAD_SCENE = "load_scene"
+    SAVE_SCENE = "save_scene"
+    GET_SCENE_DATA = "get_scene_data"
 
 # -- Scene Execution 
 

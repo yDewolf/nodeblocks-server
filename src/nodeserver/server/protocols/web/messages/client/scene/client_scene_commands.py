@@ -17,8 +17,14 @@ class ClientLoadSceneCmd(ClientSceneCommand):
     type: Literal[ClientSceneCommandTypes.LOAD_SCENE]
     payload: SceneData
 
+class ClientSaveSceneCmd(ClientSceneCommand):
+    type: Literal[ClientSceneCommandTypes.SAVE_SCENE]
+
+class ClientGetSceneDataCmd(ClientSceneCommand):
+    type: Literal[ClientSceneCommandTypes.GET_SCENE_DATA]
+
 
 SceneCommandAdapter = Annotated[
-    Union[ClientLoadSceneCmd, ],
+    Union[ClientLoadSceneCmd, ClientSaveSceneCmd, ClientGetSceneDataCmd],
     Field(discriminator="type")
 ]
