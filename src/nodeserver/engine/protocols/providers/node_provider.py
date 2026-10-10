@@ -16,7 +16,8 @@ class INodeProvider(Protocol):
     ) -> tuple[NodeInstance, BaseNode]:
         pass
 
+    # package_id, version
     @abstractmethod
-    def extract_node_dependencies(self, node: BaseNode) -> set[ManifestPackage]:
+    def extract_node_dependencies(self, node: BaseNode) -> set[tuple[str, str]]:
         pass
         

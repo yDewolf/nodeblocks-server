@@ -68,7 +68,9 @@ class LoadSceneDataCommand(SceneUpdateCommand):
 @dataclass(frozen=True)
 class SaveSceneCommand(SceneUpdateCommand):
     pass
-
+@dataclass(frozen=True)
+class SetSceneAutosaveCommand(SceneUpdateCommand):
+    autosave: bool
 
 
 class SceneGraphCommand(SceneUpdateCommand):

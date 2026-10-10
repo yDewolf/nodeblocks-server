@@ -72,7 +72,7 @@ class NodeScene:
     
     def as_scene_data(self) -> SceneData:
         self.state_provider._setup_folder()
-        node_dependencies: set[ManifestPackage] = set()
+        node_dependencies: set[tuple[str, str]] = set()
         for uid, node in self._logic_nodes.items():
             node_dependencies.union(
                 self.node_provider.extract_node_dependencies(node)
@@ -81,7 +81,7 @@ class NodeScene:
         return SceneData(
             uid=self.scene_id,
             dependencies={
-                manifest.package_id: manifest.version for manifest in node_dependencies
+                package_id: version for (package_id, version) in node_dependencies
             },
             nodes=self.graph.get_nodes_as_data(),
             connections=self.graph.get_conns_as_data()

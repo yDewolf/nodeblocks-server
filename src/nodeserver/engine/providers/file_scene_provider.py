@@ -52,10 +52,10 @@ class FileSceneDataProvider(ISceneDataProvider):
 
 class FileSceneStateProvider(ISceneStateProvider):
     _scene_uid: str
+    scenes_root: Path
     
-    def __int__(self, scene_uid: str, scenes_root: Path):
+    def __int__(self, scene_uid: str):
         self._scene_uid = scene_uid
-        self.scenes_root = scenes_root
 
     def _setup_folder(self):
         self.get_scene_folder().mkdir(exist_ok=True)
