@@ -22,15 +22,6 @@ class IPCSceneWorkerEvent(IPCEvent):
     pass
 
 @dataclass(frozen=True)
-class EvtWorkerReady(IPCSceneWorkerEvent):
-    pass
-
-
-@dataclass(frozen=True)
-class EvtFatalError(IPCSceneWorkerEvent):
-    error: str
-
-@dataclass(frozen=True)
 class WorkerEngineEventWrapper(IPCSceneWorkerEvent):
     engine_event: IPCEngineEvent
 
