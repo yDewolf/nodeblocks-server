@@ -5,6 +5,7 @@ from typing import Optional, Union, overload
 from nodeserver.engine.exceptions.graph_exceptions import ConnectionValidationError, CyclicConnectionError, DuplicateConnectionError, IncompatibleSlotsError, MaxConnectionReached
 from nodeserver.engine.protocols.node.node_instance import SlotInstance
 from nodeserver.engine.registry.type_registry import TypeRegistry
+from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodePathData, NodePathSerialized
 
 SlotPairKey = tuple[str, str, str, str]
@@ -27,12 +28,17 @@ class ConnectionManager:
         self._connections = {}
         self._endpoints_index = set()
 
+    def _clear(self):
+        self._connections.clear()
+        self._endpoints_index.clear()
+
     
-    def connect_slots(self, from_slot: SlotInstance, to_slot: SlotInstance) -> Optional[ConnectionSceneData]:
+    def connect_slots(self, from_slot: SlotInstance, to_slot: SlotInstance, conn_uid: Optional[str] = None) -> Optional[ConnectionSceneData]:
         self.validate_connection(from_slot, to_slot)
         conn = ConnectionSceneData(
             from_slot=NodePathData(node_id=from_slot.node_id, slot_id=from_slot.slot_id),
-            to_slot=NodePathData(node_id=to_slot.node_id, slot_id=to_slot.slot_id)
+            to_slot=NodePathData(node_id=to_slot.node_id, slot_id=to_slot.slot_id),
+            uid=conn_uid or IDGenerator.generate_conn_id()
         )
 
         self.add(conn)
@@ -74,6 +80,9 @@ class ConnectionManager:
 
     def all(self) -> dict[str, ConnectionSceneData]:
         return self._connections
+
+    def get_as_data(self) -> dict[str, ConnectionSceneData]:
+        return self.all()
 
     # Validation
 
@@ -162,3 +171,11 @@ class ConnectionManager:
                 downstream.add(conn.to_slot.node_id)
         
         return downstream
+
+    def _get_upstream_node_ids(self, node_id: str) -> set[str]:
+        upstream: set[str] = set()
+        for conn in self._connections.values():
+            if conn.to_slot.node_id == node_id:
+                upstream.add(conn.to_slot.node_id)
+        
+        return upstream

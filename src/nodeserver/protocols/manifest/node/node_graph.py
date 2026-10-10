@@ -41,7 +41,7 @@ NodePathSerialized = Annotated[
 
 class NodeSceneData(BaseModel):
     uid: str = Field(default_factory=IDGenerator.generate_node_id)
-    type_id: str # Fully qualified name
+    nodetype_fqn: str
     position: Vector2 = Field(default=Vector2())
     data: Dict[str, Any] = Field(default_factory=dict) # node parameters
 
@@ -66,11 +66,11 @@ class ConnectionSceneData(BaseModel):
 class SceneData(BaseModel):
     uid: str = Field(default_factory=IDGenerator.generate_generic_id)
 
-    # TODO: mudar isso daqui para uma lista de dependências que essa cena tem
-    # sobre os Plugins
-    package_id: str = "unknown" # FIXME on client: node_types_id -> package_id
-    # TODO: implement a better version control system
-    package_version: int = 0 # FIXME on client: node_types_version -> package_version 
+    dependencies: dict[str, str] # package_id -> version
+
+    # FIXME on client: dependencies
+    # remove node_types_id
+    # remove node_types_version
 
     nodes: Dict[str, NodeSceneData] = Field(default_factory=dict)
     connections: Dict[str, ConnectionSceneData] = Field(default_factory=dict)

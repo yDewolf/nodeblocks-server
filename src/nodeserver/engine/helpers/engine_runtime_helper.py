@@ -2,15 +2,14 @@ import hashlib
 import json
 
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
-from nodeserver.engine.runtime.runtime_context import GraphRunContext, NodeExecutionStatus
-
+from nodeserver.engine.runtime.protocols.engine_context import EngineRuntimeContext
+from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
 
 class EngineRuntimeHelper:
-
     @staticmethod
-    def _compute_node_hash(node_instance: NodeInstance, context: GraphRunContext) -> str:
+    def _compute_node_hash(node_instance: NodeInstance, context: EngineRuntimeContext) -> str:
         state_dict = {
-            "type_id": node_instance.type_id,
+            "fqn": node_instance.fqn,
             "params": node_instance.node_data.data,
             "input_hashes": {}
         }
@@ -44,7 +43,7 @@ class EngineRuntimeHelper:
         return hashlib.sha256(state_json.encode('utf-8')).hexdigest()
 
     @staticmethod
-    def _has_failed_dependencies(node_uid: str, context: GraphRunContext) -> bool:
+    def _has_failed_dependencies(node_uid: str, context: EngineRuntimeContext) -> bool:
         incoming_connections = [
             conn for conn in context.scene.graph.all_connections.values() 
             if conn.to_slot.node_id == node_uid
@@ -56,4 +55,3 @@ class EngineRuntimeHelper:
             if source_status in (NodeExecutionStatus.FAILED, NodeExecutionStatus.SKIPPED):
                 return True
         return False
-    

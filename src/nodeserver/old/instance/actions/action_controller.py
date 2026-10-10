@@ -2,8 +2,8 @@
 from queue import Queue
 from typing import Literal
 
-from nodeserver.server.web.websocket_messages import ClientMessageWrapper
-from nodeserver.server.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes
+from nodeserver.server.old.web.websocket_messages import ClientMessageWrapper
+from nodeserver.server.old.web.websocket_protocol import ClientMessages, EditorActionStatus, SceneActionTypes
 
 class Action:
     uid: str

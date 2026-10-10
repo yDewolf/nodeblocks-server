@@ -4,11 +4,14 @@ from packaging.version import Version, parse as parse_version
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.exceptions.plugin.plugin_exceptions import IncompatibleApiVersionPluginError, IncompatibleEngineVersionPluginError
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import IncompatibleVersionPluginError, PluginMissingDependency
+from nodeserver.engine.exceptions.plugin.scene_plugin_exceptions import IncompatibleSceneDependency, MissingSceneDependency
 from nodeserver.engine.helpers.version_helper import VersionHelper
 from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 
 import logging
+
+from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 logger = logging.getLogger("nds.plugins")
 
 class PluginVersionManager:
@@ -82,13 +85,36 @@ class PluginVersionManager:
 
             installed_manifest = installed_plugins[dep_package_id]
             installed_version = parse_version(installed_manifest.plugin_version)
-
             specifier = VersionHelper._parse_semver_specifier(version_req)
-
+    
             if installed_version not in specifier:
                 raise IncompatibleVersionPluginError(
                     plugin_id=plugin_manifest.package_id,
-                    dependency_id=dep_package_id,
+                    dependency_id=installed_manifest.package_id,
                     target_version=version_req,
                     current_version=installed_manifest.plugin_version,
+                )
+
+
+    def validate_scene_dependencies(
+        self, scene_id: str, scene_dependencies: dict[str, str], installed_packages: dict[str, ManifestPackage] 
+    ) -> None:
+        for dep_package_id, version_req in scene_dependencies.items():
+            if dep_package_id not in installed_packages:
+                raise MissingSceneDependency(
+                    scene_id=scene_id,
+                    loaded_plugins=list(installed_packages.keys()),
+                    scene_dependencies=scene_dependencies,
+                )
+
+            installed_manifest = installed_packages[dep_package_id]
+            installed_version = parse_version(installed_manifest.version)
+            specifier = VersionHelper._parse_semver_specifier(version_req)
+    
+            if installed_version not in specifier:
+                raise IncompatibleSceneDependency(
+                    scene_id=scene_id,
+                    dependency_id=installed_manifest.package_id,
+                    target_version=version_req,
+                    current_version=installed_manifest.version,
                 )
