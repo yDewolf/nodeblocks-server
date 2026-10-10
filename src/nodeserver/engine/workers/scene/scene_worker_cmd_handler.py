@@ -3,7 +3,7 @@ import logging
 from multiprocessing import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionsCommand, AddNodesCommand, CheckExecutionState, GetSceneDataCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionsCommand, RemoveNodesCommand, ResetSceneCommand, SaveSceneCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionsCommand, AddNodesCommand, CheckExecutionState, GetSceneDataCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionsCommand, RemoveNodesCommand, ResetSceneCommand, SaveSceneCommand, SetSceneAutosaveCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, GetSceneDataResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse, CheckExecutionStateResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
@@ -161,6 +161,11 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         except Exception as e:
             return SceneWorkerCommandResponse.failed(message=str(e))
 
+        return SceneWorkerCommandResponse.successful()
+
+    @dispatch.register
+    def _(self, cmd: SetSceneAutosaveCommand):
+        self.scene_worker.autosave = cmd.autosave
         return SceneWorkerCommandResponse.successful()
 
     # Node Commands:

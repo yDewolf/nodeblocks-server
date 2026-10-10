@@ -24,18 +24,18 @@ class PluginNodeProvider(INodeProvider):
 
     # INodeProvider
 
-    def extract_node_dependencies(self, node: BaseNode) -> set[ManifestPackage]:
-        dependencies: set[ManifestPackage] = set()
+    def extract_node_dependencies(self, node: BaseNode) -> set[tuple[str, str]]:
+        dependencies: set[tuple[str, str]] = set()
         spec = self.plugin_manager.registry.get_node_type_spec(node.scene_data.nodetype_fqn)
         
         package = self.plugin_manager.ensure_package(spec.namespace)
-        dependencies.add(package)
+        dependencies.add((package.package_id, package.version))
         
         datatypes = NodeSpecBuilder.extract_datatype_dependencies(spec)
         for dt_fqn in datatypes:
             dt_spec = self.plugin_manager.registry.get_datatype_spec(dt_fqn)
             dt_package = self.plugin_manager.ensure_package(dt_spec.namespace)
-            dependencies.add(dt_package)            
+            dependencies.add((dt_package.package_id, dt_package.version))            
         
         return dependencies
 

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from multiprocessing import Queue
 from pathlib import Path
@@ -26,6 +27,7 @@ def run_scene_worker_loop(
     plugin_manager = PluginManager.new(plugins_base_package=plugins_folder.name)
     file_data_provider = FileSceneDataProvider(scene_id, plugin_manager, scenes_folder)
     state_provider = FileSceneStateProvider(scene_id)
+    state_provider.scenes_root = file_data_provider.scenes_root
 
     scene_worker = SceneWorker(
         scene_id, plugins_folder, 
@@ -34,7 +36,8 @@ def run_scene_worker_loop(
     )
     command_handler = SceneWorkerCommandHandler(scene_worker, command_queue, event_queue)
     scene_worker.set_command_handler(command_handler)
-    
+
     with scoped_sys_path(plugins_folder.parent):
         scene_worker.setup_plugins()
         scene_worker.runtime_loop()
+        # asyncio.run(scene_worker.run())

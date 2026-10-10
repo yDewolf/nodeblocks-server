@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from pathlib import Path
 from typing import Optional
@@ -12,14 +13,15 @@ from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvi
 from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.engine.utils.benchmark_managers import BenchmarkTimer, FramePacer
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand, SaveSceneCommand
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import EvtWorkerReady, ISceneWorker, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.engine.workers.scene.worker_execution_manager import SceneWorkerRunManager
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 logger = logging.getLogger("nds.worker")
-benchmark_logger = logging.getLogger("nds.benchmark")
+
+SCENE_AUTOSAVE_INTERVAL: float = 3.0 # seconds
 
 # Basico do basico do scene worker
 
@@ -40,8 +42,10 @@ class SceneWorker(ISceneWorker):
     plugins_folder: Path
 
     active: bool
-
     target_fps: float = 60.0
+
+    autosave: bool = True
+    tasks: list[asyncio.Task]
 
     def __init__(
         self,
@@ -111,3 +115,45 @@ class SceneWorker(ISceneWorker):
             scene_data, 
             scene_id=self.scene_id
         )
+
+    # FIXME: for some reason this isn't working
+    # Tasks
+    # async def cleanup(self):
+    #     logger.info("Finishing Scene Worker (%s)...", self.scene_id)
+    #     for task in self.tasks:
+    #         task.cancel()
+    #         try:
+    #             await task
+    #         except asyncio.CancelledError:
+    #             pass
+                
+    #         logger.info("Finished scene worker task: %s", task.get_name())
+
+    # async def setup_tasks(self):
+    #     self.tasks = []
+    #     task = asyncio.create_task(self.autosave_task(), name="scene_autosave")
+    #     self.tasks.append(task)
+
+    # async def run(self):
+    #     await self.setup_tasks()
+    #     try:
+    #         self.runtime_loop()
+    #     finally:
+    #         await self.cleanup()
+
+    # async def autosave_task(self):
+    #     while True:
+    #         try:
+    #             logger.info("hi")
+    #             if not self.execution_manager.context or not self.autosave:
+    #                 await asyncio.sleep(10.0)
+    #                 continue
+                
+    #             logger.info("Autosaving scene %s", self.scene_id)
+    #             if self.command_handler:
+    #                 self.command_handler._handle_command(SaveSceneCommand())
+    #             else:
+    #                 self.execution_manager.context.scene.save_state()
+    #             await asyncio.sleep(SCENE_AUTOSAVE_INTERVAL)
+    #         except asyncio.CancelledError:
+    #             break
