@@ -3,10 +3,12 @@ from typing import Optional
 
 from aiohttp import web
 
+from nodeserver.engine.workers.protocols.general_worker_protocol import EvtWorkerReady, WorkerEvent
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
-from nodeserver.server.protocols.web.messages.server.base_server_messages import BaseServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper
-from nodeserver.server.protocols.web.messages.server.cmd_response_map import get_response_payload
+from nodeserver.server.protocols.web.messages.server.base_server_messages import ServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper, ServerWorkerEventWrapper
+from nodeserver.server.protocols.web.messages.server.mappings.cmd_response_map import get_response_payload
+from nodeserver.server.protocols.web.messages.server.mappings.engine_event_map import get_engine_event_payload
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.handlers.scene_websocket_handler import SceneWebsocketHandler
 from nodeserver.server.web.routing.base_router import BaseRouter
@@ -39,15 +41,20 @@ class SceneWebsocketRouter(BaseRouter):
                 # FIXME: exception
                 raise Exception("Command response is missing request id (command id)")
 
-            message = BaseServerCmdResponse(
+            message = ServerCmdResponse(
                 cmd_uid=event.request_id,
                 response_payload=get_response_payload(event)
             )
 
+        elif isinstance(event, WorkerEvent):
+            message = ServerWorkerEventWrapper(
+                event=event.__class__.__name__,
+                data=event
+            )
+
         elif isinstance(event, WorkerEngineEventWrapper):
             message = ServerEngineEventWrapper(
-                event_type=event.engine_event.__class__.__name__, # FIXME: event name
-                data=event.engine_event
+                event_payload=get_engine_event_payload(event.engine_event),
             )
 
         if not message:

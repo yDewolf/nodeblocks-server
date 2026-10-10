@@ -13,8 +13,9 @@ from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvi
 from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.engine.utils.benchmark_managers import BenchmarkTimer, FramePacer
+from nodeserver.engine.workers.protocols.general_worker_protocol import EvtWorkerReady, EvtWorkerStopped
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand, SaveSceneCommand
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import EvtWorkerReady, ISceneWorker, SceneWorkerCommandResponse, WorkerEngineEventWrapper
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import ISceneWorker, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.engine.workers.scene.worker_execution_manager import SceneWorkerRunManager
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -95,6 +96,9 @@ class SceneWorker(ISceneWorker):
                     self.command_handler.process_command(timeout=0.05)
                 
                 bench.step()
+
+        if self.command_handler:
+            self.command_handler.event_queue.put(EvtWorkerStopped())
 
     def engine_event_receiver(self, event: IPCEngineEvent):
         if self.command_handler:

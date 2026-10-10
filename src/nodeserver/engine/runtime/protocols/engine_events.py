@@ -32,5 +32,3 @@ class JobStatus(StrEnum):
 class EvtJobStatusChanged(IPCEngineEvent):
     status: JobStatus
 
-
-
