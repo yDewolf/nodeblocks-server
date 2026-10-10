@@ -3,7 +3,7 @@ import logging
 from typing import Optional
 
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
-from nodeserver.server.protocols.web.messages.server.base_server_messages import BaseServerMessage
+from nodeserver.server.protocols.web.messages.server.server_messages import BaseServerMessage
 
 logger = logging.getLogger("nds.server")
 

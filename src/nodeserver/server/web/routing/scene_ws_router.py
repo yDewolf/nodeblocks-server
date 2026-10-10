@@ -6,7 +6,8 @@ from aiohttp import web
 from nodeserver.engine.workers.protocols.general_worker_protocol import EvtWorkerReady, WorkerEvent
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
-from nodeserver.server.protocols.web.messages.server.base_server_messages import ServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper, ServerWorkerEventWrapper
+from nodeserver.server.protocols.web.messages.server.mappings.worker_event_map import get_worker_event_payload
+from nodeserver.server.protocols.web.messages.server.server_messages import ServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper, ServerWorkerEventWrapper
 from nodeserver.server.protocols.web.messages.server.mappings.cmd_response_map import get_response_payload
 from nodeserver.server.protocols.web.messages.server.mappings.engine_event_map import get_engine_event_payload
 from nodeserver.server.web.app import NodeServerWebApp
@@ -48,8 +49,7 @@ class SceneWebsocketRouter(BaseRouter):
 
         elif isinstance(event, WorkerEvent):
             message = ServerWorkerEventWrapper(
-                event=event.__class__.__name__,
-                data=event
+                event_payload=get_worker_event_payload(event)
             )
 
         elif isinstance(event, WorkerEngineEventWrapper):
