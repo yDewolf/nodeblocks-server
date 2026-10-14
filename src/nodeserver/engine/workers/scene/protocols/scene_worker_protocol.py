@@ -34,7 +34,7 @@ class SceneWorkerCommandResponse(IPCCommandResponse, IPCSceneWorkerEvent):
 
 # Check Responses
 @dataclass(frozen=True)
-class CheckExecutionStateResponse(SceneWorkerCommandResponse):
+class UpdateExecutionStateResponse(SceneWorkerCommandResponse):
     state: SceneWorkerExecutionState
     mode: SceneWorkerExecutionMode
 
