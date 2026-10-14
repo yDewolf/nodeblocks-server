@@ -12,7 +12,7 @@ from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneW
 class ServerResponseTypes(StrEnum):
     SCENE_WORKER = "scene_worker" # generic
     
-    EXECUTION_STATE_CHECK = "execution_state_check"
+    EXECUTION_STATE_SYNC = "execution_state_sync"
     ADD_NODE = "add_node"
     ADD_CONN = "add_conn"
     GET_SCENE_DATA = "get_scene_data"
@@ -27,8 +27,8 @@ class CommandResponsePayload(BaseSocketModel):
 class GenericCommandPayload(CommandResponsePayload):
     type: Literal[ServerResponseTypes.SCENE_WORKER] = ServerResponseTypes.SCENE_WORKER
 
-class ExecutionCheckPayload(CommandResponsePayload):
-    type: Literal[ServerResponseTypes.EXECUTION_STATE_CHECK] = ServerResponseTypes.EXECUTION_STATE_CHECK
+class ExecutionStateSyncPayload(CommandResponsePayload):
+    type: Literal[ServerResponseTypes.EXECUTION_STATE_SYNC] = ServerResponseTypes.EXECUTION_STATE_SYNC
     state: SceneWorkerExecutionState
     mode: SceneWorkerExecutionMode
 
@@ -46,7 +46,7 @@ class GetSceneDataPayload(CommandResponsePayload):
 
 CmdResponsePayloadAdapter = Annotated[
     Union[
-        GenericCommandPayload, ExecutionCheckPayload, 
+        GenericCommandPayload, ExecutionStateSyncPayload, 
         AddConnPayload, AddNodePayload, 
         GetSceneDataPayload
     ],

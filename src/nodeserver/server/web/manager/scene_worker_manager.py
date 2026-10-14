@@ -5,7 +5,7 @@ import time
 from typing import Any, Callable, Coroutine, Optional
 
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import CheckExecutionState, IPCSceneWorkerCommand, LoadSceneCommand
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, CheckExecutionStateResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, UpdateExecutionStateResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
 from nodeserver.server.workers.scene_worker_controller import SceneWorkerController
@@ -110,7 +110,7 @@ class SceneWorkerManager(ISceneWorkerManager):
                 await asyncio.sleep(0.1)
 
     async def repass_event(self, scene_id: str, event: IPCSceneWorkerEvent):
-        if isinstance(event, CheckExecutionStateResponse):
+        if isinstance(event, UpdateExecutionStateResponse):
             if scene_id in self.worker_statuses:
                 if self.worker_statuses[scene_id][0] == event.state:
                     return

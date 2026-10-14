@@ -4,7 +4,7 @@ from multiprocessing import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionsCommand, AddNodesCommand, CheckExecutionState, GetSceneDataCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionsCommand, RemoveNodesCommand, ResetSceneCommand, SaveSceneCommand, SetSceneAutosaveCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, GetSceneDataResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse, CheckExecutionStateResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, GetSceneDataResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse, UpdateExecutionStateResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -59,8 +59,8 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
 
 
     @dispatch.register
-    def _(self, cmd: CheckExecutionState) -> CheckExecutionStateResponse:
-        return CheckExecutionStateResponse.successful(
+    def _(self, cmd: CheckExecutionState) -> UpdateExecutionStateResponse:
+        return UpdateExecutionStateResponse.successful(
             state=self.execution_manager.execution_state,
             mode=self.execution_manager.execution_mode
         )
@@ -73,13 +73,13 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
             self.execution_manager._target_iterations = cmd.target_iterations
             self.execution_manager._current_iteration = 0
         
-        return SceneWorkerCommandResponse.successful()
+        return UpdateExecutionStateResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode)
 
     
     @dispatch.register
     def _(self, cmd: UpdateExecutionModeCmd):
         self.execution_manager.execution_mode = cmd.mode
-        return SceneWorkerCommandResponse.successful()
+        return UpdateExecutionStateResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode)
 
 
     @dispatch.register
@@ -101,13 +101,13 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
     @dispatch.register
     def _(self, cmd: PauseGraphCommand):
         self.execution_manager.execution_state = SceneWorkerExecutionState.STOPPED
-        return SceneWorkerCommandResponse.successful()
+        return UpdateExecutionStateResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode)
 
     @dispatch.register
     def _(self, cmd: GraphStepCommand):
         self.execution_manager.execution_state = SceneWorkerExecutionState.RUNNING
         self.execution_manager.execution_mode = SceneWorkerExecutionMode.GRAPH_STEP
-        return SceneWorkerCommandResponse.successful()
+        return UpdateExecutionStateResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode)
 
 
     # Scene Actions:
