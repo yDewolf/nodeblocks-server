@@ -1,21 +1,24 @@
 import asyncio
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from nodeserver.engine.helpers.node_scene_helper import NodeSceneHelper
 from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper
+from nodeserver.engine.plugins.api.plugin_datatype import PluginDatatype
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.plugin_node_provider import PluginNodeProvider
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.providers.node_provider import INodeProvider
 from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvider
 from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
-from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
+from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.engine_events import EvtNodeStatusChanged, IPCEngineEvent
 from nodeserver.engine.utils.benchmark_managers import BenchmarkTimer, FramePacer
 from nodeserver.engine.workers.protocols.general_worker_protocol import EvtWorkerReady, EvtWorkerStopped
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand, SaveSceneCommand
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import ISceneWorker, SceneWorkerCommandResponse, WorkerEngineEventWrapper
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import ISceneWorker, SceneWorkerCommandResponse, UpdateExecutionStateResponse, WorkerEngineEventWrapper
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.engine.workers.scene.worker_execution_manager import SceneWorkerRunManager
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -89,22 +92,64 @@ class SceneWorker(ISceneWorker):
                 
                 if self.execution_manager.is_running():
                     # FIXME: dar uma olhada no quanto de overhead isso aqui cria
+                    initial_state, initial_mode = self.execution_manager.execution_mode.value, self.execution_manager.execution_mode.value
                     with FramePacer(target_fps=self.target_fps, min_sleep=0.008):
                         self.execution_manager.execute_graph()
+
+                    if initial_state != self.execution_manager.execution_state.value or initial_mode != self.execution_manager.execution_mode.value:
+                        self.on_runtime_updated(self.execution_manager.execution_state, self.execution_manager.execution_mode)
                 
                 elif self.command_handler:
                     self.command_handler.process_command(timeout=0.05)
                 
                 bench.step()
 
+        if self.execution_manager.context:
+            self.execution_manager.context.scene.save_state()
+        
         if self.command_handler:
             self.command_handler.event_queue.put(EvtWorkerStopped())
 
-    def engine_event_receiver(self, event: IPCEngineEvent):
+    def on_runtime_updated(self, state: SceneWorkerExecutionState, mode: SceneWorkerExecutionMode):
         if self.command_handler:
-            self.command_handler.event_queue.put(WorkerEngineEventWrapper(
-                engine_event=event
-            ))
+            self.command_handler.event_queue.put(
+                # FIXME: this should be a sync message instead of a command response
+                UpdateExecutionStateResponse.successful(request_id="sync_worker_state", state=state, mode=mode)
+            )
+
+    def engine_event_receiver(self, event: IPCEngineEvent):
+        if not self.command_handler:
+            return
+
+        if isinstance(event, EvtNodeStatusChanged) and self.execution_manager.context:
+            if event.status == NodeExecutionStatus.SUCCESS and event.node_result:
+                instance = self.execution_manager.context.scene.graph.ensure_node(event.node_uid)
+
+                serialized_result: dict[str, Any] = {}
+                for slot_id, value in event.node_result.items():
+                    if isinstance(value, PluginDatatype):
+                        serialized_result[slot_id] = value.serialize()
+                        continue
+                    
+                    datatype_fqn = instance.slots[slot_id].data_type_id
+                    datatype = self.plugin_manager.registry.get_datatype_python_type(datatype_fqn)
+                    if datatype and issubclass(datatype, PluginDatatype):
+                        serialized_result[slot_id] = datatype.serialize_value(value)
+                        continue
+
+                    logger.error("Failed to find a datatype for slot output (type: %s)", datatype_fqn)
+                    serialized_result[slot_id] = value
+
+                event = EvtNodeStatusChanged(
+                    job_id=event.job_id,
+                    node_uid=event.node_uid,
+                    status=event.status,
+                    node_result=serialized_result
+                )
+                
+        self.command_handler.event_queue.put(WorkerEngineEventWrapper(
+            engine_event=event
+        ))
 
     def dispatch(self, cmd: IPCSceneWorkerCommand) -> Optional[SceneWorkerCommandResponse]:
         if self.command_handler:

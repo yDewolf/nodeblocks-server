@@ -56,6 +56,11 @@ class NodeScene:
     def get_logic_node(self, node_id: str) -> Optional[BaseNode]:
         return self._logic_nodes.get(node_id)
 
+    def ensure_logic_node(self, node_id: str) -> BaseNode:
+        if not node_id in self._logic_nodes:
+            raise KeyError(f"Couldn't find logic instance for node {node_id}")
+        
+        return self._logic_nodes[node_id]
 
     # Overrides current scene by default
     def load_from_scene_data(self, scene_data: SceneData, override: bool = True):

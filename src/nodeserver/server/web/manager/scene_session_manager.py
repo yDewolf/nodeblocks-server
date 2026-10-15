@@ -51,6 +51,7 @@ class SceneSessionManager:
             if exclude_conn_id and session.id == exclude_conn_id:
                 continue
             try:
+                logger.debug("Broadcasting to scene '%s': %s", scene_id, message)
                 await session.socket.send_json(message.model_dump())
             
             except Exception as e:

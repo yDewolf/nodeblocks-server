@@ -58,7 +58,7 @@ class BaseGraphEngine(ABC):
             return
 
         cached_data = context.persistent_cache.get(node_instance.uid, {})
-        context.update_node_status(node_instance.uid, NodeExecutionStatus.SUCCESS, result=cached_data)
+        context.update_node_status(node_instance.uid, NodeExecutionStatus.SUCCESS, result=cached_data["outputs"])
 
     
     def _filter_execution_order(self, execution_order: list[str], target_node_uids: list[str], context: EngineRuntimeContext) -> list[str]:

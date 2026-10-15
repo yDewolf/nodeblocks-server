@@ -35,7 +35,7 @@ class EngineRuntimeContext(ABC):
     @abstractmethod
     def persistent_cache(self) -> dict[str, dict[str, Any]]: pass
 
-    def update_node_status(self, node_uid: str, status: NodeExecutionStatus, result: Any = None):
+    def update_node_status(self, node_uid: str, status: NodeExecutionStatus, result: Optional[dict[str, Any]] = None):
         if node_uid in self.node_status:
             self.node_status[node_uid] = status
 

@@ -1,6 +1,6 @@
 from pydantic.dataclasses import dataclass
 from enum import StrEnum
-from typing import Optional
+from typing import Any, Optional
 
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCEvent
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
@@ -14,7 +14,7 @@ class EvtNodeStatusChanged(IPCEngineEvent):
     node_uid: str
     status: NodeExecutionStatus
 
-    node_result: Optional[dict]
+    node_result: Optional[dict[str, Any]]
 
 @dataclass(frozen=True)
 class EvtFailedProcess(IPCEngineEvent):
