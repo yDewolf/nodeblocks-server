@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from types import NoneType
-from typing import Union
+from typing import Any, Union
 
 # Abstract classes
 
@@ -21,3 +21,16 @@ class PluginDatatype(ABC):
             f"Plugin DataType ({self.__class__.__name__}) must implement serialize method."
         )
 
+    @classmethod
+    @abstractmethod
+    def serialize_value(cls, value: Any) -> ValidSerializedDataType:
+        """
+        Method used by the server to serialize a slot output value
+        This method must return a value that can be stored in a json string.
+
+        Returns:
+            ValidSerializedDataType: value that would be sent to the client
+        """
+        raise NotImplementedError(
+            f"Plugin DataType ({cls.__name__}) must implement serialize method."
+        )

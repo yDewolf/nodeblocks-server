@@ -4,7 +4,7 @@ from test_plugins.test_plugin.test_datatypes import TestDatatype
 
 
 class TestNodeInput(NodeInputs):
-    in_0: float
+    in_0: float = 0.0
 
 class TestNodeOutputs(NodeOutputs):
     out_0: float
@@ -18,5 +18,5 @@ class TestNode(BaseNode[TestNodeInput, TestNodeOutputs]):
     def forward(self, inputs: TestNodeInput) -> TestNodeOutputs:
         return TestNodeOutputs(
             out_0=inputs.in_0 + 1,
-            test_out=TestDatatype()
+            test_out=TestDatatype(value=10)
         )

@@ -9,6 +9,9 @@ from nodeserver.protocols.manifest.node.node_graph import SceneData
 class ISceneWorker(Protocol):
     scene_id: str
 
+    def on_runtime_updated(self, state: SceneWorkerExecutionState, mode: SceneWorkerExecutionMode):
+        pass
+
     def engine_event_receiver(self, event: IPCEngineEvent):
         pass
 
