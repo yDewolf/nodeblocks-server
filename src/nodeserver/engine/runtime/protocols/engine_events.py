@@ -2,12 +2,14 @@ from pydantic.dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Optional
 
+from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCEvent
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
 
 @dataclass(frozen=True)
 class IPCEngineEvent(IPCEvent):
     job_id: str
+    tracker: Optional[EngineTracker]
 
 @dataclass(frozen=True)
 class EvtNodeStatusChanged(IPCEngineEvent):
