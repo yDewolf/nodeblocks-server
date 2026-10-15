@@ -14,6 +14,7 @@ from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvi
 from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
 from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_events import EvtNodeStatusChanged, IPCEngineEvent
+from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 from nodeserver.engine.utils.benchmark_managers import BenchmarkTimer, FramePacer
 from nodeserver.engine.workers.protocols.general_worker_protocol import EvtWorkerReady, EvtWorkerStopped
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand, SaveSceneCommand
@@ -144,7 +145,8 @@ class SceneWorker(ISceneWorker):
                     job_id=event.job_id,
                     node_uid=event.node_uid,
                     status=event.status,
-                    node_result=serialized_result
+                    node_result=serialized_result,
+                    tracker=EngineTracker.node(event.node_uid)
                 )
                 
         self.command_handler.event_queue.put(WorkerEngineEventWrapper(

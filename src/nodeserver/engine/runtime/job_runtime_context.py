@@ -1,7 +1,8 @@
 from typing import Any, Callable, Optional
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.runtime.protocols.engine_context import EngineRuntimeContext, NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.engine_context import EngineError, EngineRuntimeContext, NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_events import EvtJobStatusChanged, EvtNodeStatusChanged, IPCEngineEvent, JobStatus
+from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
 class SceneSuperContext:
@@ -59,14 +60,28 @@ class JobExecutionContext(EngineRuntimeContext):
 
     def update_node_status(self, node_uid: str, status: NodeExecutionStatus, result: Any = None):
         super().update_node_status(node_uid, status)
-        self.global_context.emit_event(EvtNodeStatusChanged(self.job_id, node_uid, status, node_result=result))
+        self.global_context.emit_event(EvtNodeStatusChanged(
+            self.job_id, 
+            EngineTracker.node(node_uid),
+            node_uid,
+            status, 
+            node_result=result
+        ))
 
     def set_job_status(self, status: JobStatus):
-        is_same = self.status == status
-        self.status = status
+        if self.status == status:
+            return
         
-        if not is_same:
-            self.global_context.emit_event(EvtJobStatusChanged(self.job_id, status))
+        self.status = status
+        self.global_context.emit_event(EvtJobStatusChanged(
+            self.job_id,
+            tracker=None,
+            status=status,
+        ))
+
+    def add_error(self, error: EngineError):
+        super().add_error(error)
+        # TODO: enviar algum evento com o erro aqui !!!
 
     @property
     def scene(self) -> NodeScene:

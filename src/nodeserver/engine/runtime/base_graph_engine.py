@@ -3,12 +3,16 @@ from abc import ABC, abstractmethod
 import logging
 from typing import Any, Optional
 
+from pydantic import ValidationError
+
+from nodeserver.engine.exceptions.runtime_exceptions import NodeParamRuntimeError, NodeSlotRuntimeError, extract_ids_and_messages
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeOutputs
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
 from nodeserver.engine.runtime.extra_node_io import ContextAwareInput
-from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.engine_context import EngineError, NodeExecutionStatus
 from nodeserver.engine.runtime.job_runtime_context import EngineRuntimeContext
+from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 
 logger = logging.getLogger("nds.engine")
 
@@ -75,7 +79,10 @@ class BaseGraphEngine(ABC):
     def _process_node(self, node_instance: NodeInstance, context: EngineRuntimeContext) -> bool:
         logic_node = context.scene._logic_nodes.get(node_instance.uid)
         if not logic_node:
-            context.errors[node_instance.uid] = "Failed to find a logic instance for node"
+            context.add_error(EngineError(
+                tracker=EngineTracker.node(node_instance.uid),
+                message="Failed to find a logic instance for node"
+            ))
             return False
 
         try:
@@ -93,12 +100,11 @@ class BaseGraphEngine(ABC):
                     
                     return True
 
-            logic_node._ensure_parameters_updated()
-            
+            self._handle_param_update(logic_node, node_instance.uid)            
             raw_inputs = self._resolve_inputs(node_instance, context)
             self._inject_context_inputs(raw_inputs, logic_node, context)
-            
-            node_inputs = logic_node.InputModel(**raw_inputs)
+
+            node_inputs = self._handle_create_input_model(logic_node, raw_inputs, node_instance.uid)
             
             logic_node.pre_forward(node_inputs)
             node_outputs: NodeOutputs = logic_node.forward(node_inputs)
@@ -116,10 +122,32 @@ class BaseGraphEngine(ABC):
 
             logic_node.post_forward_cleanup()
             return True
+
+        except NodeParamRuntimeError as e:
+            for idx, param_id in enumerate(e.param_ids):
+                context.add_error(EngineError(
+                    tracker=EngineTracker.param(node_instance.uid, param_id),
+                    message=e.messages[idx]
+                ))
             
-        except Exception as e:
-            context.errors[node_instance.uid] = str(e)
             return False
+
+        except NodeSlotRuntimeError as e:
+            for idx, slot_id in enumerate(e.slot_ids):
+                context.add_error(EngineError(
+                    tracker=EngineTracker.slot(node_instance.uid, slot_id),
+                    message=e.messages[idx]
+                ))
+            
+            return False
+
+        except Exception as e:
+            context.add_error(EngineError(
+                tracker=EngineTracker.node(node_instance.uid),
+                message=str(e)
+            ))
+            return False
+
 
     def _inject_context_inputs(
         self, 
@@ -161,3 +189,26 @@ class BaseGraphEngine(ABC):
                 raw_inputs[slot_id] = values[0]
         
         return raw_inputs
+
+    def _handle_param_update(self, logic_node: BaseNode, node_uid: str):
+        try:
+            logic_node._ensure_parameters_updated()
+        except ValidationError as e:
+            param_ids, error_messages = extract_ids_and_messages(e)
+            raise NodeParamRuntimeError(
+                node_uid=node_uid,
+                param_ids=param_ids,
+                messages=error_messages
+            )
+
+    def _handle_create_input_model(self, logic_node: BaseNode, raw_inputs: dict[str, Any], node_uid: str):
+        try:
+            return logic_node.InputModel(**raw_inputs)
+        
+        except ValidationError as e:
+            slot_ids, error_messages = extract_ids_and_messages(e)
+            raise NodeSlotRuntimeError(
+                messages=error_messages,
+                node_uid=node_uid,
+                slot_ids=slot_ids,
+            )

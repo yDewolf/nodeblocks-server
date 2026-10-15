@@ -1,8 +1,17 @@
 from enum import StrEnum
+
+from pydantic.dataclasses import dataclass
 from nodeserver.engine.protocols.node.node_scene import NodeScene
+from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 
 from abc import ABC, abstractmethod
 from typing import Any, Optional
+
+
+@dataclass
+class EngineError:
+    tracker: EngineTracker
+    message: str
 
 class NodeExecutionStatus(StrEnum):
     PENDING = "pending"
@@ -12,7 +21,7 @@ class NodeExecutionStatus(StrEnum):
 
 class EngineRuntimeContext(ABC):
     output_cache: dict[str, Any]
-    errors: dict[str, str]
+    errors: list[EngineError]
     node_status: dict[str, NodeExecutionStatus]
 
     def __init__(
@@ -20,7 +29,7 @@ class EngineRuntimeContext(ABC):
         scene: NodeScene
     ) -> None:
         self.output_cache = {}
-        self.errors = {}
+        self.errors = []
         self.node_status = {node_uid: NodeExecutionStatus.PENDING for node_uid in scene.graph.all_nodes}
 
     @property
@@ -41,6 +50,9 @@ class EngineRuntimeContext(ABC):
 
     def get_cache_key(self, node_uid: str, slot_id: str) -> str:
         return f"{node_uid}:{slot_id}"
+
+    def add_error(self, error: EngineError):
+        self.errors.append(error)
 
 class EnclosedEngineContext(EngineRuntimeContext):
     _scene: NodeScene

@@ -12,5 +12,3 @@ class EngineDomainError(Exception):
             self.error_code = error_code
             self.message = message
             self.details = details or {}
-
-    

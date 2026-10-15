@@ -106,7 +106,11 @@ class SceneWorkerRunManager:
             job_id: str = self._last_started_job.job_id if self._last_started_job else "unknown_job" 
             self._active_step_job = None
             return WorkerEngineEventWrapper(
-                engine_event=EvtFailedProcess(job_id=job_id, error=str(e))
+                engine_event=EvtFailedProcess(
+                    job_id=job_id, 
+                    error=str(e),
+                    tracker=None # FIXME: isso aqui devia incluir trackers sim
+                )
             )
 
     # Returns if the current iteration finished
