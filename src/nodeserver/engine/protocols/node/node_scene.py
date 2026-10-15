@@ -79,9 +79,8 @@ class NodeScene:
         self.state_provider._setup_folder()
         node_dependencies: set[tuple[str, str]] = set()
         for uid, node in self._logic_nodes.items():
-            node_dependencies.union(
-                self.node_provider.extract_node_dependencies(node)
-            )
+            deps = self.node_provider.extract_node_dependencies(node)
+            node_dependencies = node_dependencies.union(deps)
         
         return SceneData(
             uid=self.scene_id,
