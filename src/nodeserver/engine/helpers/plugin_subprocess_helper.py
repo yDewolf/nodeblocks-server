@@ -4,6 +4,7 @@ import multiprocessing
 from pathlib import Path
 from typing import Optional
 
+from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingSourceHash
@@ -24,7 +25,7 @@ def _run_indexer_task(plugins_folder: Path):
         compiler=PluginCompiler(full_registry, plugins_base_package=plugins_folder.name)
     )
 
-    with scoped_sys_path(plugins_folder):
+    with scoped_sys_path(plugins_folder.parent):
         plugin_manager.compile_plugins(plugins_folder, save_to_disk=True)
 
 
@@ -52,13 +53,10 @@ class PluginSubprocessHelper:
     @classmethod
     def needs_reindex(cls, plugins_folder: Path) -> bool:
         cached_list = PluginManifestHelper.load_or_create_plugin_list_cache(plugins_folder)
+        scanner = PluginScanner()
 
-        manifests: list[PluginManifest] = []
-        for file in PluginManifestHelper.iterate_plugin_cache_files(plugins_folder):
-            manifest = PluginManifestHelper.load_plugin_manifest(file)
-            manifests.append(manifest)
-        
-        for plugin_manifest in manifests:
+        discovered_manifests = scanner.discover_plugins(plugins_folder)
+        for (plugin_manifest, _)  in discovered_manifests:
             if not plugin_manifest.source_hash:
                 raise PluginMissingSourceHash(plugin_manifest.package_id)
             
