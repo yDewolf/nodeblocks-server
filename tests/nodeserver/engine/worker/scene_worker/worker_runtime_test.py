@@ -2,7 +2,7 @@ from queue import Empty
 import threading
 import time
 
-from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_events import EvtNodeStatusChanged
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd

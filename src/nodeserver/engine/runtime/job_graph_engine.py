@@ -1,7 +1,7 @@
 import logging
 
 from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
-from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 from nodeserver.engine.runtime.job_runtime_context import JobStatus
 from nodeserver.engine.runtime.job_runtime_context import JobExecutionContext, StepJobExecutionContext
 

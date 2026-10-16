@@ -3,7 +3,7 @@ import json
 
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
 from nodeserver.engine.runtime.protocols.engine_context import EngineRuntimeContext
-from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 
 class EngineRuntimeHelper:
     @staticmethod

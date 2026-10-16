@@ -1,23 +1,10 @@
-from enum import StrEnum
 
-from pydantic.dataclasses import dataclass
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
+from nodeserver.engine.runtime.protocols.engine_events import EngineError, NodeExecutionStatus
 
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-
-@dataclass
-class EngineError:
-    tracker: EngineTracker
-    message: str
-
-class NodeExecutionStatus(StrEnum):
-    PENDING = "pending"
-    SUCCESS = "success"
-    FAILED = "failed"
-    SKIPPED = "skipped"
 
 class EngineRuntimeContext(ABC):
     output_cache: dict[str, Any]
