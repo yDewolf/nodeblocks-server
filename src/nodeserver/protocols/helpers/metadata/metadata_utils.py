@@ -2,11 +2,10 @@ import datetime
 import hashlib
 import json
 import os
+from pathlib import Path
 
-# FIXME: as utilidades não devem depender de variáveis de ambiente
-# as classes desse arquivo devem ser estáticas e o servidor ou engine
-# passam as variáveis adequadas, por exemplo, as de ambiente.
-from nodeserver.server.old.utils.env_variables import get_project_root
+# TODO: mover isso aqui para o server e reestruturar as coisas
+# para isso aqui ser um MetadataProvider
 
 from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataFileHeader
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
@@ -18,9 +17,6 @@ METADATA_EXTENSION = ".json"
 METADATA_INDENT = 1
 
 METADATA_FOLDER_NAME = "metadata"
-ROOT_METADATA_PATH = os.path.join(get_project_root(), METADATA_FOLDER_NAME)
-if not os.path.exists(ROOT_METADATA_PATH):
-    os.mkdir(ROOT_METADATA_PATH)
 
 class _MetadataLoad:
     """
@@ -28,8 +24,8 @@ class _MetadataLoad:
         Please use :obj:`~nodeserver.MetadataFileUtils` if you only need to load full metadata.
     """
     @staticmethod
-    def _load_header(folder_path: str) -> MetadataFileHeader:
-        header_file_path = os.path.join(folder_path, f"metadata{METADATA_EXTENSION}")
+    def _load_header(folder_path: Path) -> MetadataFileHeader:
+        header_file_path = folder_path / f"metadata{METADATA_EXTENSION}"
         with open(header_file_path, "r") as file:
             header_data = json.load(file)
         
@@ -40,49 +36,47 @@ class _MetadataLoad:
         return header_metadata
 
     @staticmethod
-    def _load_node_types(header: MetadataFileHeader, folder_path: str) -> dict[str, NodeTypeMeta]:
+    def _load_node_types(header: MetadataFileHeader, folder_path: Path) -> dict[str, NodeTypeMeta]:
         header_context = {
             "tags": header.tags,
             "categories": header.categories
         }
 
         node_types: dict[str, NodeTypeMeta] = {}
-        node_meta_path = os.path.join(folder_path, "nodes")
-        if os.path.exists(node_meta_path):
-            node_meta_files: list[str] = os.listdir(node_meta_path)
-            for meta_filename in node_meta_files:
-                meta_path = os.path.join(node_meta_path, meta_filename)
-                if not os.path.isfile(meta_path): continue
+        node_meta_path = folder_path / "nodes"
+        if not node_meta_path.exists():
+            return node_types
+        
+        node_meta_files: list[str] = dir(node_meta_path)
+        for meta_filename in node_meta_files:
+            meta_path = node_meta_path / meta_filename
+            if not meta_path.is_file(): continue
 
-                # FIXME: use file path to get type id might not be safe
-                type_id = os.path.splitext(meta_filename)[0]
-                with open(meta_path, "r", encoding="utf-8") as file:
-                    node_json_data = json.load(file)
-                
-                node_types[type_id] = NodeTypeMeta.model_validate(node_json_data, context=header_context)
+            with open(meta_path, "r", encoding="utf-8") as file:
+                node_json_data = json.load(file)
+            
+            type_id = Path(meta_filename).stem
+            node_types[type_id] = NodeTypeMeta.model_validate(node_json_data, context=header_context)
 
         return node_types
 
     @staticmethod
-    def _load_data_types(folder_path: str) -> dict[str, DataTypeMeta]:
+    def _load_data_types(folder_path: Path) -> dict[str, DataTypeMeta]:
         datatypes: dict[str, DataTypeMeta] = {}
-        datatypes_path = os.path.join(folder_path, "datatypes")
-        if os.path.exists(datatypes_path):
-            datatype_files: list[str] = os.listdir(datatypes_path)
-            for slotio_name in datatype_files:
-                datatype_folder = os.path.join(datatypes_path, slotio_name)
-                if not os.path.isdir(datatype_folder): continue
-                
-                for subtype_filename in os.listdir(datatype_folder):
-                    subtype_path = os.path.join(datatype_folder, subtype_filename)
-                    if not os.path.isfile(subtype_path): continue
+        datatypes_path = folder_path / "datatypes"
+        if not datatypes_path.exists():
+            return datatypes
 
-                    subtype_id = os.path.splitext(subtype_filename)[0]
-                    datatype_id = MetadataFileUtils.make_slotio_id_filename(slotio_name, subtype_id)
-                    with open(subtype_path, "r", encoding="utf-8") as file:
-                        datatype_data = json.load(file)
-                    
-                    datatypes[datatype_id] = DataTypeMeta.model_validate(datatype_data)
+        datatype_files: list[str] = dir(datatypes_path)
+        for filename in datatype_files:
+            datatype_path = datatypes_path / filename
+            if not datatype_path.is_file(): continue
+
+            with open(datatype_path, "r", encoding="utf-8") as file:
+                datatype_data = json.load(file)
+
+            datatype_id = Path(filename).stem
+            datatypes[datatype_id] = DataTypeMeta.model_validate(datatype_data)
         
         return datatypes
 
@@ -108,36 +102,36 @@ class _MetadataSave:
         return merged
 
     @staticmethod
-    def _prepare_directories(folder_path: str) -> tuple[str, str]:
-        if not os.path.exists(folder_path):
-            os.mkdir(folder_path)
-    
-        if not os.path.isdir(folder_path):
+    def _prepare_directories(folder_path: Path) -> tuple[Path, Path]:
+        folder_path.mkdir(exist_ok=True)
+        if not folder_path.is_dir():
             raise Exception("Folder path should lead to a folder")
         
         node_meta_path, datatypes_path = MetadataFileUtils.get_metadata_main_subdirs(folder_path)
-        if not os.path.exists(node_meta_path): os.mkdir(node_meta_path)
-        if not os.path.exists(datatypes_path): os.mkdir(datatypes_path)
+        node_meta_path.mkdir(exist_ok=True)
+        datatypes_path.mkdir(exist_ok=True)
 
         return node_meta_path, datatypes_path
 
     @staticmethod
-    def _write_node_types(metadata: Metadata, node_meta_path: str):
+    def _write_node_types(metadata: Metadata, node_meta_path: Path):
         header_context = {
             "tags": metadata.tags,
             "categories": metadata.categories
         }
         for type_id, node_meta in metadata.node_types.items():
             # TODO: Ensure type id doesn't contain any special characters
-            file_path = os.path.join(node_meta_path, f"{type_id}{METADATA_EXTENSION}")
+            file_path = node_meta_path / f"{type_id}{METADATA_EXTENSION}"
 
             base_data = node_meta.model_dump(mode="json")
             merged_data = base_data
-            if os.path.exists(file_path):
+            
+            if file_path.exists():
                 try:
                     with open(file_path, "r", encoding="utf-8") as file:
                         disk_data = json.load(file)
                     merged_data = _MetadataSave._deep_merge(base_data, disk_data)
+                
                 except Exception as e:
                     logger.error("Failed to load node metadata.", e)
 
@@ -146,39 +140,34 @@ class _MetadataSave:
                 file.write(merged_model.model_dump_json(indent=METADATA_INDENT))
 
     @staticmethod
-    def _write_datatypes(metadata: Metadata, datatypes_path: str):
-        slotio_types = MetadataFileUtils.get_slotio_subtypes(metadata.data_types)    
-        for slotio_type, subtypes in slotio_types.items():
-            slotio_folder_path = os.path.join(datatypes_path, slotio_type)
-            if not os.path.isdir(slotio_folder_path): os.mkdir(slotio_folder_path)
-            if len(subtypes) == 0: subtypes.append("default")
-            for subtype in subtypes:
-                type_id = MetadataFileUtils.make_slotio_id_filename(slotio_type, subtype)
-                subtype_file_path = os.path.join(slotio_folder_path, f"{subtype}{METADATA_EXTENSION}")
-                subtype_meta = metadata.data_types.get(type_id)
-                if not subtype_meta: 
-                    raise Exception(f"Failed to find corresponding metadata for datatype {type_id}")
-                
-                base_data = subtype_meta.model_dump(mode="json")
-                merged_data = base_data
-                if os.path.exists(subtype_file_path):
-                    try:
-                        with open(subtype_file_path, "r", encoding="utf-8") as file:
-                            disk_data = json.load(file)
-                        merged_data = _MetadataSave._deep_merge(base_data, disk_data)
-                    except Exception as e:
-                        logger.error("Failed to load subtype metadata.", e)
+    def _write_datatypes(metadata: Metadata, datatypes_path: Path):
+        for id, datatype in metadata.data_types.items():
+            slotio_folder_path = datatypes_path / id
 
-                merged_model = DataTypeMeta.model_validate(merged_data)
-                with open(subtype_file_path, "w", encoding="utf-8") as file:
-                    file.write(merged_model.model_dump_json(indent=METADATA_INDENT))    
+            slotio_folder_path.mkdir(exist_ok=True)
+
+            subtype_file_path = slotio_folder_path / f"{id}{METADATA_EXTENSION}"
+            
+            base_data = datatype.model_dump(mode="json")
+            merged_data = base_data
+            if subtype_file_path.exists():
+                try:
+                    with open(subtype_file_path, "r", encoding="utf-8") as file:
+                        disk_data = json.load(file)
+                    merged_data = _MetadataSave._deep_merge(base_data, disk_data)
+                except Exception as e:
+                    logger.error("Failed to load subtype metadata.", e)
+
+            merged_model = DataTypeMeta.model_validate(merged_data)
+            with open(subtype_file_path, "w", encoding="utf-8") as file:
+                file.write(merged_model.model_dump_json(indent=METADATA_INDENT))    
 
     @staticmethod
-    def _write_header(metadata: Metadata, folder_path: str):
-        header_file_path = os.path.join(folder_path, f"metadata{METADATA_EXTENSION}")
+    def _write_header(metadata: Metadata, folder_path: Path):
+        header_file_path = folder_path / f"metadata{METADATA_EXTENSION}"
         base_data = metadata.model_dump(mode="json")
         merged_data = base_data
-        if os.path.exists(header_file_path):
+        if header_file_path.exists():
             try:
                 with open(header_file_path, "r", encoding="utf-8") as file:
                     disk_data = json.load(file)
@@ -188,7 +177,7 @@ class _MetadataSave:
         
         merged_model = MetadataFileHeader.model_validate(merged_data)
         merged_model.content_hash = metadata.content_hash
-        merged_model.types_version = metadata.types_version
+        merged_model.package_version = metadata.package_version
         merged_model.meta_version = metadata.meta_version
         merged_model.last_modified = metadata.last_modified
 
@@ -200,23 +189,23 @@ class MetadataFileUtils:
     """
         General Metadata Folder Structure:
 
-        - types_id/
-            - metadata.json (header file)
-            - datatypes/
-                - SlotIOType/
-                    - subtype.json
-                    - default.json (if no subtype is found)
-            - nodes/
-                - NodeTypeID.json
+        - plugin_folder/
+            - metadata/
+                - metadata.json (header file)
+                - datatypes/
+                    - SlotIOType/
+                        - subtype.json
+                        - default.json (if no subtype is found)
+                - nodes/
+                    - NodeTypeID.json
     """
     @staticmethod
-    def get_global_mtime(metadata: Metadata) -> float:
+    def get_global_mtime(metadata: Metadata, metadata_folder_path: Path) -> float:
         if not metadata:
             return 0.0
         
-        meta_path = os.path.join(ROOT_METADATA_PATH, metadata.types_id)
-        nodes_path, datatypes_path = MetadataFileUtils.get_metadata_main_subdirs(meta_path)
-        header_file = os.path.join(meta_path, f"metadata{METADATA_EXTENSION}")
+        nodes_path, datatypes_path = MetadataFileUtils.get_metadata_main_subdirs(metadata_folder_path)
+        header_file = os.path.join(metadata_folder_path, f"metadata{METADATA_EXTENSION}")
         highest_mtime = 0.0
         if os.path.exists(header_file):
             highest_mtime = max(highest_mtime, os.path.getmtime(header_file))
@@ -239,38 +228,20 @@ class MetadataFileUtils:
         return highest_mtime
 
     @staticmethod
-    def get_metadata_main_subdirs(folder_path: str) -> tuple[str, str]:
-        node_meta_path = os.path.join(folder_path, "nodes")
-        datatypes_path = os.path.join(folder_path, "datatypes")
+    def get_metadata_main_subdirs(folder_path: Path) -> tuple[Path, Path]:
+        node_meta_path = folder_path / "nodes"
+        datatypes_path = folder_path / "datatypes"
         return node_meta_path, datatypes_path
 
     @staticmethod
-    def make_slotio_id_filename(slotio_type: str, subtype: str):
-        return f"{slotio_type}:{subtype}"
-    
-    @staticmethod
-    def get_slotio_subtypes(data_types: dict[str, DataTypeMeta]):
-        slotio_types: dict[str, list[str]] = {}
-        for type_id in data_types:
-            # TODO: Ensure type id doesn't contain any special characters
-            splitted_type_id = type_id.split(":")
-            slotio_type = splitted_type_id[0]
-            if not slotio_types.__contains__(slotio_type):
-                slotio_types[slotio_type] = []
-            
-            slotio_types[slotio_type] += splitted_type_id[1:] or []
-    
-        return slotio_types
-
-    @staticmethod
-    def update_metadata_header(metadata: Metadata, folder_path: str):
+    def update_metadata_header(metadata: Metadata, folder_path: Path):
         if not metadata:
             raise Exception("No metadata to save")
         
         _MetadataSave._write_header(metadata, folder_path)
     
     @staticmethod
-    def save_to_folder(metadata: Metadata, folder_path: str):
+    def save_to_folder(metadata: Metadata, folder_path: Path):
         if not metadata:
             raise Exception("No metadata to save")
         
@@ -280,7 +251,7 @@ class MetadataFileUtils:
         _MetadataSave._write_header(metadata, folder_path)
 
     @staticmethod
-    def load_from_folder(folder_path: str):
+    def load_from_folder(folder_path: Path):
         if not os.path.isdir(folder_path):
             raise Exception(f"Couldn't load metadata, folder path should lead to a folder. Path: {folder_path}")
 
@@ -290,8 +261,8 @@ class MetadataFileUtils:
         
         metadata = Metadata(
             content_hash=header_metadata.content_hash,
-            types_id=header_metadata.types_id,
-            types_version=header_metadata.types_version,
+            package_id=header_metadata.package_id,
+            package_version=header_metadata.package_version,
             meta_version=header_metadata.meta_version,
             last_modified=header_metadata.last_modified,
             tags=header_metadata.tags,
@@ -302,7 +273,7 @@ class MetadataFileUtils:
         return metadata
     
     @staticmethod
-    def update_content_hash(metadata: Metadata, folder_path: str) -> bool:
+    def update_content_hash(metadata: Metadata, metadata_folder_path: Path) -> bool:
         header_content = metadata.model_dump(mode="json", exclude={"meta_version", "content_hash", "last_modified"})
         metadata_content = {
             "header": header_content,
@@ -312,10 +283,10 @@ class MetadataFileUtils:
         current_hash = hashlib.md5(json.dumps(metadata_content).encode('utf-8')).hexdigest()
         saved_hash = metadata.content_hash
         if current_hash != saved_hash:
-            metadata.last_modified = MetadataFileUtils.get_global_mtime(metadata)
+            metadata.last_modified = MetadataFileUtils.get_global_mtime(metadata, metadata_folder_path)
             metadata.meta_version += 1
             metadata.content_hash = current_hash
-            _MetadataSave._write_header(metadata, folder_path)
+            _MetadataSave._write_header(metadata, metadata_folder_path)
             return True
         
         return False
