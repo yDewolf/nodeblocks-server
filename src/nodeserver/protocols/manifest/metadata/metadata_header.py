@@ -8,8 +8,11 @@ from nodeserver.protocols.manifest.metadata.meta_filter import MetaCategory, Met
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 
 class MetadataFileHeader(BaseModel):
-    types_id: str
-    types_version: int
+    # types_id: str
+    # types_version: int
+    package_id: str
+    package_version: str
+
     meta_version: int # TODO: use hashing for versions
     content_hash: Optional[str] = None
  
@@ -53,8 +56,8 @@ class MetadataFileHeader(BaseModel):
         return self
 
 class Metadata(MetadataFileHeader):
-    data_types: dict[str, DataTypeMeta]
-    node_types: dict[str, NodeTypeMeta]
+    data_types: dict[str, DataTypeMeta] # nodetype_id
+    node_types: dict[str, NodeTypeMeta] # datatype_id
     
     @field_serializer("data_types")
     def serialize_data_types(self, data_types: dict[str, DataTypeMeta], _info):
@@ -63,6 +66,7 @@ class Metadata(MetadataFileHeader):
     @field_serializer("node_types")
     def serialize_node_types(self, node_types: dict[str, NodeTypeMeta], _info):
         return [id for id in node_types]
+
 
 class MetadataVersion(BaseModel):
     types_version: int
