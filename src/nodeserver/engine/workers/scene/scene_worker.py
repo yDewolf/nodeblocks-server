@@ -12,7 +12,7 @@ from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.providers.node_provider import INodeProvider
 from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvider
 from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
-from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_events import EvtNodeStatusChanged, IPCEngineEvent
 from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 from nodeserver.engine.utils.benchmark_managers import BenchmarkTimer, FramePacer

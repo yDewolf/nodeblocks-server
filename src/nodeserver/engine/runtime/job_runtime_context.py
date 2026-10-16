@@ -1,7 +1,7 @@
 from typing import Any, Callable, Optional
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.runtime.protocols.engine_context import EngineError, EngineRuntimeContext, NodeExecutionStatus
-from nodeserver.engine.runtime.protocols.engine_events import EvtJobStatusChanged, EvtNodeStatusChanged, IPCEngineEvent, JobStatus
+from nodeserver.engine.runtime.protocols.engine_context import EngineRuntimeContext
+from nodeserver.engine.runtime.protocols.engine_events import EngineError, EvtJobStatusChanged, EvtNodeStatusChanged, EvtRuntimeError, IPCEngineEvent, JobStatus, NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 
@@ -62,7 +62,7 @@ class JobExecutionContext(EngineRuntimeContext):
         super().update_node_status(node_uid, status)
         self.global_context.emit_event(EvtNodeStatusChanged(
             self.job_id, 
-            EngineTracker.node(node_uid),
+            EngineTracker.node(node_uid, other={"job_id": self.job_id}),
             node_uid,
             status, 
             node_result=result
@@ -75,13 +75,17 @@ class JobExecutionContext(EngineRuntimeContext):
         self.status = status
         self.global_context.emit_event(EvtJobStatusChanged(
             self.job_id,
-            tracker=None,
+            tracker=EngineTracker(other={"job_id": self.job_id}),
             status=status,
         ))
 
     def add_error(self, error: EngineError):
         super().add_error(error)
-        # TODO: enviar algum evento com o erro aqui !!!
+        self.global_context.emit_event(EvtRuntimeError(
+            job_id=self.job_id,
+            tracker=error.tracker,
+            message=error.message
+        ))
 
     @property
     def scene(self) -> NodeScene:

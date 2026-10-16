@@ -8,8 +8,9 @@ from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.engine.providers.base_scene_providers import NoSceneDataProvider
 from nodeserver.engine.providers.base_scene_providers import NoSceneStateProvider
 from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
-from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus, EnclosedEngineContext
+from nodeserver.engine.runtime.protocols.engine_context import EnclosedEngineContext
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
+from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
 
 

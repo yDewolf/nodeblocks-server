@@ -1,14 +1,15 @@
 
 
 
-from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, EvtJobStatusChanged, EvtNodeStatusChanged, IPCEngineEvent
-from nodeserver.server.protocols.web.messages.server.engine_messages import EngineEventPayloadAdapter, FailedProcessPayload, JobStatusPayload, NodeStatusPayload
+from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, EvtJobStatusChanged, EvtNodeStatusChanged, EvtRuntimeError, IPCEngineEvent
+from nodeserver.server.protocols.web.messages.server.engine_messages import EngineEventPayloadAdapter, FailedProcessPayload, JobStatusPayload, NodeStatusPayload, RuntimeErrorPayload
 
 # TODO: find a better way of mapping these event to the respective payloads
 SERVER_ENGINE_EVENT_MAP: dict[type[IPCEngineEvent], type[EngineEventPayloadAdapter]] = {
     EvtNodeStatusChanged: NodeStatusPayload,
     EvtJobStatusChanged: JobStatusPayload,
-    EvtFailedProcess: FailedProcessPayload
+    EvtFailedProcess: FailedProcessPayload,
+    EvtRuntimeError: RuntimeErrorPayload
 }
 
 def get_engine_event_payload(event: IPCEngineEvent) -> EngineEventPayloadAdapter:

@@ -3,17 +3,20 @@ from enum import StrEnum
 from typing import Annotated, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
-from nodeserver.engine.runtime.protocols.engine_context import NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_events import JobStatus
+from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 
 
 class EngineEventTypes(StrEnum):
     NODE_STATUS = "node_status_changed"
     JOB_STATUS = "job_status_changed"
     FAILED_PROCESS = "failed_process"
+    RUNTIME_ERROR = "runtime_error"
 
 class EngineEventPayload(BaseModel):
     type: EngineEventTypes
+    tracker: Optional[EngineTracker] = None
     job_id: str
 
 
@@ -33,7 +36,11 @@ class FailedProcessPayload(EngineEventPayload):
     error: str
 
 
+class RuntimeErrorPayload(EngineEventPayload):
+    type: Literal[EngineEventTypes.RUNTIME_ERROR] = EngineEventTypes.RUNTIME_ERROR
+    message: str
+
 EngineEventPayloadAdapter = Annotated[
-    Union[NodeStatusPayload, JobStatusPayload, FailedProcessPayload],
+    Union[NodeStatusPayload, JobStatusPayload, FailedProcessPayload, RuntimeErrorPayload],
     Field(discriminator="type")
 ]
