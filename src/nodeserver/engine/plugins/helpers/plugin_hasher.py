@@ -7,6 +7,7 @@ from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManif
 class PluginHasher:
     IGNORED_PATHS = {
         PluginManifestHelper.PLUGIN_CACHE_FOLDERNAME,
+        "metadata",
         "__pycache__",
         ".git",
         ".vscode",

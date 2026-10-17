@@ -3,11 +3,12 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from typing import Iterator
 
 # TODO: mover isso aqui para o server e reestruturar as coisas
 # para isso aqui ser um MetadataProvider
 
-from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataManifest
+from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest, MetadataHeader
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 import logging
@@ -24,19 +25,19 @@ class _MetadataLoad:
         Please use :obj:`~nodeserver.MetadataFileUtils` if you only need to load full metadata.
     """
     @staticmethod
-    def _load_header(folder_path: Path) -> MetadataManifest:
+    def _load_header(folder_path: Path) -> MetadataHeader:
         header_file_path = folder_path / f"metadata{METADATA_EXTENSION}"
         with open(header_file_path, "r") as file:
             header_data = json.load(file)
         
-        header_metadata = MetadataManifest.model_validate(header_data)
+        header_metadata = MetadataHeader.model_validate(header_data)
         if not header_metadata:
             raise Exception(f"Couldn't parse metadata header. Path: {header_file_path}")
 
         return header_metadata
 
     @staticmethod
-    def _load_node_types(header: MetadataManifest, folder_path: Path) -> dict[str, NodeTypeMeta]:
+    def _load_node_types(header: MetadataHeader, folder_path: Path) -> dict[str, NodeTypeMeta]:
         header_context = {
             "tags": header.tags,
             "categories": header.categories
@@ -47,7 +48,7 @@ class _MetadataLoad:
         if not node_meta_path.exists():
             return node_types
         
-        node_meta_files: list[str] = dir(node_meta_path)
+        node_meta_files: Iterator[Path] = node_meta_path.rglob(f"*{METADATA_EXTENSION}")
         for meta_filename in node_meta_files:
             meta_path = node_meta_path / meta_filename
             if not meta_path.is_file(): continue
@@ -67,7 +68,7 @@ class _MetadataLoad:
         if not datatypes_path.exists():
             return datatypes
 
-        datatype_files: list[str] = dir(datatypes_path)
+        datatype_files: Iterator[Path] = datatypes_path.rglob(f"*{METADATA_EXTENSION}")
         for filename in datatype_files:
             datatype_path = datatypes_path / filename
             if not datatype_path.is_file(): continue
@@ -114,7 +115,7 @@ class _MetadataSave:
         return node_meta_path, datatypes_path
 
     @staticmethod
-    def _write_node_types(metadata: Metadata, node_meta_path: Path):
+    def _write_node_types(metadata: MetadataManifest, node_meta_path: Path):
         header_context = {
             "tags": metadata.tags,
             "categories": metadata.categories
@@ -140,13 +141,9 @@ class _MetadataSave:
                 file.write(merged_model.model_dump_json(indent=METADATA_INDENT))
 
     @staticmethod
-    def _write_datatypes(metadata: Metadata, datatypes_path: Path):
+    def _write_datatypes(metadata: MetadataManifest, datatypes_path: Path):
         for id, datatype in metadata.data_types.items():
-            slotio_folder_path = datatypes_path / id
-
-            slotio_folder_path.mkdir(exist_ok=True)
-
-            subtype_file_path = slotio_folder_path / f"{id}{METADATA_EXTENSION}"
+            subtype_file_path = datatypes_path / f"{id}{METADATA_EXTENSION}"
             
             base_data = datatype.model_dump(mode="json")
             merged_data = base_data
@@ -163,7 +160,7 @@ class _MetadataSave:
                 file.write(merged_model.model_dump_json(indent=METADATA_INDENT))    
 
     @staticmethod
-    def _write_header(metadata: Metadata, folder_path: Path):
+    def _write_header(metadata: MetadataManifest, folder_path: Path):
         header_file_path = folder_path / f"metadata{METADATA_EXTENSION}"
         base_data = metadata.model_dump(mode="json")
         merged_data = base_data
@@ -175,7 +172,7 @@ class _MetadataSave:
             except Exception as e:
                 logger.error("Failed to load metadata header.", e)
         
-        merged_model = MetadataManifest.model_validate(merged_data)
+        merged_model = MetadataHeader.model_validate(merged_data)
         merged_model.content_hash = metadata.content_hash
         merged_model.package_version = metadata.package_version
         merged_model.meta_version = metadata.meta_version
@@ -199,7 +196,7 @@ class MetadataFileUtils:
                 - NodeTypeID.json
     """
     @staticmethod
-    def get_global_mtime(metadata: Metadata, metadata_folder_path: Path) -> float:
+    def get_global_mtime(metadata: MetadataManifest, metadata_folder_path: Path) -> float:
         if not metadata:
             return 0.0
         
@@ -233,14 +230,14 @@ class MetadataFileUtils:
         return node_meta_path, datatypes_path
 
     @staticmethod
-    def update_metadata_header(metadata: Metadata, folder_path: Path):
+    def update_metadata_header(metadata: MetadataManifest, folder_path: Path):
         if not metadata:
             raise Exception("No metadata to save")
         
         _MetadataSave._write_header(metadata, folder_path)
     
     @staticmethod
-    def save_to_folder(metadata: Metadata, folder_path: Path):
+    def save_to_folder(metadata: MetadataManifest, folder_path: Path):
         if not metadata:
             raise Exception("No metadata to save")
         
@@ -258,7 +255,7 @@ class MetadataFileUtils:
         datatypes: dict[str, DataTypeMeta] = _MetadataLoad._load_data_types(folder_path)
         node_types: dict[str, NodeTypeMeta] = _MetadataLoad._load_node_types(header_metadata, folder_path)
         
-        metadata = Metadata(
+        metadata = MetadataManifest(
             content_hash=header_metadata.content_hash,
             package_id=header_metadata.package_id,
             package_version=header_metadata.package_version,
@@ -272,7 +269,7 @@ class MetadataFileUtils:
         return metadata
     
     @staticmethod
-    def update_content_hash(metadata: Metadata, metadata_folder_path: Path) -> bool:
+    def update_content_hash(metadata: MetadataManifest, metadata_folder_path: Path) -> bool:
         header_content = metadata.model_dump(mode="json", exclude={"meta_version", "content_hash", "last_modified"})
         metadata_content = {
             "header": header_content,

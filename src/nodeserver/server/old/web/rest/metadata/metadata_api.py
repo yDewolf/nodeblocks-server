@@ -8,7 +8,7 @@ import aiohttp_cors
 from nodeserver.old.internal.metadata_manager import MetadataManager
 from nodeserver.server.old.web.manager.session_manager import SessionManager
 from nodeserver.server.old.web.rest.rest_utils import BaseRequestRouter, RestUtils
-from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataManifest
+from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest, MetadataHeader
 
 class MetadataRequests(Enum):
     GET_HEADER = 0
@@ -71,11 +71,11 @@ class MetadataHandler(BaseRequestRouter):
         return await self.route_request(request, MetadataRequests.GET_DATATYPE)
     
 
-    def get_metadata_header(self, metadata: Metadata) -> web.Response:
-        header_data = MetadataManifest.model_validate(metadata).model_dump(mode="json")
+    def get_metadata_header(self, metadata: MetadataManifest) -> web.Response:
+        header_data = MetadataHeader.model_validate(metadata).model_dump(mode="json")
         return web.json_response(header_data)
 
-    def get_node_metadata(self, metadata: Metadata, type_id: Optional[str] = None) -> web.Response:
+    def get_node_metadata(self, metadata: MetadataManifest, type_id: Optional[str] = None) -> web.Response:
         node_types_data = metadata.node_types
         if type_id:
             node_meta = node_types_data.get(type_id)
@@ -87,7 +87,7 @@ class MetadataHandler(BaseRequestRouter):
         raw_nodes = {key: node_type.model_dump(mode="json") for key, node_type in node_types_data.items()}
         return web.json_response(raw_nodes)
 
-    def get_datatype_metadata(self, metadata: Metadata, datatype_id: Optional[str] = None) -> web.Response:
+    def get_datatype_metadata(self, metadata: MetadataManifest, datatype_id: Optional[str] = None) -> web.Response:
         data_types_data = metadata.data_types
         if datatype_id:
             node_meta = data_types_data.get(datatype_id)

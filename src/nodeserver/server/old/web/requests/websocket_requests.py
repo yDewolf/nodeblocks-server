@@ -5,7 +5,7 @@ from nodeserver.protocols.manifest.node.node_manifest import ManifestPackage
 from nodeserver.server.old.web.requests.base_requests import BaseSocketModel
 from nodeserver.server.old.web.requests.notification_requests import ServerSyncNotifications
 from nodeserver.server.old.web.websocket_protocol import EditorActionStatus, ServerMessages, WebsocketStatus
-from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataVersion
+from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest, MetadataVersion
 
 
 class SyncStatePayload(BaseSocketModel):
@@ -19,7 +19,7 @@ class SrvMetadataUpdated(BaseSocketModel):
 class SrvVersionSync(BaseSocketModel):
     type: Literal[ServerMessages.SYNC_VERSIONS] = ServerMessages.SYNC_VERSIONS
     types: Optional[ManifestPackage]
-    metadata: Optional[Metadata] # FIXME: Don't send full metadata, client should request it
+    metadata: Optional[MetadataManifest] # FIXME: Don't send full metadata, client should request it
 
 class SrvHandshakeSuccess(BaseSocketModel):
     type: Literal[ServerMessages.HANDSHAKE_SYNC] = ServerMessages.HANDSHAKE_SYNC

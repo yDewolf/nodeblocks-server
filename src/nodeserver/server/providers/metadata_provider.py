@@ -3,7 +3,9 @@ from pathlib import Path
 from nodeserver.engine.metadata.plugin_metadata import PluginMetadataGenerator
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_FOLDER_NAME, _MetadataLoad, MetadataFileUtils
-from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataManifest
+from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
+from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest, MetadataHeader
+from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 from nodeserver.server.protocols.providers.metadata_provider_protocol import IMetadataProvider
 
 
@@ -17,9 +19,12 @@ class FileMetadataProvider(IMetadataProvider):
         self.plugins_folder = plugins_folder
         self.plugin_manager = plugin_manager
         self.metadata_gen = PluginMetadataGenerator()
+
+    def package_has_metadata(self, package_id: str) -> bool:
+        return self.plugin_manager.is_package_loaded(package_id)
     
 
-    def get_package_metadata(self, package_id: str) -> Metadata:
+    def get_metadata_manifest(self, package_id: str) -> MetadataManifest:
         metadata_folder = self.get_plugin_metadata_folder(package_id)
         if not metadata_folder.exists():
             metadata = self.metadata_gen.generate_from_manifest(
@@ -31,17 +36,23 @@ class FileMetadataProvider(IMetadataProvider):
         metadata = MetadataFileUtils.load_from_folder(metadata_folder)
         return metadata
 
-    def get_package_metadata_manifest(self, package_id: str) -> MetadataManifest:
+    def get_metadata_header(self, package_id: str) -> MetadataHeader:
         metadata_folder = self.get_plugin_metadata_folder(package_id)
         if metadata_folder.exists():
             return _MetadataLoad._load_header(metadata_folder)
 
-        metadata = self.get_package_metadata(package_id)
-        return MetadataManifest(
-            **metadata.__dict__
-        )
+        metadata = self.get_metadata_manifest(package_id)
+        return MetadataHeader(**metadata.__dict__)
 
-    def save_package_metadata(self, metadata: Metadata):
+
+    def get_metadata_datatypes(self, package_id: str) -> dict[str, DataTypeMeta]:
+        return self.get_metadata_manifest(package_id).data_types
+
+    def get_metadata_nodetypes(self, package_id: str) -> dict[str, NodeTypeMeta]:
+        return self.get_metadata_manifest(package_id).node_types
+
+
+    def save_package_metadata(self, metadata: MetadataManifest):
         # if not self.plugin_manager.is_package_loaded(metadata.package_id):
         #     raise Exception("Can't save metadata of a package that is not loaded.")
         metadata_folder = self.get_plugin_metadata_folder(metadata.package_id)
