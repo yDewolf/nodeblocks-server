@@ -7,9 +7,12 @@ from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.meta_filter import MetaCategory, MetaTag
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 
-class MetadataFileHeader(BaseModel):
-    types_id: str
-    types_version: int
+class MetadataHeader(BaseModel):
+    # types_id: str
+    # types_version: int
+    package_id: str
+    package_version: str
+
     meta_version: int # TODO: use hashing for versions
     content_hash: Optional[str] = None
  
@@ -22,7 +25,7 @@ class MetadataFileHeader(BaseModel):
     categories: dict[str, MetaCategory] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def resolve_internal_references(self) -> 'MetadataFileHeader':
+    def resolve_internal_references(self) -> 'MetadataHeader':
         for tag_id, tag in self.tags.items():
             tag.tag_id = tag_id
             
@@ -52,9 +55,9 @@ class MetadataFileHeader(BaseModel):
 
         return self
 
-class Metadata(MetadataFileHeader):
-    data_types: dict[str, DataTypeMeta]
-    node_types: dict[str, NodeTypeMeta]
+class MetadataManifest(MetadataHeader):
+    data_types: dict[str, DataTypeMeta] # nodetype_id
+    node_types: dict[str, NodeTypeMeta] # datatype_id
     
     @field_serializer("data_types")
     def serialize_data_types(self, data_types: dict[str, DataTypeMeta], _info):
@@ -63,6 +66,7 @@ class Metadata(MetadataFileHeader):
     @field_serializer("node_types")
     def serialize_node_types(self, node_types: dict[str, NodeTypeMeta], _info):
         return [id for id in node_types]
+
 
 class MetadataVersion(BaseModel):
     types_version: int

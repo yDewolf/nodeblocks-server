@@ -3,7 +3,9 @@ import pytest
 from nodeserver.engine.exceptions.graph_exceptions import CyclicConnectionError, CyclicGraphError, DuplicateConnectionError, MaxConnectionReached
 from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.protocols.node_provider import BaseNodeProvider
+from nodeserver.engine.providers.base_node_providers import BaseNodeProvider
+from nodeserver.engine.providers.base_scene_providers import NoSceneDataProvider
+from nodeserver.engine.providers.base_scene_providers import NoSceneStateProvider
 from tests.nodeserver.engine.conftest import MockNode
 
 @pytest.fixture
@@ -11,7 +13,12 @@ def scene_setup(default_registry, default_builder) -> tuple[NodeScene, str]:
     spec = default_builder.build_node_spec("custom", "transform_node", MockNode)
     default_registry.register_node_type(spec, logic_class=MockNode)
 
-    scene = NodeScene(registry=default_registry, node_provider=BaseNodeProvider(default_registry))
+    scene = NodeScene(
+        registry=default_registry, 
+        node_provider=BaseNodeProvider(default_registry),
+        scene_data_provider=NoSceneDataProvider(),
+        scene_state_provider=NoSceneStateProvider("")
+    )
 
     return scene, spec.fqn
 

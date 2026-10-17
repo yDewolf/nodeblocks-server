@@ -8,7 +8,7 @@ from watchdog.observers import Observer
 
 from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_EXTENSION, METADATA_FOLDER_NAME, ROOT_METADATA_PATH, MetadataFileUtils
 from nodeserver.old.helpers.metadata.metadata_file import MetadataFile
-from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataVersion
+from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest, MetadataVersion
 from nodeserver.old.wrapper.helpers.file.typing_file_reader import TypeFileReader
 
 class MetadataFolderWatchdog(FileSystemEventHandler):
@@ -110,7 +110,7 @@ class MetadataManager:
             meta_version=metadata_file.metadata.meta_version
         )
 
-    def get_metadata(self, type_id: str) -> Optional[Metadata]:
+    def get_metadata(self, type_id: str) -> Optional[MetadataManifest]:
         metadata_file = self.indexed_metadata.get(type_id)
         if not metadata_file:
             return None

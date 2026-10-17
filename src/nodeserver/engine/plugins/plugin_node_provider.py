@@ -3,14 +3,16 @@ from typing import Optional, Type
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingNodeCacheEntry
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingNodeCache
 from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
+from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef, PluginDatatypeSpec
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
-from nodeserver.engine.protocols.node_provider import INodeProvider
+from nodeserver.engine.protocols.providers.node_provider import INodeProvider
 from nodeserver.protocols.manifest.base_manifest import split_fqn
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
+from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 
 class PluginNodeProvider(INodeProvider):
     _factory: NodeInstanceFactory
@@ -21,6 +23,21 @@ class PluginNodeProvider(INodeProvider):
         self._factory = NodeInstanceFactory(plugin_manager.registry)
 
     # INodeProvider
+
+    def extract_node_dependencies(self, node: BaseNode) -> set[tuple[str, str]]:
+        dependencies: set[tuple[str, str]] = set()
+        spec = self.plugin_manager.registry.get_node_type_spec(node.scene_data.nodetype_fqn)
+        
+        package = self.plugin_manager.ensure_package(spec.namespace)
+        dependencies.add((package.package_id, package.version))
+        
+        datatypes = NodeSpecBuilder.extract_datatype_dependencies(spec)
+        for dt_fqn in datatypes:
+            dt_spec = self.plugin_manager.registry.get_datatype_spec(dt_fqn)
+            dt_package = self.plugin_manager.ensure_package(dt_spec.namespace)
+            dependencies.add((dt_package.package_id, dt_package.version))            
+        
+        return dependencies
 
     def create_node(
         self, 

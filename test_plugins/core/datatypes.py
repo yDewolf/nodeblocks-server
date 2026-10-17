@@ -13,7 +13,9 @@ from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultR
 )
 class FloatDataType(PluginDatatype, float):
     def serialize(self): return self
-
+    @classmethod
+    def serialize_value(cls, value: Any):
+        return float(value)
 
 @plugin_datatype(
     id="int",
@@ -23,7 +25,9 @@ class FloatDataType(PluginDatatype, float):
 )
 class IntDataType(PluginDatatype, int):
     def serialize(self): return self
-
+    @classmethod
+    def serialize_value(cls, value: Any):
+        return int(value)
 
 @plugin_datatype(
     id="uint",
@@ -34,7 +38,9 @@ class UIntDataType(PluginDatatype, int):
     def serialize(self):
         # TODO: pensar em um jeito melhor de implementar UINT lol
         return max(0, self)
-
+    @classmethod
+    def serialize_value(cls, value: Any):
+        return max(0, int(value))
 
 @plugin_datatype(
     id="bool",
@@ -45,7 +51,10 @@ class UIntDataType(PluginDatatype, int):
 class BoolDataType(PluginDatatype):
     # TODO: melhorar isso aqui tbm
     value: bool
-    def serialize(self): return self
+    def serialize(self): return self.value
+    @classmethod
+    def serialize_value(cls, value: Any):
+        return bool(value)
 
 @plugin_datatype(
     id="array",
@@ -55,7 +64,12 @@ class BoolDataType(PluginDatatype):
 )
 class ArrayDataType(PluginDatatype, Sequence):
     def serialize(self): return self
-
+    @classmethod
+    def serialize_value(cls, value: Any):
+        if isinstance(value, Sequence):
+            return value
+        
+        return tuple(value)
 
 @plugin_datatype(
     id="string",
@@ -65,7 +79,9 @@ class ArrayDataType(PluginDatatype, Sequence):
 )
 class StringDataType(PluginDatatype, str):
     def serialize(self): return self
-
+    @classmethod
+    def serialize_value(cls, value: Any):
+        return str(value)
 
 @plugin_datatype(
     id="unknown",
@@ -74,4 +90,6 @@ class StringDataType(PluginDatatype, str):
 )
 class UnknownDataType(PluginDatatype):
     def serialize(self): return self
-
+    @classmethod
+    def serialize_value(cls, value: Any):
+        return value

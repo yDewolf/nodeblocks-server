@@ -3,14 +3,14 @@ import os
 from typing import Optional
 
 from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
-from nodeserver.protocols.manifest.metadata.metadata_header import Metadata
+from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.node_meta import MetaCategory, MetaTag, NodeTypeMeta, ParameterMeta, SlotMeta
 from nodeserver.old.wrapper.helpers.file.typing_file_reader import TypeFileReader
 
 
 class MetadataFile:
-    metadata: Optional[Metadata] = None
+    metadata: Optional[MetadataManifest] = None
     last_update_timestamp: float = 0.0
 
     def __init__(self) -> None:
@@ -96,7 +96,7 @@ class MetadataFile:
         self.metadata = MetadataFile.generate_meta_model(type_reader)    
 
     @staticmethod
-    def generate_meta_model(type_reader: TypeFileReader) -> Metadata:
+    def generate_meta_model(type_reader: TypeFileReader) -> MetadataManifest:
         if not type_reader._node_types_id: 
             raise Exception(f"TypeFile is missing node type id. Referred reader: {type_reader}")
         
@@ -150,7 +150,7 @@ class MetadataFile:
             )
             nodetype_meta[type_id] = meta
         
-        metadata = Metadata(
+        metadata = MetadataManifest(
             types_id=type_reader._node_types_id,
             types_version=type_reader._node_types_version,
             last_modified=None,

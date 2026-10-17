@@ -19,10 +19,10 @@ class DatatypeHelper:
     @staticmethod
     def are_types_compatible(source_spec: DataTypeSpec, target_spec: DataTypeSpec) -> bool:
         # será que em algum momento vai existir um datatype que não é compatível consigo mesmo??
-        if source_spec.id == source_spec.id:
+        if source_spec.fqn == target_spec.fqn:
             return True
         
-        if source_spec.id and source_spec.id in target_spec.whitelist:
+        if source_spec.fqn and source_spec.fqn in target_spec.whitelist:
             return True
 
         return source_spec.base_id in target_spec.whitelist

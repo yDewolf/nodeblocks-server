@@ -20,8 +20,7 @@ class BaseParameterSpec(DataModel):
     required: bool = False
 
     datatype_fqn: str
-    # FIXME: this field should be excluded only when sending to client
-    raw_io_type: Optional[Type[Any]] = Field(default=None, exclude=True)
+    # raw_io_type: Optional[Type[Any]] = Field(default=None, exclude=True)
 
 class _NumberParameter(BaseParameterSpec):
     type: Literal[DefaultDataTypes.FLOAT] | Literal[DefaultDataTypes.UINT] | Literal[DefaultDataTypes.INT]
