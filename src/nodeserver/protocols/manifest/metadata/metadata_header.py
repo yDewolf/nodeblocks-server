@@ -7,7 +7,7 @@ from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.meta_filter import MetaCategory, MetaTag
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 
-class MetadataManifest(BaseModel):
+class MetadataHeader(BaseModel):
     # types_id: str
     # types_version: int
     package_id: str
@@ -25,7 +25,7 @@ class MetadataManifest(BaseModel):
     categories: dict[str, MetaCategory] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def resolve_internal_references(self) -> 'MetadataManifest':
+    def resolve_internal_references(self) -> 'MetadataHeader':
         for tag_id, tag in self.tags.items():
             tag.tag_id = tag_id
             
@@ -55,7 +55,7 @@ class MetadataManifest(BaseModel):
 
         return self
 
-class Metadata(MetadataManifest):
+class MetadataManifest(MetadataHeader):
     data_types: dict[str, DataTypeMeta] # nodetype_id
     node_types: dict[str, NodeTypeMeta] # datatype_id
     

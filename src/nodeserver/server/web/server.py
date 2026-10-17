@@ -9,7 +9,6 @@ from aiohttp import web
 import aiohttp_cors
 
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
-from nodeserver.engine.registry.type_registry import TypeSpecRegistry
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
@@ -20,8 +19,9 @@ from nodeserver.server.providers.scene_provider import SceneProvider
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
-from nodeserver.server.web.policies.dev_policies import DevAuthPolicy, DevScenePermPolicy
+from nodeserver.server.web.policies.dev_policies import DevAuthPolicy
 from nodeserver.server.web.policies.scene_permission_policy import FilePermissionPolicy
+from nodeserver.server.web.routing.metadata_http_router import MetadataHTTPRouter
 from nodeserver.server.web.routing.plugin_http_router import PluginHTTPRouter
 from nodeserver.server.web.routing.scene_http_router import SceneHTTPRouter
 from nodeserver.server.web.routing.scene_ws_router import SceneWebsocketRouter
@@ -41,6 +41,7 @@ class NodeServer:
     plugin_http_router: PluginHTTPRouter
     scene_http_router: SceneHTTPRouter
     user_http_router: UserHTTPRouter
+    metadata_http_router: MetadataHTTPRouter
 
     plugins_folder: Path
     scenes_folder: Path
@@ -87,6 +88,7 @@ class NodeServer:
         self.plugin_http_router = PluginHTTPRouter(self.app)
         self.scene_http_router = SceneHTTPRouter(self.app)
         self.user_http_router = UserHTTPRouter(self.app)
+        self.metadata_http_router = MetadataHTTPRouter(self.app)
         self._setup_routes()
         self._setup_cors()
 
@@ -94,6 +96,8 @@ class NodeServer:
     def _setup_routes(self):
         self.user_http_router._setup_routes()
         self.plugin_http_router._setup_routes()
+        self.metadata_http_router._setup_routes()
+
         self.scene_http_router._setup_routes()
         self.scene_ws_router._setup_routes()
 
