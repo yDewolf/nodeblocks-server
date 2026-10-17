@@ -7,7 +7,7 @@ from pathlib import Path
 # TODO: mover isso aqui para o server e reestruturar as coisas
 # para isso aqui ser um MetadataProvider
 
-from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataFileHeader
+from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataManifest
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 import logging
@@ -24,19 +24,19 @@ class _MetadataLoad:
         Please use :obj:`~nodeserver.MetadataFileUtils` if you only need to load full metadata.
     """
     @staticmethod
-    def _load_header(folder_path: Path) -> MetadataFileHeader:
+    def _load_header(folder_path: Path) -> MetadataManifest:
         header_file_path = folder_path / f"metadata{METADATA_EXTENSION}"
         with open(header_file_path, "r") as file:
             header_data = json.load(file)
         
-        header_metadata = MetadataFileHeader.model_validate(header_data)
+        header_metadata = MetadataManifest.model_validate(header_data)
         if not header_metadata:
             raise Exception(f"Couldn't parse metadata header. Path: {header_file_path}")
 
         return header_metadata
 
     @staticmethod
-    def _load_node_types(header: MetadataFileHeader, folder_path: Path) -> dict[str, NodeTypeMeta]:
+    def _load_node_types(header: MetadataManifest, folder_path: Path) -> dict[str, NodeTypeMeta]:
         header_context = {
             "tags": header.tags,
             "categories": header.categories
@@ -175,7 +175,7 @@ class _MetadataSave:
             except Exception as e:
                 logger.error("Failed to load metadata header.", e)
         
-        merged_model = MetadataFileHeader.model_validate(merged_data)
+        merged_model = MetadataManifest.model_validate(merged_data)
         merged_model.content_hash = metadata.content_hash
         merged_model.package_version = metadata.package_version
         merged_model.meta_version = metadata.meta_version
@@ -189,15 +189,14 @@ class MetadataFileUtils:
     """
         General Metadata Folder Structure:
 
-        - plugin_folder/
-            - metadata/
-                - metadata.json (header file)
-                - datatypes/
-                    - SlotIOType/
-                        - subtype.json
-                        - default.json (if no subtype is found)
-                - nodes/
-                    - NodeTypeID.json
+        - metadata/
+            - metadata.json (header file)
+            - datatypes/
+                - SlotIOType/
+                    - subtype.json
+                    - default.json (if no subtype is found)
+            - nodes/
+                - NodeTypeID.json
     """
     @staticmethod
     def get_global_mtime(metadata: Metadata, metadata_folder_path: Path) -> float:

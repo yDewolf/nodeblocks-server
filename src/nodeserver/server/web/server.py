@@ -13,7 +13,9 @@ from nodeserver.engine.registry.type_registry import TypeSpecRegistry
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
+from nodeserver.server.protocols.providers.metadata_provider_protocol import IMetadataProvider
 from nodeserver.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
+from nodeserver.server.providers.metadata_provider import FileMetadataProvider
 from nodeserver.server.providers.scene_provider import SceneProvider
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
@@ -55,6 +57,7 @@ class NodeServer:
         permission_policy: Optional[IScenePermPolicy] = None,
         auth_policy: Optional[IAuthPolicy] = None,
         scene_provider: Optional[IServerSceneProvider] = None,
+        metadata_provider: Optional[IMetadataProvider] = None,
         host: str = "127.0.0.1",
         port: int = 8080
     ) -> None:
@@ -68,13 +71,15 @@ class NodeServer:
         self.app.on_startup.append(self._on_startup)
         self.app.on_cleanup.append(self._on_cleanup)
 
+        plugin_manager = PluginSpecManager.new()
         self.app._setup(
-            PluginSpecManager.new(),
+            plugin_manager,
             SceneSessionManager(),
             SceneWorkerManager(self.plugins_folder, self.scenes_folder),
             permission_policy or FilePermissionPolicy(self.app),
             auth_policy or DevAuthPolicy(),
-            scene_provider or SceneProvider(self.scenes_folder)
+            scene_provider or SceneProvider(self.scenes_folder),
+            metadata_provider or FileMetadataProvider(self.plugins_folder, plugin_manager)
         )
         self.app._setup_plugins(self.plugins_folder)
 

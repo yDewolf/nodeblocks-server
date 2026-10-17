@@ -8,7 +8,7 @@ import aiohttp_cors
 from nodeserver.old.internal.metadata_manager import MetadataManager
 from nodeserver.server.old.web.manager.session_manager import SessionManager
 from nodeserver.server.old.web.rest.rest_utils import BaseRequestRouter, RestUtils
-from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataFileHeader
+from nodeserver.protocols.manifest.metadata.metadata_header import Metadata, MetadataManifest
 
 class MetadataRequests(Enum):
     GET_HEADER = 0
@@ -72,7 +72,7 @@ class MetadataHandler(BaseRequestRouter):
     
 
     def get_metadata_header(self, metadata: Metadata) -> web.Response:
-        header_data = MetadataFileHeader.model_validate(metadata).model_dump(mode="json")
+        header_data = MetadataManifest.model_validate(metadata).model_dump(mode="json")
         return web.json_response(header_data)
 
     def get_node_metadata(self, metadata: Metadata, type_id: Optional[str] = None) -> web.Response:
