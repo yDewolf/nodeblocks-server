@@ -1,7 +1,7 @@
 
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest
-from nodeserver.protocols.manifest.metadata.node_meta import DEFAULT_CATEGORY, DEFAULT_NODE_TAG, NodeTypeMeta, SlotMeta
+from nodeserver.protocols.manifest.metadata.node_meta import DEFAULT_CATEGORY, DEFAULT_NODE_TAG, NodeTypeMeta, ParameterMeta, SlotMeta
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 from nodeserver.protocols.manifest.node.node_manifest import NodeTypeSpec
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
@@ -37,6 +37,10 @@ class PluginMetadataGenerator:
             meta[nodetype.id] = NodeTypeMeta(
                 capitalized_name=nodetype.id,
                 category=DEFAULT_CATEGORY,
+                parameter_meta={
+                    param_id: ParameterMeta(capitalized_name=param_spec.label or param_id)
+                    for param_id, param_spec in nodetype.parameters.items()
+                },
                 slot_meta={
                     slot_id: SlotMeta(capitalized_name=slot_id)
                     for slot_id, slot_spec in nodetype.slots.items()
