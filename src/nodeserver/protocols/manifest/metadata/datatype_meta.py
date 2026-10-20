@@ -1,5 +1,5 @@
-from nodeserver.protocols.manifest.metadata.base_meta import BaseMetadata
+from nodeserver.protocols.manifest.metadata.base_meta import EngineSpecMetadata
 
 
-class DataTypeMeta(BaseMetadata):
+class DataTypeMeta(EngineSpecMetadata):
     pass

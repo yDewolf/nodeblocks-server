@@ -2,7 +2,7 @@ from pathlib import Path
 
 from nodeserver.engine.metadata.plugin_metadata import PluginMetadataGenerator
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
-from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_FOLDER_NAME, _MetadataLoad, MetadataFileUtils
+from nodeserver.server.utils.metadata_file_utils import METADATA_FOLDER_NAME, _MetadataLoad, MetadataFileUtils
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest, MetadataHeader
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
