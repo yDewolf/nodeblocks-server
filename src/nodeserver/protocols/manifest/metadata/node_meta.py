@@ -1,16 +1,16 @@
 
 from pydantic import field_serializer
-from nodeserver.protocols.manifest.metadata.base_meta import BaseMetadata
+from nodeserver.protocols.manifest.metadata.base_meta import EngineSpecMetadata
 from nodeserver.protocols.helpers.metadata.category_solvers import ResolvedCategory, ResolvedTags
 from nodeserver.protocols.manifest.metadata.meta_filter import MetaCategory, MetaTag
 
-class ParameterMeta(BaseMetadata):
+class ParameterMeta(EngineSpecMetadata):
     pass
 
-class SlotMeta(BaseMetadata):
+class SlotMeta(EngineSpecMetadata):
     pass
 
-class NodeTypeMeta(BaseMetadata):
+class NodeTypeMeta(EngineSpecMetadata):
     """
         Every attribute of this class will be used as a default value for the generated
         metadata file. These attributes will be overridden by the metadata file content (if it exists)

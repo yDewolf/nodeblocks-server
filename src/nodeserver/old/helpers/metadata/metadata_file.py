@@ -2,7 +2,7 @@
 import os
 from typing import Optional
 
-from nodeserver.protocols.helpers.metadata.metadata_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
+from nodeserver.server.utils.metadata_file_utils import METADATA_EXTENSION, ROOT_METADATA_PATH, MetadataFileUtils
 from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.node_meta import MetaCategory, MetaTag, NodeTypeMeta, ParameterMeta, SlotMeta

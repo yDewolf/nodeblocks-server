@@ -5,9 +5,6 @@ import os
 from pathlib import Path
 from typing import Iterator
 
-# TODO: mover isso aqui para o server e reestruturar as coisas
-# para isso aqui ser um MetadataProvider
-
 from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest, MetadataHeader
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta

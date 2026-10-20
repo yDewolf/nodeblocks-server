@@ -1,0 +1,21 @@
+{
+ "package_id": "core",
+ "package_version": "0.1.0",
+ "meta_version": 0,
+ "content_hash": null,
+ "last_modified": null,
+ "tags": {
+  "default": {
+   "description": ""
+  }
+ },
+ "categories": {
+  "default": {
+   "description": "Every node that doesn't fit in a category",
+   "super_category": null,
+   "default_tags": [
+    "default"
+   ]
+  }
+ }
+}
