@@ -24,7 +24,7 @@ class IServerSceneProvider(Protocol):
         pass
 
     @abstractmethod
-    def update_scene_permissions(self, scene_uid: str, user_id: str, permissions: ScenePermission):
+    def update_scene_permissions(self, scene_uid: str, permissions: ScenePermission, user_id: Optional[str] = None):
         pass
 
 

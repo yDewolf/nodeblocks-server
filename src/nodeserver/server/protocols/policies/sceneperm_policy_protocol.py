@@ -19,5 +19,9 @@ class IScenePermPolicy(ABC):
         pass
 
     @abstractmethod
+    async def update_default_scene_perms(self, user: UserSession, scene_id: str, perms: ScenePermission):
+        pass
+
+    @abstractmethod
     async def get_scene_data(self, user: UserSession, scene_id: str) -> SceneData:
         pass

@@ -1,5 +1,6 @@
 from pathlib import Path
 import logging
+from typing import Optional
 
 from nodeserver.engine.helpers.scene_file_reader import SceneFileReader
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -51,9 +52,12 @@ class SceneProvider(IServerSceneProvider):
         perms = self._load_or_create_scene_permissions(scene_uid)
         return perms.user_permissions.get(user_id, perms.default_perm)
 
-    def update_scene_permissions(self, scene_uid: str, user_id: str, permissions: ScenePermission):
+    def update_scene_permissions(self, scene_uid: str, permissions: ScenePermission, user_id: Optional[str] = None):
         perms = self._load_or_create_scene_permissions(scene_uid)
-        perms.user_permissions[user_id] = permissions
+        if user_id:
+            perms.user_permissions[user_id] = permissions
+        else:
+            perms.default_perm = permissions
 
         perms_file = self.get_scene_perms_file(scene_uid)
         perms_file.write_text(perms.model_dump_json())

@@ -28,7 +28,20 @@ class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
             raise Exception("User must have admin permissions to update another user's permission")
 
         self.app.scene_provider.update_scene_permissions(
-            scene_id, target_user, perms
+            scene_id, perms, user_id=target_user
+        )
+
+    def update_default_scene_perms(self, user: UserSession, scene_id: str, perms: ScenePermission):
+        actor_perms = self.app.scene_provider.get_scene_permissions(
+            scene_id, user.user_id
+        )
+
+        if not ScenePermission.ADMIN in actor_perms:
+            # TODO: better exceptions I guess
+            raise Exception("User must have admin permissions to update another user's permission")
+
+        self.app.scene_provider.update_scene_permissions(
+            scene_id, perms
         )
 
     async def get_scene_data(self, user: UserSession, scene_id: str) -> SceneData:
