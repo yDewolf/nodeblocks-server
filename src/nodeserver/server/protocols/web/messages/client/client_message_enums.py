@@ -20,6 +20,9 @@ class ClientSceneCommandTypes(StrEnum):
     SET_SCENE_AUTOSAVE = "set_scene_autosave" # TODO: talvez isso deveria ser outro tipo de comando
     GET_SCENE_DATA = "get_scene_data"
 
+# TODO: fazer esse set scene autosave se tornar um 
+# comando de configuração geral da cena com outras opções
+
 # -- Scene Execution 
 
 class SceneExecutionCmdTypes(StrEnum):

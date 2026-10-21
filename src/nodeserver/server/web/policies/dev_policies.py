@@ -23,3 +23,6 @@ class DevScenePermPolicy(IScenePermPolicy):
 
     async def update_scene_permissions(self, user: UserSession, target_user: str, scene_id: str, perms: ScenePermission):
         pass
+
+    async def update_default_scene_perms(self, user: UserSession, scene_id: str, perms: ScenePermission):
+        pass

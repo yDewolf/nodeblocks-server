@@ -16,7 +16,10 @@ class SceneHTTPRouter(BaseRouter):
         self.app.router.add_post("/api/scene/{uid}", self.get_scene_data)
         self.app.router.add_post("/api/scene/{uid}/token", self.handle_scene_token_create)
         self.app.router.add_post("/api/scene/{uid}/perms", self.get_scene_perms)
-        self.app.router.add_patch("/api/scene/{uid}/perms", self.update_user_perms)
+
+        # Use ?targetUser=... to update a user's permission. 
+        # Otherwise it will update default scene permissions
+        self.app.router.add_patch("/api/scene/{uid}/perms", self.update_scene_perms)
 
 
     async def get_scene_list(self, request: web.Request):
@@ -66,7 +69,7 @@ class SceneHTTPRouter(BaseRouter):
             "user_perms": perms.value
         })
 
-    async def update_user_perms(self, request: web.Request):
+    async def update_scene_perms(self, request: web.Request):
         scene_uid = request.match_info["uid"]
         try:
             data = await request.json()
@@ -78,15 +81,20 @@ class SceneHTTPRouter(BaseRouter):
             return web.json_response({"error": "invalid_body", "message": str(e)})
 
         user = await self.app.auth_policy.authenticate(request)
+        target_user = request.query.get("targetUser")
         try:
-            await self.app.scene_perm_policy.update_scene_permissions(
-                user, parsed_data.target_user_id, scene_uid, parsed_data.user_perms
-            )
+            if target_user:
+                await self.app.scene_perm_policy.update_scene_permissions(
+                    user, target_user, scene_uid, parsed_data.user_perms
+                )
+            else:
+                await self.app.scene_perm_policy.update_default_scene_perms(
+                    user, scene_uid, parsed_data.user_perms
+                )
         except Exception as e:
             return web.json_response({"error": "failed", "message": str(e)})
     
-        return web.json_response()
-
+        return web.HTTPSuccessful()
 
     async def handle_scene_token_create(self, request: web.Request):
         try:
