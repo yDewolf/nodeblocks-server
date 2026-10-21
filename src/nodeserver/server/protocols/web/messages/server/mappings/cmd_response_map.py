@@ -1,6 +1,6 @@
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommandResponse
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, UpdateExecutionStateResponse, GetSceneDataResponse, SceneWorkerCommandResponse
-from nodeserver.server.protocols.web.messages.server.server_cmd_responses import AddConnPayload, AddNodePayload, CmdResponsePayloadAdapter, CommandResponsePayload, ExecutionStateSyncPayload, GenericCommandPayload, GetSceneDataPayload
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, SaveSceneResponse, UpdateExecutionStateResponse, GetSceneDataResponse, SceneWorkerCommandResponse
+from nodeserver.server.protocols.web.messages.server.server_cmd_responses import AddConnPayload, AddNodePayload, CmdResponsePayloadAdapter, CommandResponsePayload, ExecutionStateSyncPayload, GenericCommandPayload, GetSceneDataPayload, SaveScenePayload
 
 # TODO: pensar em um jeito melhor de mapear isso aqui
 SERVER_CMD_RESPONSE_MAP: dict[type[IPCCommandResponse], type[CmdResponsePayloadAdapter]] = {
@@ -10,7 +10,8 @@ SERVER_CMD_RESPONSE_MAP: dict[type[IPCCommandResponse], type[CmdResponsePayloadA
 
     AddNodeCommandResponse: AddNodePayload,
     AddConnCommandResponse: AddConnPayload,
-    GetSceneDataResponse: GetSceneDataPayload
+    GetSceneDataResponse: GetSceneDataPayload,
+    SaveSceneResponse: SaveScenePayload
 }
 
 def get_response_payload(response: IPCCommandResponse) -> CmdResponsePayloadAdapter:

@@ -4,7 +4,7 @@ from multiprocessing import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionsCommand, AddNodesCommand, CheckExecutionState, GetSceneDataCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionsCommand, RemoveNodesCommand, ResetSceneCommand, SaveSceneCommand, SetSceneAutosaveCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, GetSceneDataResponse, IPCSceneWorkerEvent, SceneWorkerCommandResponse, UpdateExecutionStateResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, GetSceneDataResponse, IPCSceneWorkerEvent, SaveSceneResponse, SceneWorkerCommandResponse, UpdateExecutionStateResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -155,13 +155,13 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
     @dispatch.register
     def _(self, cmd: SaveSceneCommand):
         if not self.execution_manager.context:
-            return SceneWorkerCommandResponse.failed(message="No active scene context loaded") 
+            return SaveSceneResponse.failed(message="No active scene context loaded") 
         try:
             self.execution_manager.context.scene.save_state()
         except Exception as e:
-            return SceneWorkerCommandResponse.failed(message=str(e))
+            return SaveSceneResponse.failed(message=str(e))
 
-        return SceneWorkerCommandResponse.successful()
+        return SaveSceneResponse.successful()
 
     @dispatch.register
     def _(self, cmd: SetSceneAutosaveCommand):
