@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class BaseMetadata(BaseModel):
     capitalized_name: str
-    brief: str = ""
+    brief: Optional[str] = None
     
     description: str = ""
 

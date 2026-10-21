@@ -16,6 +16,7 @@ class ServerResponseTypes(StrEnum):
     ADD_NODE = "add_node"
     ADD_CONN = "add_conn"
     GET_SCENE_DATA = "get_scene_data"
+    SAVE_SCENE = "save_scene"
 
 class CommandResponsePayload(BaseSocketModel):
     type: ServerResponseTypes
@@ -44,11 +45,15 @@ class GetSceneDataPayload(CommandResponsePayload):
     type: Literal[ServerResponseTypes.GET_SCENE_DATA] = ServerResponseTypes.GET_SCENE_DATA
     scene_data: Optional[SceneData]
 
+class SaveScenePayload(CommandResponsePayload):
+    type: Literal[ServerResponseTypes.SAVE_SCENE] = ServerResponseTypes.SAVE_SCENE
+
+
 CmdResponsePayloadAdapter = Annotated[
     Union[
         GenericCommandPayload, ExecutionStateSyncPayload, 
         AddConnPayload, AddNodePayload, 
-        GetSceneDataPayload
+        GetSceneDataPayload, SaveScenePayload
     ],
     Field(discriminator="type")
 ]

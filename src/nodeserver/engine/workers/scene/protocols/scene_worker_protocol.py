@@ -58,6 +58,11 @@ class GetSceneDataResponse(SceneWorkerCommandResponse):
     def failed(cls, message: str | None = None, request_id: str | None = None):
         return super().failed(message, request_id, scene_data=None)
 
+
+@dataclass(frozen=True)
+class SaveSceneResponse(SceneWorkerCommandResponse):
+    pass
+
 # Scene Actions:
 
 @dataclass(frozen=True)
