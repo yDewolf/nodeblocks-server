@@ -29,13 +29,13 @@ class SceneGraph:
     # Node Manipulation
 
     def remove_node(self, node_id: str) -> bool:
-        node = self._nodes.remove(node_id)
-        if not node:
-            return False
-
         attached_connections = self._connections.get_by_node(node_id)
         for conn in attached_connections:
             self.disconnect(conn.uid)
+
+        node = self._nodes.remove(node_id)
+        if not node:
+            return False
         
         return True
 
