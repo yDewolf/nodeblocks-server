@@ -18,7 +18,7 @@ from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 from nodeserver.engine.utils.benchmark_managers import BenchmarkTimer, FramePacer
 from nodeserver.engine.workers.protocols.general_worker_protocol import EvtWorkerReady, EvtWorkerStopped
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand, SaveSceneCommand
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import ISceneWorker, SceneWorkerCommandResponse, UpdateExecutionStateResponse, WorkerEngineEventWrapper
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import ISceneWorker, SceneWorkerCommandResponse, UpdateExecutionConfigResponse, WorkerEngineEventWrapper
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.engine.workers.scene.worker_execution_manager import SceneWorkerRunManager
@@ -116,7 +116,7 @@ class SceneWorker(ISceneWorker):
         if self.command_handler:
             self.command_handler.event_queue.put(
                 # FIXME: this should be a sync message instead of a command response
-                UpdateExecutionStateResponse.successful(request_id="sync_worker_state", state=state, mode=mode)
+                UpdateExecutionConfigResponse.successful(request_id="sync_worker_state", state=state, mode=mode)
             )
 
     def engine_event_receiver(self, event: IPCEngineEvent):

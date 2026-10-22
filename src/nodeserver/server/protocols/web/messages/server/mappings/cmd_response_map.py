@@ -1,12 +1,12 @@
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommandResponse
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, SaveSceneResponse, UpdateExecutionStateResponse, GetSceneDataResponse, SceneWorkerCommandResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, SaveSceneResponse, UpdateExecutionConfigResponse, GetSceneDataResponse, SceneWorkerCommandResponse
 from nodeserver.server.protocols.web.messages.server.server_cmd_responses import AddConnPayload, AddNodePayload, CmdResponsePayloadAdapter, CommandResponsePayload, ExecutionStateSyncPayload, GenericCommandPayload, GetSceneDataPayload, SaveScenePayload
 
 # TODO: pensar em um jeito melhor de mapear isso aqui
 SERVER_CMD_RESPONSE_MAP: dict[type[IPCCommandResponse], type[CmdResponsePayloadAdapter]] = {
     SceneWorkerCommandResponse: GenericCommandPayload,
 
-    UpdateExecutionStateResponse: ExecutionStateSyncPayload,
+    UpdateExecutionConfigResponse: ExecutionStateSyncPayload,
 
     AddNodeCommandResponse: AddNodePayload,
     AddConnCommandResponse: AddConnPayload,

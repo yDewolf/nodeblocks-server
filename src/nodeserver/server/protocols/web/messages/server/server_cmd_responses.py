@@ -32,6 +32,8 @@ class ExecutionStateSyncPayload(CommandResponsePayload):
     type: Literal[ServerResponseTypes.EXECUTION_STATE_SYNC] = ServerResponseTypes.EXECUTION_STATE_SYNC
     state: SceneWorkerExecutionState
     mode: SceneWorkerExecutionMode
+    target_nodes: Optional[list[str]]
+    target_iterations: Optional[int]
 
 class AddNodePayload(CommandResponsePayload):
     type: Literal[ServerResponseTypes.ADD_NODE] = ServerResponseTypes.ADD_NODE

@@ -37,13 +37,20 @@ class SceneWorkerCommandResponse(IPCCommandResponse, IPCSceneWorkerEvent):
 
 # Check Responses
 @dataclass(frozen=True)
-class UpdateExecutionStateResponse(SceneWorkerCommandResponse):
+class UpdateExecutionConfigResponse(SceneWorkerCommandResponse):
     state: SceneWorkerExecutionState
     mode: SceneWorkerExecutionMode
+    target_nodes: Optional[list[str]]
+    target_iterations: Optional[int]
 
     @classmethod
-    def successful(cls, state: SceneWorkerExecutionState, mode: SceneWorkerExecutionMode, request_id: str | None = None):
-        return super().successful("", request_id, state=state, mode=mode)
+    def successful(
+        cls, 
+        state: SceneWorkerExecutionState, mode: SceneWorkerExecutionMode, 
+        target_nodes: Optional[list[str]], target_iterations: Optional[int],
+        request_id: str | None = None
+    ):
+        return super().successful("", request_id, state=state, target_nodes=target_nodes, target_iterations=target_iterations, mode=mode)
 
 
 @dataclass(frozen=True)
