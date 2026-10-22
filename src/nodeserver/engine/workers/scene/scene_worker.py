@@ -116,7 +116,11 @@ class SceneWorker(ISceneWorker):
         if self.command_handler:
             self.command_handler.event_queue.put(
                 # FIXME: this should be a sync message instead of a command response
-                UpdateExecutionConfigResponse.successful(request_id="sync_worker_state", state=state, mode=mode)
+                UpdateExecutionConfigResponse.successful(
+                    request_id="sync_worker_state", state=state, mode=mode, 
+                    target_iterations=self.execution_manager._target_iterations, 
+                    target_nodes=self.execution_manager.target_nodes
+                )
             )
 
     def engine_event_receiver(self, event: IPCEngineEvent):

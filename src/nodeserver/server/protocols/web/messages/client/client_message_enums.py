@@ -26,6 +26,7 @@ class ClientSceneCommandTypes(StrEnum):
 # -- Scene Execution 
 
 class SceneExecutionCmdTypes(StrEnum):
+    CHECK_EXECUTION_STATE = "check_execution_state"
     SET_EXECUTION_STATE = "set_execution_state"
     SET_EXECUTION_MODE = "set_execution_mode"
     EXECUTION_SHORTCUT = "execution_shortcut"

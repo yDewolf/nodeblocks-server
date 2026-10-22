@@ -1,8 +1,8 @@
 from functools import singledispatchmethod
 
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import SceneWorkerExecutionState
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import RuntimeCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, PauseGraphCommand, GraphStepCommand
-from nodeserver.server.protocols.web.messages.client.scene.scene_runtime_commands import ExecutionShortcutCommand, SceneExecutionCommand, SetExecutionModeCommand, SetExecutionStateCommand
+from nodeserver.engine.workers.scene.protocols.scene_worker_commands import CheckExecutionState, RuntimeCommand, UpdateExecutionConfigCmd, UpdateExecutionModeCmd, UpdateExecutionStateCmd, PauseGraphCommand, GraphStepCommand
+from nodeserver.server.protocols.web.messages.client.scene.scene_runtime_commands import CheckExecutionStateCommand, ExecutionShortcutCommand, SceneExecutionCommand, SetExecutionModeCommand, SetExecutionStateCommand, UpdateExecutionConfigs
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
@@ -51,6 +51,22 @@ class ExecutionCommandHandler(BaseSceneCmdHandler):
         return UpdateExecutionModeCmd(
             request_id=cmd.cmd_uid,
             mode=cmd.mode
+        )
+
+    @generate_engine_cmd.register
+    def _(self, cmd: UpdateExecutionConfigs):
+        return UpdateExecutionConfigCmd(
+            request_id=cmd.cmd_uid,
+            state=cmd.state,
+            mode=cmd.mode,
+            target_nodes=cmd.target_nodes,
+            target_iterations=cmd.target_iterations
+        )
+
+    @generate_engine_cmd.register
+    def _(self, cmd: CheckExecutionStateCommand):
+        return CheckExecutionState(
+            request_id=cmd.cmd_uid,
         )
 
 

@@ -11,6 +11,11 @@ class SceneExecutionCommand(BaseClientCommand):
     cmd_group: Literal[CommandGroups.EXECUTION]
     type: SceneExecutionCmdTypes
 
+# FIXME: esse comando tinha que retornar _current_iteration também
+class CheckExecutionStateCommand(SceneExecutionCommand):
+    type: Literal[SceneExecutionCmdTypes.CHECK_EXECUTION_STATE]
+
+
 class SetExecutionStateCommand(SceneExecutionCommand):
     type: Literal[SceneExecutionCmdTypes.SET_EXECUTION_STATE]
 
@@ -37,6 +42,6 @@ class ExecutionShortcutCommand(SceneExecutionCommand):
     shortcut: ExecutionShortcuts
 
 ExecutionCommandAdapter = Annotated[
-    Union[SetExecutionModeCommand, SetExecutionStateCommand, ExecutionShortcutCommand, UpdateExecutionConfigs],
+    Union[CheckExecutionStateCommand, SetExecutionModeCommand, SetExecutionStateCommand, ExecutionShortcutCommand, UpdateExecutionConfigs],
     Field(discriminator="type")
 ]
