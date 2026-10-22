@@ -5,6 +5,8 @@ class SceneWorkerExecutionState(StrEnum):
     STOPPED = "stopped"
     RUNNING = "running"
     RUNNING_CONTINUOUS = "continuous"
+    # FIXME Talvez ao invés de ter o running continuous, a gente usa o próprio
+    # target iterations para lidar com isso
 
 
 class SceneWorkerExecutionMode(StrEnum):
