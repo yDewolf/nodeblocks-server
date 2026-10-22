@@ -31,7 +31,7 @@ class UpdateTargetNodesCmd(SceneExecutionCommand):
     target_nodes: list[str]
 
 class UpdateExecutionConfigs(SceneExecutionCommand):
-    type: Literal[SceneExecutionCmdTypes.UPDATE_TARGET_NODES]
+    type: Literal[SceneExecutionCmdTypes.UPDATE_EXECUTION_CONFIG]
     mode: Optional[SceneWorkerExecutionMode]
     state: Optional[SceneWorkerExecutionState]
     target_nodes: Optional[list[str]]
