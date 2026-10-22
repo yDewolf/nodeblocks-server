@@ -38,6 +38,12 @@ class UpdateExecutionModeCmd(RuntimeCommand):
 class UpdateTargetNodesCmd(RuntimeCommand):
     target_nodes: Optional[list[str]]
 
+@dataclass(frozen=True)
+class UpdateExecutionConfigCmd(RuntimeCommand):
+    state: Optional[SceneWorkerExecutionState]
+    mode: Optional[SceneWorkerExecutionMode]
+    target_iterations: Optional[int] = 0
+    target_nodes: Optional[list[str]] = Field(default_factory=list)
 
 @dataclass(frozen=True)
 class PauseGraphCommand(RuntimeCommand): pass

@@ -11,7 +11,6 @@ class SceneExecutionCommand(BaseClientCommand):
     cmd_group: Literal[CommandGroups.EXECUTION]
     type: SceneExecutionCmdTypes
 
-
 class SetExecutionStateCommand(SceneExecutionCommand):
     type: Literal[SceneExecutionCmdTypes.SET_EXECUTION_STATE]
 
@@ -22,12 +21,22 @@ class SetExecutionModeCommand(SceneExecutionCommand):
     type: Literal[SceneExecutionCmdTypes.SET_EXECUTION_MODE]
     mode: SceneWorkerExecutionMode
 
+class UpdateTargetNodesCmd(SceneExecutionCommand):
+    type: Literal[SceneExecutionCmdTypes.UPDATE_TARGET_NODES]
+    target_nodes: list[str]
+
+class UpdateExecutionConfigs(SceneExecutionCommand):
+    type: Literal[SceneExecutionCmdTypes.UPDATE_TARGET_NODES]
+    mode: Optional[SceneWorkerExecutionMode]
+    state: Optional[SceneWorkerExecutionState]
+    target_nodes: Optional[list[str]]
+    target_iterations: Optional[int]
 
 class ExecutionShortcutCommand(SceneExecutionCommand):
     type: Literal[SceneExecutionCmdTypes.EXECUTION_SHORTCUT]
     shortcut: ExecutionShortcuts
 
 ExecutionCommandAdapter = Annotated[
-    Union[SetExecutionModeCommand, SetExecutionStateCommand, ExecutionShortcutCommand],
+    Union[SetExecutionModeCommand, SetExecutionStateCommand, ExecutionShortcutCommand, UpdateExecutionConfigs],
     Field(discriminator="type")
 ]
