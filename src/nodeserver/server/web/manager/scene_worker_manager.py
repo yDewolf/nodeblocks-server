@@ -110,15 +110,17 @@ class SceneWorkerManager(ISceneWorkerManager):
                 await asyncio.sleep(0.1)
 
     async def repass_event(self, scene_id: str, event: IPCSceneWorkerEvent):
-        if isinstance(event, UpdateExecutionConfigResponse):
-            if scene_id in self.worker_statuses:
-                if self.worker_statuses[scene_id][0] == event.state:
-                    return
-            
-            self.worker_statuses[scene_id] = (
-                event.state,
-                time.time()
-            )
+        # FIXME: We need to find someway of checking if
+        # this scene has new connections so we allow this sync event
+        # to pass through
+        if isinstance(event, UpdateExecutionConfigResponse) and scene_id in self.worker_statuses:
+            if self.worker_statuses[scene_id][0] != event.state:
+                self.worker_statuses[scene_id] = (
+                    event.state,
+                    time.time()
+                )
+                # return
+            # Doesn't have new connections -> return 
 
         if self._on_event_callback:
             await self._on_event_callback(scene_id, event)
