@@ -3,5 +3,12 @@
  "brief": "",
  "description": "",
  "usages": [],
- "color": null
+ "inStyle": {
+  "color": null,
+  "backgroundColor": null
+ },
+ "outStyle": {
+  "color": null,
+  "backgroundColor": null
+ }
 }
