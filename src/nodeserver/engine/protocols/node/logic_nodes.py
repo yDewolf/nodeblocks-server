@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import ClassVar, Any, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from nodeserver.engine.protocols.node.scene_states import LogicNodeState
 from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
@@ -32,8 +32,18 @@ class BaseNode[inputModel: NodeInputs, outputModel: NodeOutputs](ABC):
         self.config = LogicNodeConfig()
         self.scene_data = scene_data
 
-        self.params = self.Parameters(**scene_data.data)
-        self.params.bind_sync(self._on_param_changed)
+        # FIXME: initializing parameters only before the node is processed might not be good
+        try:
+            self.params = self.Parameters(**scene_data.data)
+            self.params.bind_sync(self._on_param_changed)
+            
+            self.on_setup_params()
+        except ValidationError:
+            pass
+
+    def on_setup_params(self):
+        pass
+
 
     def pre_forward(self, inputs: inputModel) -> None:
         pass
@@ -71,13 +81,14 @@ class BaseNode[inputModel: NodeInputs, outputModel: NodeOutputs](ABC):
 
 
     def update_parameters(self, new_params: dict[str, Any]) -> dict[str, Any]:
-        current_data = self.params.model_dump()
+        current_data = self.params.model_dump() if hasattr(self, "params") else {}
         merged_data = {**current_data, **new_params}
 
-        validated_params = self.params.__class__(**merged_data) # TODO: talvez pensar em um jeito de não recriar o objeto
+        validated_params = self.Parameters(**merged_data) # TODO: talvez pensar em um jeito de não recriar o objeto
 
         self.params = validated_params 
         self.params.bind_sync(self._on_param_changed)
+        self.on_setup_params()
 
         self.scene_data.data = validated_params.model_dump()
         return self.scene_data.data

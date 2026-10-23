@@ -41,11 +41,11 @@ class PluginNodeProvider(INodeProvider):
 
     def create_node(
         self, 
-        node_fqn: str, 
+        node_type_fqn: str, 
         node_scene_data: Optional[NodeSceneData] = None
     ) -> tuple[NodeInstance, BaseNode]:
-        self._lazy_assign_node_class(node_fqn)
-        return self._factory.create(node_fqn, node_scene_data)
+        self._lazy_assign_node_class(node_type_fqn)
+        return self._factory.create(node_type_fqn, node_scene_data)
 
     # Lazy Assignment
 

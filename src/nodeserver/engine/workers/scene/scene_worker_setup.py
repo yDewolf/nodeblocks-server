@@ -37,7 +37,7 @@ def run_scene_worker_loop(
     command_handler = SceneWorkerCommandHandler(scene_worker, command_queue, event_queue)
     scene_worker.set_command_handler(command_handler)
 
-    with scoped_sys_path(plugins_folder.parent):
+    with scoped_sys_path(plugins_folder):
         scene_worker.setup_plugins()
         # scene_worker.runtime_loop()
         asyncio.run(scene_worker.run())

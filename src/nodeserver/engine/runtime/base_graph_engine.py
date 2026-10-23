@@ -101,7 +101,7 @@ class BaseGraphEngine(ABC):
                     
                     return True
 
-            self._handle_param_update(logic_node, node_instance.uid)            
+            self._handle_param_update(logic_node, node_instance.uid)
             raw_inputs = self._resolve_inputs(node_instance, context)
             self._inject_context_inputs(raw_inputs, logic_node, context)
 
@@ -128,7 +128,7 @@ class BaseGraphEngine(ABC):
             for idx, param_id in enumerate(e.param_ids):
                 context.add_error(EngineError(
                     tracker=EngineTracker.param(node_instance.uid, param_id),
-                    message=e.messages[idx]
+                    message=f"Error in parameter '{param_id}' -> {e.messages[idx]}"
                 ))
             
             return False
@@ -137,7 +137,7 @@ class BaseGraphEngine(ABC):
             for idx, slot_id in enumerate(e.slot_ids):
                 context.add_error(EngineError(
                     tracker=EngineTracker.slot(node_instance.uid, slot_id),
-                    message=e.messages[idx]
+                    message=f"Error in slot '{slot_id}' -> {e.messages[idx]}"
                 ))
             
             return False
