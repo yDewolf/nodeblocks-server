@@ -25,6 +25,8 @@ class SceneWorkerManager(ISceneWorkerManager):
     active_workers: dict[str, SceneWorkerController]
     # scene id -> state, timestamp (when it changed to this state)
     worker_statuses: dict[str, tuple[SceneWorkerExecutionState, float]]
+
+    _check_request_ids: set[str]
     
     def __init__(self, plugins_folder: Path, scenes_folder: Path) -> None:
         self.plugins_folder = plugins_folder
@@ -33,6 +35,7 @@ class SceneWorkerManager(ISceneWorkerManager):
         self.active_workers = {}
         self.worker_statuses = {}
         self._tasks = []
+        self._check_request_ids = set()
 
     def get_or_create_worker(self, scene_id: str, auto_load: bool = True) -> SceneWorkerController:
         if scene_id not in self.active_workers:
@@ -87,7 +90,9 @@ class SceneWorkerManager(ISceneWorkerManager):
         while True:
             try:
                 for scene_id, worker in list(self.active_workers.items()):
-                    worker.send_command(CheckExecutionState())
+                    cmd = CheckExecutionState()
+                    self._check_request_ids.add(cmd.request_id)
+                    worker.send_command(cmd)
                 
                 await asyncio.sleep(CHECK_STATUS_INTERVAL)
             except asyncio.CancelledError:
@@ -110,17 +115,15 @@ class SceneWorkerManager(ISceneWorkerManager):
                 await asyncio.sleep(0.1)
 
     async def repass_event(self, scene_id: str, event: IPCSceneWorkerEvent):
-        # FIXME: We need to find someway of checking if
-        # this scene has new connections so we allow this sync event
-        # to pass through
-        if isinstance(event, UpdateExecutionConfigResponse) and scene_id in self.worker_statuses:
-            if self.worker_statuses[scene_id][0] != event.state:
+        if isinstance(event, UpdateExecutionConfigResponse):
+            if not scene_id in self.worker_statuses or self.worker_statuses[scene_id][0] != event.state:
                 self.worker_statuses[scene_id] = (
                     event.state,
                     time.time()
                 )
-                # return
-            # Doesn't have new connections -> return 
+            elif event.request_id in self._check_request_ids:
+                self._check_request_ids.remove(event.request_id)
+                return
 
         if self._on_event_callback:
             await self._on_event_callback(scene_id, event)
