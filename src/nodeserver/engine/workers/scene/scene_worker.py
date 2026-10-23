@@ -137,7 +137,7 @@ class SceneWorker(ISceneWorker):
                         serialized_result[slot_id] = value.serialize()
                         continue
                     
-                    datatype_fqn = instance.slots[slot_id].data_type_id
+                    datatype_fqn = instance.slots[slot_id].datatype_fqn
                     datatype = self.plugin_manager.registry.get_datatype_python_type(datatype_fqn)
                     if datatype and issubclass(datatype, PluginDatatype):
                         serialized_result[slot_id] = datatype.serialize_value(value)

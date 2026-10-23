@@ -51,8 +51,8 @@ def packages():
             f"{package_id}:node": NodeTypeSpec(
                 namespace=package_id, id="node", parameters={}, 
                 slots={
-                    "in_0": NodeSlotSpec(data_type_id=f"{package_id}:int", is_input=True),
-                    "out_0": NodeSlotSpec(data_type_id=f"{package_id}:int", is_input=True),
+                    "in_0": NodeSlotSpec(datatype_fqn=f"{package_id}:int", is_input=True),
+                    "out_0": NodeSlotSpec(datatype_fqn=f"{package_id}:int", is_input=True),
                 }
             )
         }

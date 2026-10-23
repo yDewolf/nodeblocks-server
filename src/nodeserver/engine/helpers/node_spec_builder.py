@@ -68,7 +68,7 @@ class  NodeSpecBuilder:
 
             slot_specs[field_name] = NodeSlotSpec(
                 is_input=is_input,
-                data_type_id=datatype_spec.fqn,
+                datatype_fqn=datatype_spec.fqn,
                 max_connections=max_connections,
                 required=meta.required,
             )
@@ -118,7 +118,7 @@ class  NodeSpecBuilder:
             datatype_fqns.add(param.datatype_fqn)
 
         for id, slot in node_type.slots.items():
-            datatype_fqns.add(slot.data_type_id)
+            datatype_fqns.add(slot.datatype_fqn)
 
         return datatype_fqns
 

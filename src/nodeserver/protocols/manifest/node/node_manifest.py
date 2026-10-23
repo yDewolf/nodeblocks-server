@@ -10,7 +10,7 @@ from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec, Parameter
 
 class NodeSlotSpec(DataModel):
     # type: str # FIXME on client: remove this  
-    data_type_id: str # FIXME on client: data_type -> data_type_id
+    datatype_fqn: str # FIXME on client: data_type -> datatype_fqn
 
     # TODO: output slots should default to max_connections = 0
     max_connections: int = Field(default=1) # 0 -> Doesn't have a max
