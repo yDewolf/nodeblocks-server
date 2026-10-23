@@ -25,8 +25,8 @@ class SlotInstance:
         return self.spec.max_connections == 0 or self.connection_count < self.spec.max_connections 
 
     @property
-    def data_type_id(self) -> str:
-        return self.spec.data_type_id
+    def datatype_fqn(self) -> str:
+        return self.spec.datatype_fqn
 
 
 class NodeInstance:

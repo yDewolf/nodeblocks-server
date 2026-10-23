@@ -103,13 +103,13 @@ class ConnectionManager:
             )
 
         are_compatible = self._registry.are_types_compatible(
-            from_slot.data_type_id, to_slot.data_type_id
+            from_slot.datatype_fqn, to_slot.datatype_fqn
         )
         if not are_compatible:
             raise IncompatibleSlotsError(
                 from_node_id=from_slot.node_id, from_slot_id=from_slot.slot_id,
                 to_node_id=to_slot.node_id, to_slot_id=to_slot.slot_id,
-                from_datatype_id=from_slot.data_type_id, to_datatype_id=to_slot.data_type_id
+                from_datatype_id=from_slot.datatype_fqn, to_datatype_id=to_slot.datatype_fqn
             )
 
         existing_path = self._get_path(to_slot.node_id, from_slot.node_id)

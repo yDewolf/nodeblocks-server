@@ -18,7 +18,7 @@ class TestNodeSpecBuilderCustomTypeRegistration:
         assert default_registry.get_datatype_by_annotation(CustomType) == custom_spec
 
         slot_specs = default_builder._generate_specs_for_slots(MockNode.InputModel, is_input=True)
-        assert slot_specs["custom_type_field"].data_type_id == "custom:custom_type"
+        assert slot_specs["custom_type_field"].datatype_fqn == "custom:custom_type"
 
         param_specs = default_builder._generate_specs_for_parameters(MockNode.Parameters)
         assert param_specs["unregistered_param"].datatype_fqn == "custom:custom_type"

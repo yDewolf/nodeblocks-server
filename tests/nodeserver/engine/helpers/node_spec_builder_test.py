@@ -4,17 +4,17 @@ class TestNodeSpecBuilderSlots:
     def test_infer_slot_data_types_from_input_model(self, default_builder):
         slot_specs = default_builder._generate_specs_for_slots(MockNode.InputModel, is_input=True)
 
-        assert slot_specs["text_input"].data_type_id == "core:string"
+        assert slot_specs["text_input"].datatype_fqn == "core:string"
         assert slot_specs["text_input"].is_input is True
 
-        assert slot_specs["number_list"].data_type_id == "core:int"
+        assert slot_specs["number_list"].datatype_fqn == "core:int"
 
-        assert slot_specs["optional_float"].data_type_id == "core:float"
+        assert slot_specs["optional_float"].datatype_fqn == "core:float"
 
     def test_slot_fallback_to_unknown_type(self, default_builder):
         slot_specs = default_builder._generate_specs_for_slots(MockNode.InputModel, is_input=True)
 
-        assert slot_specs["custom_type_field"].data_type_id == "core:unknown"
+        assert slot_specs["custom_type_field"].datatype_fqn == "core:unknown"
 
     def test_slot_max_connections_defaults(self, default_builder):
         inputs = default_builder._generate_specs_for_slots(MockNode.InputModel, is_input=True)
