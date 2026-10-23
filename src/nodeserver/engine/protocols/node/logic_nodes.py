@@ -17,18 +17,19 @@ class NodeOutputs(NodeIO): pass
 
 
 class BaseNode[inputModel: NodeInputs, outputModel: NodeOutputs](ABC):
-    config: LogicNodeConfig = LogicNodeConfig()
+    config: LogicNodeConfig
 
     scene_data: NodeSceneData # Should be a reference to a NodeInstance.node_data
     InputModel: ClassVar[type[NodeInputs]] = NodeInputs
     OutputModel: ClassVar[type[NodeOutputs]] = NodeOutputs
-    
+
     class Parameters(NodeParameters):
         pass
     
     params: Parameters
 
     def __init__(self, scene_data: NodeSceneData) -> None:
+        self.config = LogicNodeConfig()
         self.scene_data = scene_data
 
         self.params = self.Parameters(**scene_data.data)

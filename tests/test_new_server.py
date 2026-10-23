@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from nodeserver.engine.logging_config import setup_logging
+from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.server.web.server import NodeServer
 
 setup_logging(default_level=logging.DEBUG)
@@ -11,8 +12,9 @@ if __name__ == "__main__":
     scenes_folder = tests_folder.parent / "scenes"
 
     scenes_folder.mkdir(exist_ok=True)
-    server = NodeServer(
-        plugins_folder=plugins_folder,
-        scenes_folder=scenes_folder,
-    )
-    server.run()
+    with scoped_sys_path(plugins_folder.parent):
+        server = NodeServer(
+            plugins_folder=plugins_folder,
+            scenes_folder=scenes_folder,
+        )
+        server.run()

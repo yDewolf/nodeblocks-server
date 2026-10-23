@@ -26,7 +26,7 @@ class SlotInstance:
 
     @property
     def data_type_id(self) -> str:
-        return self.spec.data_type_id
+        return self.spec.datatype_fqn
 
 
 class NodeInstance:

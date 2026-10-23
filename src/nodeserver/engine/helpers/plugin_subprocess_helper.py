@@ -25,9 +25,12 @@ def _run_indexer_task(plugins_folder: Path):
         compiler=PluginCompiler(full_registry, plugins_base_package=plugins_folder.name)
     )
 
-    with scoped_sys_path(plugins_folder.parent):
-        plugin_manager.compile_plugins(plugins_folder, save_to_disk=True)
-
+    with scoped_sys_path(plugins_folder):
+        try:
+            plugin_manager.compile_plugins(plugins_folder, save_to_disk=True)
+        except Exception as e:
+            logger.error("Failed to compile plugins in subprocess: %s", str(e))
+            raise e
 
 class PluginSubprocessHelper:
     @classmethod

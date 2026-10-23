@@ -9,6 +9,7 @@ from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.helpers.plugin_version_manager import PluginVersionManager
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
+from nodeserver.engine.plugins.protocols.plugin_list_cache import PluginListCache
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.registry.type_registry import TypeRegistry
@@ -92,6 +93,7 @@ class PluginManager(PluginSpecManager):
         source_folder = Path(source_folder)
         discovered_manifests = self.scanner.discover_plugins(source_folder)
 
+        cached_plugin_list = PluginListCache(cached_plugins={})
         if save_to_disk:
             cached_plugin_list = PluginManifestHelper.load_or_create_plugin_list_cache(source_folder)
 

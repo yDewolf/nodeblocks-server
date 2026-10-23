@@ -283,6 +283,7 @@ class PluginCompiler:
             isinstance(attr, type)
             and issubclass(attr, BaseNode)
             and attr is not BaseNode
+            and get_plugin_spec_definition_meta(attr) != None
             and not getattr(attr, "__abstract__", False)
         )
 

@@ -4,7 +4,7 @@ from nodeserver.engine.plugins.api.decorators.plugin_decorators import plugin_no
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
 from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
 from nodeserver.engine.protocols.parameters.param_wrappers import Param
-from test_plugins.test_plugin.test_datatypes import TestDatatype
+from test_plugin.test_datatypes import TestDatatype
 
 
 class TestNodeInput(NodeInputs):
