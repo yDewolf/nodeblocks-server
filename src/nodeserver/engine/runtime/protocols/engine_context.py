@@ -1,9 +1,18 @@
-
+from nodeserver.engine.protocols.node.logic_nodes import NodeInputs
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_events import EngineError, NodeExecutionStatus
 
 from abc import ABC, abstractmethod
 from typing import Any, Optional
+
+class ContextInjector(ABC):
+    id: str
+    def __init__(self) -> None:
+        self.id = self.__class__.__name__
+
+    @abstractmethod
+    def inject_context(self, raw_inputs: dict[str, Any], InputModel: type[NodeInputs]):
+        pass
 
 
 class EngineRuntimeContext(ABC):

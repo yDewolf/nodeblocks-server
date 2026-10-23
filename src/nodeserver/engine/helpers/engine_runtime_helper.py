@@ -54,4 +54,20 @@ class EngineRuntimeHelper:
             source_status = context.node_status.get(source_node_id)
             if source_status in (NodeExecutionStatus.FAILED, NodeExecutionStatus.SKIPPED):
                 return True
+        
+        return False
+
+    @staticmethod
+    def _has_bypassed_dependencies(node_uid: str, context: EngineRuntimeContext):
+        incoming_connections = [
+            conn for conn in context.scene.graph.all_connections.values() 
+            if conn.to_slot.node_id == node_uid
+        ]
+        
+        for conn in incoming_connections:
+            source_node_id = conn.from_slot.node_id
+            logic_node = context.scene.get_logic_node(source_node_id)
+            if logic_node and logic_node.config.bypass_cache:
+                return True
+        
         return False

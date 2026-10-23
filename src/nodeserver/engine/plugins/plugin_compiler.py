@@ -80,9 +80,10 @@ class PluginCompiler:
         Generates a NodeTypeSpec from a BaseNode class
         also registers it if assign_logic_class = true
         """
+        meta = get_plugin_spec_definition_meta(node_cls)
         node_type_spec: NodeTypeSpec = self.spec_builder.build_node_spec(
             namespace=namespace,
-            id=node_cls.__name__,
+            id=meta.id if meta else node_cls.__name__,
             node_cls=node_cls
         )
 
@@ -99,7 +100,7 @@ class PluginCompiler:
         package_id: str,
         relative_module_path: str,
         assign_logic_classes: bool = True
-    ) -> list[NodeTypeSpec]:
+    ) -> list[tuple[NodeTypeSpec, str]]:
         """
         Imports a node module from a plugin and 
         compiles its logic classes (BaseNode)
@@ -108,7 +109,7 @@ class PluginCompiler:
         logger.info("Compiling node module: %s - package_id: %s", relative_module_path, package_id)
         module = self._import_python_module(package_id, relative_module_path)
 
-        compiled_nodes: list[NodeTypeSpec] = []
+        compiled_nodes: list[tuple[NodeTypeSpec, str]] = []
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
             if self._is_concrete_node_class(attr):
@@ -117,7 +118,7 @@ class PluginCompiler:
                     node_cls=attr,
                     assign_logic_class=assign_logic_classes
                 )
-                compiled_nodes.append(node_spec)
+                compiled_nodes.append((node_spec, attr_name))
 
         return compiled_nodes
 
@@ -179,11 +180,11 @@ class PluginCompiler:
                 assign_logic_classes=assign_to_registry
             )
 
-            for node_spec in node_specs:
+            for (node_spec, cls_name) in node_specs:
                 datatype_fqns = self.spec_builder.extract_datatype_dependencies(node_spec)
                 
                 manifest.nodes_cache[node_spec.fqn] = NodeCacheEntry(
-                    class_path=f"{relative_module}.{node_spec.id}",
+                    class_path=f"{relative_module}.{cls_name}",
                     required_datatypes=list(datatype_fqns)
                 )
 

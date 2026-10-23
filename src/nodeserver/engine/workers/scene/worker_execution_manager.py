@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 from nodeserver.engine.protocols.node.node_scene import NodeScene
+from nodeserver.engine.runtime.context_injectors import SceneContextInjector
 from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, JobStatus
 from nodeserver.engine.runtime.job_graph_engine import JobStlGraphEngine
 from nodeserver.engine.runtime.job_runtime_context import JobExecutionContext, SceneSuperContext, StepJobExecutionContext
@@ -72,6 +73,7 @@ class SceneWorkerRunManager:
             node_scene,
             emit_event_callback=self._scene_worker.engine_event_receiver
         )
+        self.engine.add_context_injector(SceneContextInjector(self.context.scene))
 
     def _load_scene_into_context(self, scene_data: SceneData):
         node_scene = self._scene_worker._create_new_scene(scene_data)

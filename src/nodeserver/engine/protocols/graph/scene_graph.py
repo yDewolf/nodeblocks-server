@@ -133,13 +133,15 @@ class SceneGraph:
         in_degree: dict[str, int] = {uid: 0 for uid in self.all_nodes.keys()}
         adjacency: dict[str, list[str]] = {uid: [] for uid in self.all_nodes.keys()}
 
+        unique_edges = set()
         for conn in self.all_connections.values():
             node_id = conn.from_slot.node_id
             target_node_id = conn.to_slot.node_id
+            if node_id != target_node_id:
+                unique_edges.add((node_id, target_node_id))
 
-            if target_node_id not in adjacency[node_id]:
-                adjacency[node_id].append(target_node_id)
-
+        for node_id, target_node_id in unique_edges:
+            adjacency[node_id].append(target_node_id)
             in_degree[target_node_id] += 1
 
         queue = deque([uid for uid, deg in in_degree.items() if deg == 0])
@@ -156,7 +158,6 @@ class SceneGraph:
 
         if len(order) != len(self.all_nodes):
             unprocessed_nodes = [uid for uid, deg in in_degree.items() if deg > 0]
-
             raise CyclicGraphError(
                 unprocessed_nodes=unprocessed_nodes,
             )

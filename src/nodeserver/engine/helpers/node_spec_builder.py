@@ -42,6 +42,9 @@ class  NodeSpecBuilder:
     def _generate_specs_for_slots(self, slot_model_cls: type[NodeIO], is_input: bool) -> dict[str, NodeSlotSpec]:
         slot_specs: dict[str, NodeSlotSpec] = {}
         for field_name, field_info in slot_model_cls.model_fields.items():
+            if field_info.exclude:
+                continue
+            
             meta, is_default = self._extract_slot_meta(field_info)
             datatype_spec: Optional[DataTypeSpec] = None
 

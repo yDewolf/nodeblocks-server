@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import logging
 from typing import Any, Optional
 
+from nodeserver.engine.runtime.protocols.engine_context import ContextInjector
 from pydantic import ValidationError
 
 from nodeserver.engine.exceptions.runtime_exceptions import NodeParamRuntimeError, NodeSlotRuntimeError, extract_ids_and_messages
@@ -16,6 +17,7 @@ from nodeserver.engine.runtime.protocols.engine_events import EngineError
 from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 
 logger = logging.getLogger("nds.engine")
+
 
 class BaseGraphEngine(ABC):
     @abstractmethod
@@ -34,7 +36,14 @@ class BaseGraphEngine(ABC):
     ) -> EngineRuntimeContext:
         pass
 
+    _context_injectors: dict[str, ContextInjector]
+    def __init__(self) -> None:
+        self._context_injectors = {}
 
+
+    def add_context_injector(self, injector: ContextInjector):
+        self._context_injectors[injector.id] = injector
+        
 
     def _execute_nodes(self, context: EngineRuntimeContext, target_nodes: Optional[list[str]], execution_order: Optional[list[str]] = None):
         execution_order = execution_order or context.scene.graph.get_topological_order()
@@ -90,7 +99,7 @@ class BaseGraphEngine(ABC):
             current_hash = EngineRuntimeHelper._compute_node_hash(node_instance, context)
             context.node_hashes[node_instance.uid] = current_hash
 
-            if not logic_node.config.bypass_cache:
+            if not logic_node.config.bypass_cache and not EngineRuntimeHelper._has_bypassed_dependencies(node_instance.uid, context):
                 cached_data = context.persistent_cache.get(node_instance.uid)
                 
                 if cached_data and cached_data.get("hash") == current_hash:
@@ -158,6 +167,10 @@ class BaseGraphEngine(ABC):
     ):
         if isinstance(logic_instance.InputModel, ContextAwareInput):
             raw_inputs["context"] = context
+
+        for injector in self._context_injectors.values():
+            injector.inject_context(raw_inputs, logic_instance.InputModel) # type: ignore
+
 
     def _resolve_inputs(
         self, 
