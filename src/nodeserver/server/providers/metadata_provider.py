@@ -6,10 +6,10 @@ from nodeserver.server.utils.metadata_file_utils import METADATA_FOLDER_NAME, _M
 from nodeserver.protocols.manifest.metadata.datatype_meta import DataTypeMeta
 from nodeserver.protocols.manifest.metadata.metadata_header import MetadataManifest, MetadataHeader
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
-from nodeserver.server.protocols.providers.metadata_provider_protocol import IMetadataProvider
+from nodeserver.server.protocols.providers.metadata_provider_protocol import IMetadataProvider, IServerMetadataProvider
 
 
-class FileMetadataProvider(IMetadataProvider):
+class FileMetadataProvider(IServerMetadataProvider):
     plugins_folder: Path
     plugin_manager: PluginSpecManager
     metadata_gen: PluginMetadataGenerator
@@ -19,6 +19,11 @@ class FileMetadataProvider(IMetadataProvider):
         self.plugins_folder = plugins_folder
         self.plugin_manager = plugin_manager
         self.metadata_gen = PluginMetadataGenerator()
+
+    def setup_metadata(self):
+        for manifest in self.plugin_manager.get_all_loaded_packages().values():
+            metadata = self.metadata_gen.generate_from_manifest(manifest)
+            self.save_package_metadata(metadata)
 
     def package_has_metadata(self, package_id: str) -> bool:
         return self.plugin_manager.is_package_loaded(package_id)

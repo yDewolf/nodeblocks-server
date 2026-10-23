@@ -1,5 +1,9 @@
-from nodeserver.protocols.manifest.metadata.base_meta import EngineSpecMetadata
+from typing import Optional
+
+from pydantic import Field
+
+from nodeserver.protocols.manifest.metadata.base_meta import EngineSpecMetadata, RGBColor
 
 
 class DataTypeMeta(EngineSpecMetadata):
-    pass
+    color: Optional[RGBColor] = Field(default=None)
