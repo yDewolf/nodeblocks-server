@@ -12,7 +12,7 @@ from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
-from nodeserver.server.protocols.providers.metadata_provider_protocol import IMetadataProvider
+from nodeserver.server.protocols.providers.metadata_provider_protocol import IServerMetadataProvider
 from nodeserver.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
 from nodeserver.server.providers.metadata_provider import FileMetadataProvider
 from nodeserver.server.providers.scene_provider import SceneProvider
@@ -58,7 +58,7 @@ class NodeServer:
         permission_policy: Optional[IScenePermPolicy] = None,
         auth_policy: Optional[IAuthPolicy] = None,
         scene_provider: Optional[IServerSceneProvider] = None,
-        metadata_provider: Optional[IMetadataProvider] = None,
+        metadata_provider: Optional[IServerMetadataProvider] = None,
         host: str = "127.0.0.1",
         port: int = 8080
     ) -> None:

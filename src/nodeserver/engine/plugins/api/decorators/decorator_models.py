@@ -12,6 +12,7 @@ class PluginDefModel(DataModel):
 class PluginNodeDefModel(PluginDefModel):
     id: str
 
+# TODO: talvez incluir um metadata base aqui
 class PluginDataTypeDefModel(PluginDefModel):
     id: str
     cls_name: str
