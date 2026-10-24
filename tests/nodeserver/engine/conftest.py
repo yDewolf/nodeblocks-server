@@ -1,0 +1,77 @@
+from typing import Annotated, Any, Optional
+
+from pydantic import Field
+import pytest
+
+from nodeserver.engine import NodeInputs, NodeOutputs, BaseNode
+from nodeserver.engine import NodeParameters
+from nodeserver.engine import TypeRegistry
+from nodeserver.engine import NodeSpecBuilder
+from nodeserver.engine.protocols.spec_dataclasses import SlotSpecMeta
+from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
+from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
+
+class CustomType:
+    pass
+
+
+class MockInputModel(NodeInputs):
+    text_input: Annotated[str, SlotSpecMeta(max_connections=1)]
+    number_list: list[int]
+    optional_float: Optional[float] = None
+    custom_type_field: CustomType
+
+
+class MockOutputModel(NodeOutputs):
+    result: str
+    number_result: int
+
+
+class MockNode(BaseNode[MockInputModel, MockOutputModel]):
+    InputModel = MockInputModel
+    OutputModel = MockOutputModel
+    class Parameters(NodeParameters):
+        title: str = Field(default="Default Title", title="Node Title")
+        factor: float = Field(default=1.0)
+        unregistered_param: Optional[CustomType] = None
+
+    params: Parameters
+
+    def pre_forward(self, inputs: MockInputModel) -> None:
+        pass
+
+    def forward(self, inputs: MockInputModel) -> MockOutputModel:
+        return MockOutputModel(result="ok", number_result=1)
+
+    def post_forward_cleanup(self):
+        pass
+
+
+@pytest.fixture
+def default_registry():
+    reg = TypeRegistry()
+    namespace = "core"
+
+    reg.register_data_type(
+        DatatypeHelper.create_spec(namespace, "string", base_id=DefaultDataTypes.TEXT, renderer=DefaultRenderers.TEXT),
+        python_type=str
+    )
+    reg.register_data_type(
+        DatatypeHelper.create_spec(namespace, "int", base_id=DefaultDataTypes.INT, renderer=DefaultRenderers.SCALAR),
+        python_type=int
+    )
+    reg.register_data_type(
+        DatatypeHelper.create_spec(namespace, "float", base_id=DefaultDataTypes.FLOAT, renderer=DefaultRenderers.SCALAR),
+        python_type=float
+    )
+    reg.register_data_type(
+        DatatypeHelper.create_spec(namespace, "unknown", base_id=DefaultDataTypes.UNKNOWN, renderer=DefaultRenderers.NOT_IMPLEMENTED),
+        python_type=type[Any]
+    )
+
+    return reg
+
+
+@pytest.fixture
+def default_builder(default_registry):
+    return NodeSpecBuilder(default_registry)

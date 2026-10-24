@@ -1,0 +1,27 @@
+from typing import Optional
+import uuid
+
+class IDGenerator:
+    @staticmethod
+    def generate_generic_id(length: Optional[int] = None) -> str:
+        id = uuid.uuid4()
+        if length:
+            return str(id.hex[:length])
+
+        return str(id)
+
+    @staticmethod
+    def generate_node_id() -> str:
+        return str(uuid.uuid4())
+    
+    @staticmethod
+    def generate_notification_uid() -> str:
+        return str(uuid.uuid4().hex[:4])
+
+    @staticmethod
+    def generate_conn_id() -> str:
+        return f"{uuid.uuid4().hex[:8]}"
+    
+    @staticmethod
+    def generate_session_id() -> str:
+        return f"sess_{uuid.uuid4().hex[:8]}"

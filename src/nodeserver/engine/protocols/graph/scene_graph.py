@@ -1,0 +1,178 @@
+
+from collections import deque
+from typing import Optional
+
+from nodeserver.engine.exceptions.graph_exceptions import CyclicGraphError
+from nodeserver.engine.protocols.graph.connection_manager import ConnectionManager
+from nodeserver.engine.protocols.graph.node_manager import NodeManager
+from nodeserver.engine.protocols.node.node_instance import NodeInstance, SlotInstance
+from nodeserver.engine.registry.type_registry import TypeRegistry
+from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData
+
+
+class SceneGraph:
+    type_registry: TypeRegistry
+
+    _nodes: NodeManager
+    _connections: ConnectionManager
+
+    def __init__(self, registry: TypeRegistry):
+        self.registry = registry
+
+        self._nodes = NodeManager()
+        self._connections = ConnectionManager(registry)
+
+    def reset_graph(self):
+        self._connections._clear()
+        self._nodes._clear()
+
+    # Node Manipulation
+
+    def remove_node(self, node_id: str) -> bool:
+        attached_connections = self._connections.get_by_node(node_id)
+        for conn in attached_connections:
+            self.disconnect(conn.uid)
+
+        node = self._nodes.remove(node_id)
+        if not node:
+            return False
+        
+        return True
+
+    def add_node(self, node: NodeInstance):
+        self._nodes.add(node)
+
+    # Connection Manipulation
+
+    def connect_slots(self, from_slot: SlotInstance, to_slot: SlotInstance, conn_uid: Optional[str] = None) -> Optional[ConnectionSceneData]:
+        conn = self._connections.connect_slots(from_slot, to_slot, conn_uid)
+        return conn
+
+    def add_connection(self, conn_data: ConnectionSceneData):
+        conn = self.connect(
+            from_node_id=conn_data.from_slot.node_id, from_slot_id=conn_data.from_slot.slot_id,
+            to_node_id=conn_data.to_slot.node_id, to_slot_id=conn_data.to_slot.slot_id,
+            conn_uid=conn_data.uid
+        )
+        return conn
+
+    def connect(self, from_node_id: str, from_slot_id: str, to_node_id: str, to_slot_id: str, conn_uid: Optional[str] = None) -> Optional[ConnectionSceneData]:
+        from_node = self._nodes.get(from_node_id)
+        to_node = self._nodes.get(to_node_id)
+
+        if not from_node or not to_node:
+            return None
+
+        from_slot = from_node.get_slot(from_slot_id)
+        to_slot = to_node.get_slot(to_slot_id)
+
+        if not from_slot or not to_slot:
+            return None
+
+        return self.connect_slots(from_slot, to_slot, conn_uid)
+
+    def disconnect(self, conn_id: str) -> bool:
+        conn = self._connections.remove(conn_id)
+        if not conn: return False
+
+        from_node = self._nodes.get(conn.from_slot.node_id)
+        to_node = self._nodes.get(conn.to_slot.node_id)
+        if not from_node or not to_node:
+            return True
+
+        from_slot = from_node.get_slot(conn.from_slot.slot_id)
+        to_slot = to_node.get_slot(conn.to_slot.slot_id)
+        if from_slot:
+            from_slot.connection_count = max(0, from_slot.connection_count - 1)
+        
+        if to_slot:
+            to_slot.connection_count = max(0, to_slot.connection_count - 1)
+
+        return True
+
+    # Node and Connection Getters
+
+    def get_nodes_as_data(self):
+        return self._nodes.get_as_data()
+
+    def get_conns_as_data(self):
+        return self._connections.get_as_data()
+
+
+    def ensure_node(self, node_id: str) -> NodeInstance:
+        return self._nodes.ensure(node_id)
+
+    def get_node(self, node_id: str) -> Optional[NodeInstance]:
+        return self._nodes.get(node_id)
+
+    def get_connection(self, connection_uid: str) -> Optional[ConnectionSceneData]:
+        return self._connections.get(connection_uid)
+
+    def get_node_connections(self, node_id: str) -> list[ConnectionSceneData]:
+        return self._connections.get_by_node(node_id)
+
+    @property
+    def all_nodes(self) -> dict[str, NodeInstance]:
+        return self._nodes.all()
+
+    @property
+    def all_connections(self) -> dict[str, ConnectionSceneData]:
+        return self._connections.all()
+
+
+    # Validation Utility:
+    def nodes_exist(self, node_uids: list[str]) -> bool:
+        return not any(
+            # A node in the list doesn't exist
+            (not uid in self._nodes.node_index) for uid in node_uids
+        )
+
+    # Utility:
+
+    def get_topological_order(self) -> list[str]:
+        in_degree: dict[str, int] = {uid: 0 for uid in self.all_nodes.keys()}
+        adjacency: dict[str, list[str]] = {uid: [] for uid in self.all_nodes.keys()}
+
+        unique_edges = set()
+        for conn in self.all_connections.values():
+            node_id = conn.from_slot.node_id
+            target_node_id = conn.to_slot.node_id
+            if node_id != target_node_id:
+                unique_edges.add((node_id, target_node_id))
+
+        for node_id, target_node_id in unique_edges:
+            adjacency[node_id].append(target_node_id)
+            in_degree[target_node_id] += 1
+
+        queue = deque([uid for uid, deg in in_degree.items() if deg == 0])
+        order: list[str] = []
+
+        while queue:
+            current_id = queue.popleft()
+            order.append(current_id)
+
+            for dependent_node in adjacency[current_id]:
+                in_degree[dependent_node] -= 1
+                if in_degree[dependent_node] == 0:
+                    queue.append(dependent_node)
+
+        if len(order) != len(self.all_nodes):
+            unprocessed_nodes = [uid for uid, deg in in_degree.items() if deg > 0]
+            raise CyclicGraphError(
+                unprocessed_nodes=unprocessed_nodes,
+            )
+
+        return order
+
+    def get_downstream_node_ids(self, node_uid: str) -> set[str]:
+        return self._connections._get_downstream_node_ids(node_uid)
+
+    def get_upstream_node_ids(self, node_uid: str) -> set[str]:
+        return self._connections._get_upstream_node_ids(node_uid)
+
+    def get_execution_order(self) -> list[NodeInstance]:
+        topological_uids = self.get_topological_order()
+        # FIXME: isso aqui é menos eficiente do que pegar os uids
+        # dentro do while queue:
+        # mas vamos analisar depois se compensa mexer com isso
+        return [self.all_nodes[uid] for uid in topological_uids]

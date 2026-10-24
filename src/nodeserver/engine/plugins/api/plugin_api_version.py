@@ -1,0 +1,2 @@
+
+CURRENT_PLUGIN_API_VERSION: str = "1.1.0"
