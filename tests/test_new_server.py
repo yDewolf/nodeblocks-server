@@ -12,9 +12,8 @@ if __name__ == "__main__":
     scenes_folder = tests_folder.parent / "scenes"
 
     scenes_folder.mkdir(exist_ok=True)
-    with scoped_sys_path(plugins_folder.parent):
-        server = NodeServer(
-            plugins_folder=plugins_folder,
-            scenes_folder=scenes_folder,
-        )
-        server.run()
+    server = NodeServer(
+        plugins_folder=plugins_folder,
+        scenes_folder=scenes_folder,
+    )
+    server.run()

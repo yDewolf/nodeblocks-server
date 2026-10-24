@@ -290,6 +290,7 @@ class PluginCompiler:
 
     def _resolve_import_path(self, package_id: str, relative_path: str) -> str:
         if relative_path.startswith(self.plugins_base_package):
-            return relative_path
-        
-        return f"{self.plugins_base_package}.{package_id}.{relative_path}"
+            base_package, module_path = relative_path.split(".", 1)
+            return module_path
+
+        return f"{package_id}.{relative_path}"
