@@ -176,6 +176,6 @@ class ConnectionManager:
         upstream: set[str] = set()
         for conn in self._connections.values():
             if conn.to_slot.node_id == node_id:
-                upstream.add(conn.to_slot.node_id)
+                upstream.add(conn.from_slot.node_id)
         
         return upstream

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 from typing import Optional, Union
 
+from pydantic import Field
+
 # idk if it is fine to keep these two togeter but whatever
 # they were 2 files with 5 lines each
 
@@ -18,6 +20,6 @@ class SlotSpecMeta:
 
 @dataclass
 class LogicNodeConfig:
-    bypass_cache: bool = False
-    order_independent: bool = True # TODO: implementar ordem de conexões para slots que recebem mais de uma entrada
+    bypass_cache: bool = Field(default=False)
+    order_independent: bool = Field(default=True) # TODO: implementar ordem de conexões para slots que recebem mais de uma entrada
 
