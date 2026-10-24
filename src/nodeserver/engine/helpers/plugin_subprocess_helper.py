@@ -42,9 +42,10 @@ class PluginSubprocessHelper:
 
     @classmethod
     def setup_and_load_plugins(cls, plugins_folder: Path, spec_manager: Optional[PluginSpecManager]):
-        if cls.needs_reindex(plugins_folder):
+        if cls.needs_reindex(plugins_folder) and not multiprocessing.current_process().daemon:
             logger.info("Detected changes in plugins folder. Will recompile plugins in a subprocess... path: %s", plugins_folder)
-            cls.compile_plugins_subprocess(plugins_folder)                
+            cls.compile_plugins_subprocess(plugins_folder)
+
             logger.info("Finished plugin recompilation")
 
         spec_manager = spec_manager or PluginSpecManager(TypeSpecRegistry())
