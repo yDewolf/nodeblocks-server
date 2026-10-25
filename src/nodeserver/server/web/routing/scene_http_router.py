@@ -14,6 +14,7 @@ class SceneHTTPRouter(BaseRouter):
     def _setup_routes(self):
         self.app.router.add_get("/api/scenes", self.get_scene_list)
         self.app.router.add_post("/api/scenes", self.get_scene_list)
+        self.app.router.add_post("/api/scene/create/{id}", self.create_scene)
 
         self.app.router.add_post("/api/scene/{uid}", self.get_scene_data)
         self.app.router.add_post("/api/scene/{uid}/token", self.handle_scene_token_create)
@@ -110,4 +111,24 @@ class SceneHTTPRouter(BaseRouter):
             "token": str(token),
             "scene_id": scene_id
         })
+
+
+    async def create_scene(self, request: web.Request):
+        try:
+            data = await request.json()
+        except JSONDecodeError as e:
+            return web.json_response({"error": "invalid_json", "message": str(e)})
+
+        user = await self.app.auth_policy.authenticate(request)
+        
+        # FIXME: its probably better to keep scene info in body
+        # but I'm too lazy to do it right now lol
+        scene_id = request.match_info["id"]
+
+        try:
+            self.app.scene_provider.create_scene(scene_id, user.user_id)
+        except Exception as e:
+            return web.json_response({"error": "failed", "message": str(e)})
+
+        return web.HTTPSuccessful()
 

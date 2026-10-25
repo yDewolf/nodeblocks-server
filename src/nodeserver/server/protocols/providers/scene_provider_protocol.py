@@ -12,6 +12,10 @@ class IServerSceneProvider(Protocol):
     def setup(self): pass
 
     @abstractmethod
+    def create_scene(self, scene_id: str, author_id: str):
+        pass
+
+    @abstractmethod
     def get_listed_scenes(self) -> list[ListedScene]: 
         pass
 
@@ -27,7 +31,7 @@ class IServerSceneProvider(Protocol):
     def update_scene_permissions(self, scene_uid: str, permissions: ScenePermission, user_id: Optional[str] = None):
         pass
 
-
+    
     @abstractmethod
     def load_scene_data(self, scene_uid: str) -> Optional[SceneData]:
         pass

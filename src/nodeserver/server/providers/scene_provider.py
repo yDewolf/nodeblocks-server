@@ -23,6 +23,18 @@ class SceneProvider(IServerSceneProvider):
 
     # IServerSceneProvider
 
+    def create_scene(self, scene_id: str, author_id: str):
+        scene_folder = self.get_scene_folder(scene_id)
+        if scene_folder.exists():
+            raise Exception("A scene with the same id already exists")
+        
+        scene_folder.mkdir()
+        self._load_or_create_scene_permissions(scene_id, perms=ListedScenePerms(
+            user_permissions={author_id: ScenePermission.ALL},
+            default_perm=ScenePermission.NONE
+        ))
+        self.save_scene_data(SceneData(uid=scene_id, dependencies={}))
+
     # TODO: intercept scene creation so we can cache scenes inside a .json file
     # or something like that
     def get_listed_scenes(self) -> list[ListedScene]:
@@ -72,9 +84,9 @@ class SceneProvider(IServerSceneProvider):
 
     # Utils:
     
-    def _load_or_create_scene_permissions(self, scene_uid: str) -> ListedScenePerms:
+    def _load_or_create_scene_permissions(self, scene_uid: str, perms: Optional[ListedScenePerms] = None) -> ListedScenePerms:
         perms_file = self.get_scene_perms_file(scene_uid)
-        perms = ListedScenePerms(default_perm=ScenePermission.VIEWER)
+        perms = perms or ListedScenePerms(default_perm=ScenePermission.VIEWER)
         if perms_file.exists():
             try:
                 with open(perms_file, "r") as file:
