@@ -13,6 +13,8 @@ from nodeserver.server.web.routing.base_router import BaseRouter
 class SceneHTTPRouter(BaseRouter):
     def _setup_routes(self):
         self.app.router.add_get("/api/scenes", self.get_scene_list)
+        self.app.router.add_post("/api/scenes", self.get_scene_list)
+
         self.app.router.add_post("/api/scene/{uid}", self.get_scene_data)
         self.app.router.add_post("/api/scene/{uid}/token", self.handle_scene_token_create)
         self.app.router.add_post("/api/scene/{uid}/perms", self.get_scene_perms)
@@ -43,11 +45,9 @@ class SceneHTTPRouter(BaseRouter):
             filtered_scenes.append(scene)
 
 
-        return web.json_response({
-            "scenes": [
-                scene.model_dump() for scene in filtered_scenes
-            ]
-        })
+        return web.json_response([
+            scene.model_dump() for scene in filtered_scenes
+        ])
 
     async def get_scene_data(self, request: web.Request):
         scene_uid = request.match_info["uid"]
