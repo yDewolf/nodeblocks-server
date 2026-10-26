@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from multiprocessing import Queue
+from multiprocessing.queues import Queue
 from pathlib import Path
 
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler

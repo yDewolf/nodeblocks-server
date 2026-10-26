@@ -1,6 +1,6 @@
 from functools import singledispatchmethod
 import logging
-from multiprocessing import Queue
+from multiprocessing.queues import Queue
 
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionsCommand, AddNodesCommand, CheckExecutionState, GetSceneDataCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionsCommand, RemoveNodesCommand, ResetSceneCommand, SaveSceneCommand, SetSceneAutosaveCommand, StopWorkerCommand, UpdateExecutionConfigCmd, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd

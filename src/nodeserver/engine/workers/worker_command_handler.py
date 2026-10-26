@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
-from multiprocessing import Queue
+from multiprocessing.queues import Queue
 from queue import Empty
 from typing import Generic, TypeVar, Union
 

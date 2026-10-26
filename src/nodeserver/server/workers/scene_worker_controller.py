@@ -16,8 +16,8 @@ class SceneWorkerController:
 
     _ctx: SpawnContext
 
-    _command_queue: mp.Queue[IPCSceneWorkerCommand]
-    _event_queue: mp.Queue[IPCSceneWorkerEvent]
+    _command_queue: mp.queues.Queue[IPCSceneWorkerCommand]
+    _event_queue: mp.queues.Queue[IPCSceneWorkerEvent]
     _process: Optional[SpawnProcess]
 
     def __init__(self, scene_id: str, plugins_folder: Path, scenes_folder: Path):
