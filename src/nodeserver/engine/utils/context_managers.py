@@ -28,7 +28,7 @@ def safe_atomic_save(final_path: Path | str):
     final_path = Path(final_path)
     final_path.parent.mkdir(parents=True, exist_ok=True)
     
-    fd, temp_path = tempfile.mkstemp(dir=final_path.parent, suffix=".tmp")
+    fd, temp_path = tempfile.mkstemp(dir=final_path.parent, suffix=final_path.suffix)
     os.close(fd)
     temp_path_obj = Path(temp_path)
     

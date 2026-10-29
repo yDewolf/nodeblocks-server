@@ -1,11 +1,9 @@
-from abc import ABC
 from types import NoneType
 from typing import Annotated, Literal, Optional, Union
 
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
 from nodeserver.protocols.manifest.base_manifest import DataModel
 from pydantic import Field
-from pydantic.dataclasses import dataclass
 
 
 ValidSerializedDataType = Union[dict, str, bool, int, float, list, tuple, NoneType]
@@ -21,9 +19,14 @@ class ArrayMetadata(DataTypeValueMeta):
     max: Optional[float]
 
 
-ValueMetadataTypes = Union[
-    ArrayMetadata
-]
+class FileMetadata(DataTypeValueMeta):
+    type: Literal[DefaultDataTypes.FILE] = Field(default=DefaultDataTypes.FILE) # type: ignore
+    is_artifact: bool
+
+
+ValueMetadataTypes = Annotated[Union[
+    ArrayMetadata, FileMetadata
+], Field(discriminator="type")]
 
 class SerializedDataTypeValue[TMetadata: ValueMetadataTypes](DataModel):
     value: ValidSerializedDataType

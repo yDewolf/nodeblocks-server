@@ -3,7 +3,6 @@ from typing import Annotated, Any, Optional
 from nodeserver.engine.protocols.node.logic_nodes import NodeInputs
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
-from nodeserver.engine.runtime.extra_node_io import HashAwareInput
 from nodeserver.engine.runtime.protocols.engine_context import ContextInjector
 from pydantic import Field, SkipValidation
 
@@ -11,7 +10,6 @@ from pydantic import Field, SkipValidation
 # FIXME: isolar o contexto ao invés de passar a cena inteira lol
 class SceneAwareInput(NodeInputs):
     scene_context: NodeScene = Field(exclude=True)
-
 
 class SceneContextInjector(ContextInjector):
     def __init__(self, scene: Optional[NodeScene]) -> None:
@@ -26,10 +24,14 @@ class SceneContextInjector(ContextInjector):
             raw_inputs["scene_context"] = self.scene
 
 
+class HashAwareInput(NodeInputs):
+    current_hash: str = Field(exclude=True)
+
+
 # -- Workspace Injector
 
 class ArtifactAwareInput(HashAwareInput):
-    scene_artifacts: Annotated[ISceneArtifactProvider, SkipValidation]
+    scene_artifacts: Annotated[ISceneArtifactProvider, SkipValidation] = Field(exclude=True)
 
 class SceneArtifactInjector(ContextInjector):
     artifact_provider: Optional[ISceneArtifactProvider] = None

@@ -20,3 +20,6 @@ class ISceneArtifactProvider(Protocol):
         """Returns a file path that includes a hash"""
         pass
 
+    @abstractmethod
+    def get_formatted_filename(self, filename: str, hash: str, extension: str) -> str:
+        pass

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import logging
 from multiprocessing.queues import Queue
 from queue import Empty
-from typing import Generic, TypeVar, Union
+from typing import Union
 
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommand, IPCCommandResponse, IPCEvent
 

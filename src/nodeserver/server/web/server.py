@@ -12,9 +12,11 @@ from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
+from nodeserver.server.protocols.providers.artifact_provider_protocol import IServerSceneArtifactProvider
 from nodeserver.server.protocols.providers.metadata_provider_protocol import IServerMetadataProvider
 from nodeserver.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
 from nodeserver.server.providers.metadata_provider import FileMetadataProvider
+from nodeserver.server.providers.scene_artifact_provider import ServerFileArtifactProvider
 from nodeserver.server.providers.scene_provider import SceneProvider
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
@@ -23,6 +25,7 @@ from nodeserver.server.web.policies.dev_policies import DevAuthPolicy
 from nodeserver.server.web.policies.scene_permission_policy import FilePermissionPolicy
 from nodeserver.server.web.routing.metadata_http_router import MetadataHTTPRouter
 from nodeserver.server.web.routing.plugin_http_router import PluginHTTPRouter
+from nodeserver.server.web.routing.scene_artifact_http_router import SceneArtifactHTTPRouter
 from nodeserver.server.web.routing.scene_http_router import SceneHTTPRouter
 from nodeserver.server.web.routing.scene_ws_router import SceneWebsocketRouter
 from nodeserver.server.web.routing.user_http_router import UserHTTPRouter
@@ -40,6 +43,7 @@ class NodeServer:
     scene_ws_router: SceneWebsocketRouter
     plugin_http_router: PluginHTTPRouter
     scene_http_router: SceneHTTPRouter
+    scene_artifact_http_router: SceneArtifactHTTPRouter
     user_http_router: UserHTTPRouter
     metadata_http_router: MetadataHTTPRouter
 
@@ -58,6 +62,7 @@ class NodeServer:
         permission_policy: Optional[IScenePermPolicy] = None,
         auth_policy: Optional[IAuthPolicy] = None,
         scene_provider: Optional[IServerSceneProvider] = None,
+        scene_artifact_provider: Optional[IServerSceneArtifactProvider] = None,
         metadata_provider: Optional[IServerMetadataProvider] = None,
         host: str = "127.0.0.1",
         port: int = 8080
@@ -80,6 +85,7 @@ class NodeServer:
             permission_policy or FilePermissionPolicy(self.app),
             auth_policy or DevAuthPolicy(),
             scene_provider or SceneProvider(self.scenes_folder),
+            scene_artifact_provider or ServerFileArtifactProvider(self.scenes_folder),
             metadata_provider or FileMetadataProvider(self.plugins_folder, plugin_manager)
         )
         self.app._setup_plugins(self.plugins_folder)
@@ -87,6 +93,7 @@ class NodeServer:
         self.scene_ws_router = SceneWebsocketRouter(self.app)
         self.plugin_http_router = PluginHTTPRouter(self.app)
         self.scene_http_router = SceneHTTPRouter(self.app)
+        self.scene_artifact_http_router = SceneArtifactHTTPRouter(self.app)
         self.user_http_router = UserHTTPRouter(self.app)
         self.metadata_http_router = MetadataHTTPRouter(self.app)
         self._setup_routes()
@@ -99,6 +106,7 @@ class NodeServer:
         self.metadata_http_router._setup_routes()
 
         self.scene_http_router._setup_routes()
+        self.scene_artifact_http_router._setup_routes()
         self.scene_ws_router._setup_routes()
 
     # FIXME: arrumar o cors pra ser menos abrangente e talvez específico de cada rota

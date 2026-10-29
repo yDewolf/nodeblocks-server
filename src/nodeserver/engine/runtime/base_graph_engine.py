@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import logging
 from typing import Any, Optional
 
+from nodeserver.engine.runtime.context_injectors import HashAwareInput
 from nodeserver.engine.runtime.protocols.engine_context import ContextInjector
 from pydantic import ValidationError
 
@@ -10,7 +11,7 @@ from nodeserver.engine.exceptions.runtime_exceptions import NodeParamRuntimeErro
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeOutputs
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
-from nodeserver.engine.runtime.extra_node_io import ContextAwareInput, HashAwareInput
+from nodeserver.engine.runtime.extra_node_io import ContextAwareInput
 from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 from nodeserver.engine.runtime.job_runtime_context import EngineRuntimeContext
 from nodeserver.engine.runtime.protocols.engine_events import EngineError
@@ -166,10 +167,10 @@ class BaseGraphEngine(ABC):
         context: EngineRuntimeContext,
         current_hash: str,
     ):
-        if isinstance(logic_instance.InputModel, ContextAwareInput):
+        if issubclass(logic_instance.InputModel, ContextAwareInput):
             raw_inputs["context"] = context
 
-        if isinstance(logic_instance.InputModel, HashAwareInput):
+        if issubclass(logic_instance.InputModel, HashAwareInput):
             raw_inputs["current_hash"] = current_hash
 
         for injector in self._context_injectors.values():

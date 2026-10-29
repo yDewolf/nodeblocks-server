@@ -8,6 +8,7 @@ class DefaultRenderers(str, Enum):
     SCALAR = "scalar"
     ARRAY = "array"
     TEXT = "text"
+    FILE = "file"
     NOT_IMPLEMENTED = "not_implemented"
 
 # TODO: pensar em uma forma melhor de definir os DataTypes default

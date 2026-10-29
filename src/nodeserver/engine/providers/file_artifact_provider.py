@@ -19,7 +19,10 @@ class FileArtifactProvider(ISceneArtifactProvider):
 
 
     def get_node_artifact_path(self, node_uid: str, filename: str, hash: str, extension: str) -> Path:
-        return self.get_node_artifacts_folder(node_uid) / f"{filename}_{hash}.{extension}"
+        return self.get_node_artifacts_folder(node_uid) / self.get_formatted_filename(filename, hash, extension)
+
+    def get_formatted_filename(self, filename: str, hash: str, extension: str) -> str:
+        return f"{filename}_{hash}.{extension}"
 
     def load_artifact(self, artifact_path: Path) -> Any:
         return

@@ -5,6 +5,7 @@ from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessH
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
+from nodeserver.server.protocols.providers.artifact_provider_protocol import IServerSceneArtifactProvider
 from nodeserver.server.protocols.providers.metadata_provider_protocol import IMetadataProvider, IServerMetadataProvider
 from nodeserver.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
 from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
@@ -20,6 +21,9 @@ class NodeServerWebApp(web.Application):
     auth_policy: IAuthPolicy
     scene_perm_policy: IScenePermPolicy
     scene_provider: IServerSceneProvider
+
+    scene_artifact_provider: IServerSceneArtifactProvider
+
     _metadata_provider: IServerMetadataProvider
 
     def _setup(
@@ -30,6 +34,7 @@ class NodeServerWebApp(web.Application):
         permission_policy: IScenePermPolicy,
         auth_policy: IAuthPolicy,
         scene_provider: IServerSceneProvider,
+        scene_artifact_provider: IServerSceneArtifactProvider,
         metadata_provider: IServerMetadataProvider
     ):
         self.plugin_manager = plugin_manager
@@ -40,6 +45,8 @@ class NodeServerWebApp(web.Application):
         self.auth_policy = auth_policy
         
         self.scene_provider = scene_provider
+        self.scene_artifact_provider = scene_artifact_provider
+
         self._metadata_provider = metadata_provider
 
     def _setup_plugins(self, plugins_folder: Path):

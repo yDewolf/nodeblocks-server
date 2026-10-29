@@ -46,7 +46,7 @@ class FileSceneDataProvider(ISceneDataProvider):
         return scene_data
 
     # Utils
-
+    
     def get_scene_folder(self, scene_uid: str) -> Path:
         return self.scenes_root / scene_uid
 
