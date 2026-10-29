@@ -28,15 +28,6 @@ class NodeTypeMeta(EngineSpecMetadata):
     """
     parameter_meta: dict[str, ParameterMeta] = {}
     slot_meta: dict[str, SlotMeta] = {}
-    
-    @field_serializer("category")
-    def serialize_category(self, category: MetaCategory, _info):
-        return category.category_id
-
-    @field_serializer("tags")
-    def serialize_tags(self, tags: list[MetaTag], _info):
-        tag_ids = [(tag if isinstance(tag, str) else tag.tag_id) for tag in tags]
-        return tag_ids
 
 DEFAULT_NODE_TAG = MetaTag(tag_id="default")
 USER_INPUT_TAG = MetaTag(tag_id="input/parameter")
