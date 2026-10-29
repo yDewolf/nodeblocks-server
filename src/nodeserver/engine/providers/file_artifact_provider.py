@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
 from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider
@@ -19,6 +20,10 @@ class FileArtifactProvider(ISceneArtifactProvider):
 
     def get_node_artifact_path(self, node_uid: str, filename: str, hash: str, extension: str) -> Path:
         return self.get_node_artifacts_folder(node_uid) / f"{filename}_{hash}.{extension}"
+
+    def load_artifact(self, artifact_path: Path) -> Any:
+        return
+    
 
     # -- utils
 

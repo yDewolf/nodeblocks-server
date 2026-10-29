@@ -73,6 +73,7 @@ class SceneWorkerRunManager:
             node_scene,
             emit_event_callback=self._scene_worker.engine_event_receiver
         )
+        self._add_context_injectors()
 
     def _add_context_injectors(self):
         if not self.context:

@@ -1,11 +1,11 @@
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 from nodeserver.engine.protocols.node.logic_nodes import NodeInputs
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
 from nodeserver.engine.runtime.extra_node_io import HashAwareInput
 from nodeserver.engine.runtime.protocols.engine_context import ContextInjector
-from pydantic import Field
+from pydantic import Field, SkipValidation
 
 
 # FIXME: isolar o contexto ao invés de passar a cena inteira lol
@@ -29,7 +29,7 @@ class SceneContextInjector(ContextInjector):
 # -- Workspace Injector
 
 class ArtifactAwareInput(HashAwareInput):
-    scene_artifacts: ISceneArtifactProvider
+    scene_artifacts: Annotated[ISceneArtifactProvider, SkipValidation]
 
 class SceneArtifactInjector(ContextInjector):
     artifact_provider: Optional[ISceneArtifactProvider] = None

@@ -1,15 +1,20 @@
 from abc import ABC
 from types import NoneType
-from typing import Optional, TypedDict, Union
+from typing import Annotated, Literal, Optional, Union
 
+from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes
+from nodeserver.protocols.manifest.base_manifest import DataModel
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 
 ValidSerializedDataType = Union[dict, str, bool, int, float, list, tuple, NoneType]
 
-@dataclass
-class ArrayMetadata:
+class DataTypeValueMeta(DataModel):
+    type: DefaultDataTypes
+
+class ArrayMetadata(DataTypeValueMeta):
+    type: Literal[DefaultDataTypes.ARRAY] = Field(default=DefaultDataTypes.ARRAY) # type: ignore
     shape: tuple[int, ...]
 
     min: Optional[float]
@@ -17,14 +22,12 @@ class ArrayMetadata:
 
 
 ValueMetadataTypes = Union[
-    ArrayMetadata, NoneType
+    ArrayMetadata
 ]
 
-@dataclass
-class SerializedDataTypeValue[TMetadata: ValueMetadataTypes](ABC):
+class SerializedDataTypeValue[TMetadata: ValueMetadataTypes](DataModel):
     value: ValidSerializedDataType
-    metadata: TMetadata
+    metadata: Optional[TMetadata]
 
-@dataclass
-class NoMetaDataTypeValue(SerializedDataTypeValue[NoneType]):
-    metadata: NoneType = Field(default=None)
+class NoMetaDataTypeValue(SerializedDataTypeValue):
+    metadata: Optional[ValueMetadataTypes] = Field(default=None)

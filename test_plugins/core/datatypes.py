@@ -1,10 +1,9 @@
-from types import NoneType
 from typing import Any, Sequence
 
 from nodeserver.engine.plugins.api.decorators.plugin_decorators import plugin_datatype
 from nodeserver.engine.plugins.api.plugin_datatype import PluginDatatype
 from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.manifest.node.datatype_value_meta import NoMetaDataTypeValue, SerializedDataTypeValue
+from nodeserver.protocols.manifest.node.datatype_value_meta import ArrayMetadata, NoMetaDataTypeValue, SerializedDataTypeValue
 
 
 @plugin_datatype(
@@ -13,13 +12,13 @@ from nodeserver.protocols.manifest.node.datatype_value_meta import NoMetaDataTyp
     default_renderer=DefaultRenderers.SCALAR,
     aliases=[float]
 )
-class FloatDataType(PluginDatatype[NoneType], float):
+class FloatDataType(PluginDatatype, float):
     def serialize(self): 
-        return NoMetaDataTypeValue(value=self)
+        return self.serialize_value(self)
 
     @classmethod
     def serialize_value(cls, value: Any):
-        return NoMetaDataTypeValue(float(value))
+        return NoMetaDataTypeValue(value=float(value))
 
 @plugin_datatype(
     id="int",
@@ -29,11 +28,11 @@ class FloatDataType(PluginDatatype[NoneType], float):
 )
 class IntDataType(PluginDatatype, int):
     def serialize(self): 
-        return NoMetaDataTypeValue(value=self)
+        return self.serialize_value(self)
 
     @classmethod
     def serialize_value(cls, value: Any):
-        return NoMetaDataTypeValue(int(value))
+        return NoMetaDataTypeValue(value=int(value))
 
 @plugin_datatype(
     id="uint",
@@ -43,11 +42,11 @@ class IntDataType(PluginDatatype, int):
 class UIntDataType(PluginDatatype, int):
     def serialize(self):
         # TODO: pensar em um jeito melhor de implementar UINT lol
-        return NoMetaDataTypeValue(max(0, self))
+        return self.serialize_value(self)
     
     @classmethod
     def serialize_value(cls, value: Any):
-        return NoMetaDataTypeValue(max(0, int(value)))
+        return NoMetaDataTypeValue(value=max(0, int(value)))
 
 @plugin_datatype(
     id="bool",
@@ -59,11 +58,11 @@ class BoolDataType(PluginDatatype):
     # TODO: melhorar isso aqui tbm
     value: bool
     def serialize(self): 
-        return NoMetaDataTypeValue(self.value)
+        return self.serialize_value(self)
     
     @classmethod
     def serialize_value(cls, value: Any):
-        return NoMetaDataTypeValue(bool(value))
+        return NoMetaDataTypeValue(value=bool(value))
 
 @plugin_datatype(
     id="array",
@@ -71,16 +70,21 @@ class BoolDataType(PluginDatatype):
     default_renderer=DefaultRenderers.ARRAY,
     aliases=[list, tuple]
 )
-class ArrayDataType(PluginDatatype, Sequence):
+class ArrayDataType(PluginDatatype[ArrayMetadata], Sequence):
     def serialize(self): 
-        return NoMetaDataTypeValue(value=list(self))
+        return self.serialize_value(self)
     
     @classmethod
     def serialize_value(cls, value: Any):
-        if isinstance(value, Sequence):
-            return NoMetaDataTypeValue(value=list(value))
-        
-        return NoMetaDataTypeValue(value=list(value))
+        list_value = list(value)
+        return SerializedDataTypeValue(
+            value=list_value,
+            metadata=ArrayMetadata(
+                shape=(len(list_value), ),
+                min=min(list_value),
+                max=max(list_value)
+            )
+        )
 
 @plugin_datatype(
     id="string",
@@ -88,13 +92,13 @@ class ArrayDataType(PluginDatatype, Sequence):
     default_renderer=DefaultRenderers.TEXT,
     aliases=[str]
 )
-class StringDataType(PluginDatatype, str):
+class StringDataType(PluginDatatype):
     def serialize(self): 
-        return NoMetaDataTypeValue(self)
+        return self.serialize_value(self)
     
     @classmethod
     def serialize_value(cls, value: Any):
-        return NoMetaDataTypeValue(str(value))
+        return NoMetaDataTypeValue(value=str(value))
 
 @plugin_datatype(
     id="unknown",
@@ -103,8 +107,8 @@ class StringDataType(PluginDatatype, str):
 )
 class UnknownDataType(PluginDatatype):
     def serialize(self): 
-        return NoMetaDataTypeValue(self) # type: ignore
+        return self.serialize_value(self)
     
     @classmethod
     def serialize_value(cls, value: Any):
-        return NoMetaDataTypeValue(value)
+        return NoMetaDataTypeValue(value=value)
