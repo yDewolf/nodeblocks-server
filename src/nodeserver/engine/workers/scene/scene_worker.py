@@ -10,6 +10,7 @@ from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.plugin_node_provider import PluginNodeProvider
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.protocols.providers.node_provider import INodeProvider
+from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
 from nodeserver.engine.protocols.providers.scene_provider import ISceneDataProvider
 from nodeserver.engine.protocols.providers.scene_state_provider import ISceneStateProvider
 from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
@@ -39,8 +40,10 @@ class SceneWorker(ISceneWorker):
 
     plugin_manager: PluginManager
     node_provider: INodeProvider
+
     scene_data_provider: ISceneDataProvider
     scene_state_provider: ISceneStateProvider
+    _artifact_provider: ISceneArtifactProvider
 
     execution_manager: SceneWorkerRunManager
 
@@ -58,6 +61,7 @@ class SceneWorker(ISceneWorker):
         plugins_folder: Path,
         scene_data_provider: ISceneDataProvider,
         scene_state_provider: ISceneStateProvider,
+        scene_artifact_provider: ISceneArtifactProvider,
         plugin_manager: Optional[PluginManager] = None,
     ) -> None:
         self.scene_id = scene_id
@@ -68,9 +72,15 @@ class SceneWorker(ISceneWorker):
         
         self.scene_state_provider = scene_state_provider
         self.scene_data_provider = scene_data_provider 
+        self._artifact_provider = scene_artifact_provider
         
         self.execution_manager = SceneWorkerRunManager(self)
         self.active = True
+
+    @property
+    def scene_artifact_provider(self) -> ISceneArtifactProvider:
+        return self._artifact_provider
+    
 
     def set_command_handler(self, handler: WorkerCommandHandler):
         self.command_handler = handler

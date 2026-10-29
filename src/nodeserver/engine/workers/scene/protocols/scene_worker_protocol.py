@@ -1,3 +1,6 @@
+from abc import abstractmethod
+
+from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
 from pydantic.dataclasses import dataclass
 from typing import Optional, Protocol
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommandResponse, IPCEvent
@@ -17,6 +20,10 @@ class ISceneWorker(Protocol):
 
     def _create_new_scene(self, scene_data: SceneData) -> NodeScene:
         raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def scene_artifact_provider(self) -> ISceneArtifactProvider: pass
 
 
 # IPC

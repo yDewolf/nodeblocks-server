@@ -2,6 +2,8 @@ from typing import Any, Optional
 
 from nodeserver.engine.protocols.node.logic_nodes import NodeInputs
 from nodeserver.engine.protocols.node.node_scene import NodeScene
+from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
+from nodeserver.engine.runtime.extra_node_io import HashAwareInput
 from nodeserver.engine.runtime.protocols.engine_context import ContextInjector
 from pydantic import Field
 
@@ -22,3 +24,23 @@ class SceneContextInjector(ContextInjector):
         
         if issubclass(InputModel, SceneAwareInput):
             raw_inputs["scene_context"] = self.scene
+
+
+# -- Workspace Injector
+
+class ArtifactAwareInput(HashAwareInput):
+    scene_artifacts: ISceneArtifactProvider
+
+class SceneArtifactInjector(ContextInjector):
+    artifact_provider: Optional[ISceneArtifactProvider] = None
+    def __init__(self, artifact_provider: ISceneArtifactProvider) -> None:
+        super().__init__()
+        self.artifact_provider = artifact_provider
+
+    def inject_context(self, raw_inputs: dict[str, Any], InputModel: type[NodeInputs]):
+        if not self.artifact_provider:
+            return
+        
+        if issubclass(InputModel, ArtifactAwareInput):
+            raw_inputs["scene_artifacts"] = self.artifact_provider
+

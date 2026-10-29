@@ -10,7 +10,7 @@ from nodeserver.engine.exceptions.runtime_exceptions import NodeParamRuntimeErro
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeOutputs
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
-from nodeserver.engine.runtime.extra_node_io import ContextAwareInput
+from nodeserver.engine.runtime.extra_node_io import ContextAwareInput, HashAwareInput
 from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 from nodeserver.engine.runtime.job_runtime_context import EngineRuntimeContext
 from nodeserver.engine.runtime.protocols.engine_events import EngineError
@@ -112,7 +112,7 @@ class BaseGraphEngine(ABC):
 
             self._handle_param_update(logic_node, node_instance.uid)
             raw_inputs = self._resolve_inputs(node_instance, context)
-            self._inject_context_inputs(raw_inputs, logic_node, context)
+            self._inject_context_inputs(raw_inputs, logic_node, context, current_hash)
 
             node_inputs = self._handle_create_input_model(logic_node, raw_inputs, node_instance.uid)
             
@@ -163,10 +163,14 @@ class BaseGraphEngine(ABC):
         self, 
         raw_inputs: dict[str, Any], 
         logic_instance: BaseNode, 
-        context: EngineRuntimeContext
+        context: EngineRuntimeContext,
+        current_hash: str,
     ):
         if isinstance(logic_instance.InputModel, ContextAwareInput):
             raw_inputs["context"] = context
+
+        if isinstance(logic_instance.InputModel, HashAwareInput):
+            raw_inputs["current_hash"] = current_hash
 
         for injector in self._context_injectors.values():
             injector.inject_context(raw_inputs, logic_instance.InputModel) # type: ignore

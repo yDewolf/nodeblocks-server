@@ -5,6 +5,7 @@ from pathlib import Path
 
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager
+from nodeserver.engine.providers.file_artifact_provider import FileArtifactProvider
 from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.engine.utils.context_managers import scoped_sys_path
@@ -29,10 +30,13 @@ def run_scene_worker_loop(
     state_provider = FileSceneStateProvider(scene_id)
     state_provider.scenes_root = file_data_provider.scenes_root
 
+    artifact_provider = FileArtifactProvider(file_data_provider)
+
     scene_worker = SceneWorker(
         scene_id, plugins_folder, 
         file_data_provider, state_provider,
-        plugin_manager=plugin_manager
+        plugin_manager=plugin_manager,
+        scene_artifact_provider=artifact_provider
     )
     command_handler = SceneWorkerCommandHandler(scene_worker, command_queue, event_queue)
     scene_worker.set_command_handler(command_handler)
