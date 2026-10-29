@@ -1,21 +1,19 @@
 from abc import ABC, abstractmethod
-from types import NoneType
-from typing import Any, Union
+from typing import Any
+
+from nodeserver.protocols.manifest.node.datatype_value_meta import SerializedDataTypeValue, ValueMetadataTypes
 
 # Abstract classes
 
-ValidSerializedDataType = Union[dict, str, bool, int, float, list, tuple, NoneType]
-
-class PluginDatatype(ABC):
-    # TODO: pensar certinho em como vamos fazer essa serialização
+class PluginDatatype[MetadataType: ValueMetadataTypes](ABC):
     @abstractmethod
-    def serialize(self) -> ValidSerializedDataType:
+    def serialize(self) -> SerializedDataTypeValue[MetadataType]:
         """
         Method used by the server to serialize custom plugin DataTypes.
         This method must return a value that can be stored in a json string.
 
         Returns:
-            ValidSerializedDataType: value that would be sent to the client
+            SerializeDataTypeValue: value that would be sent to the client
         """
         raise NotImplementedError(
             f"Plugin DataType ({self.__class__.__name__}) must implement serialize method."
@@ -23,13 +21,13 @@ class PluginDatatype(ABC):
 
     @classmethod
     @abstractmethod
-    def serialize_value(cls, value: Any) -> ValidSerializedDataType:
+    def serialize_value(cls, value: Any) -> SerializedDataTypeValue[MetadataType]:
         """
         Method used by the server to serialize a slot output value
         This method must return a value that can be stored in a json string.
 
         Returns:
-            ValidSerializedDataType: value that would be sent to the client
+            SerializeDataTypeValue: value that would be sent to the client
         """
         raise NotImplementedError(
             f"Plugin DataType ({cls.__name__}) must implement serialize method."

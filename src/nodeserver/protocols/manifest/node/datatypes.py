@@ -6,7 +6,6 @@ from nodeserver.protocols.enums.datatype_enums import DefaultRenderers
 from nodeserver.protocols.manifest.base_manifest import DataModel, NamespaceModel
 
 class DataTypeSpec(NamespaceModel):
-    # TODO: implementar estilos de DataType com cor, etc (provavelmente nos baglh de metadata)
     base_id: Optional[DefaultDataTypes] # FIXME on client: base -> base_id
     default_renderer: DefaultRenderers # TODO: Implement proper renderer solver
     whitelist: list[str] = Field(default_factory=list)

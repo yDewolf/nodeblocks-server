@@ -13,12 +13,14 @@ class DefaultRenderers(str, Enum):
 # TODO: pensar em uma forma melhor de definir os DataTypes default
 class DefaultDataTypes(str, Enum):
     FLOAT = "float"
-    UINT = "uint" # deprecated
     INT = "int"
     BOOLEAN = "boolean"
+    TEXT = "text"
+    UNKNOWN = "unknown"
+
     ARRAY = "array" # TODO: rename to ndarray
     FILE = "file"
-    CUSTOM = "custom"
-    TEXT = "text"
     OPTIONS = "options" # FIXME: options não deveria ser um datatype e sim um tipo de parâmetro
-    UNKNOWN = "unknown"
+
+    UINT = "uint" # deprecated
+    CUSTOM = "custom"

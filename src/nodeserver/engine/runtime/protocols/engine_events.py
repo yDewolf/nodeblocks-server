@@ -1,6 +1,7 @@
+from nodeserver.protocols.manifest.node.datatype_value_meta import SerializedDataTypeValue
 from pydantic.dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCEvent
@@ -22,7 +23,7 @@ class EvtNodeStatusChanged(IPCEngineEvent):
     node_uid: str
     status: NodeExecutionStatus
 
-    node_result: Optional[dict[str, Any]]
+    node_result: Optional[dict[str, Union[SerializedDataTypeValue, Any]]]
 
 @dataclass(frozen=True)
 class EvtFailedProcess(IPCEngineEvent):

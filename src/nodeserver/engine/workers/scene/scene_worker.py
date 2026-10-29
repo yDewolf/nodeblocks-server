@@ -23,6 +23,7 @@ from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import ISce
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.engine.workers.scene.worker_execution_manager import SceneWorkerRunManager
+from nodeserver.protocols.manifest.node.datatype_value_meta import SerializedDataTypeValue
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 logger = logging.getLogger("nds.worker")
@@ -80,7 +81,7 @@ class SceneWorker(ISceneWorker):
     @property
     def scene_artifact_provider(self) -> ISceneArtifactProvider:
         return self._artifact_provider
-    
+
 
     def set_command_handler(self, handler: WorkerCommandHandler):
         self.command_handler = handler
@@ -141,7 +142,7 @@ class SceneWorker(ISceneWorker):
             if event.status == NodeExecutionStatus.SUCCESS and event.node_result:
                 instance = self.execution_manager.context.scene.graph.ensure_node(event.node_uid)
 
-                serialized_result: dict[str, Any] = {}
+                serialized_result: dict[str, SerializedDataTypeValue] = {}
                 for slot_id, value in event.node_result.items():
                     if isinstance(value, PluginDatatype):
                         serialized_result[slot_id] = value.serialize()

@@ -1,6 +1,7 @@
 
 from enum import StrEnum
 from typing import Annotated, Literal, Optional, Union
+from nodeserver.protocols.manifest.node.datatype_value_meta import SerializedDataTypeValue
 from pydantic import BaseModel, Field
 
 from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
@@ -25,7 +26,7 @@ class NodeStatusPayload(EngineEventPayload):
     node_uid: str
     status: NodeExecutionStatus
     
-    node_result: Optional[dict]
+    node_result: Optional[dict[str, SerializedDataTypeValue]]
 
 class JobStatusPayload(EngineEventPayload):
     type: Literal[EngineEventTypes.JOB_STATUS] = EngineEventTypes.JOB_STATUS
