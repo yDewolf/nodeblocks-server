@@ -28,6 +28,7 @@ class EngineRuntimeContext(ABC):
         self.errors = []
         self.node_status = {node_uid: NodeExecutionStatus.PENDING for node_uid in scene.graph.all_nodes}
 
+
     @property
     @abstractmethod
     def scene(self) -> NodeScene: pass
@@ -39,6 +40,13 @@ class EngineRuntimeContext(ABC):
     @property
     @abstractmethod
     def persistent_cache(self) -> dict[str, dict[str, Any]]: pass
+
+    @property
+    @abstractmethod
+    def uncached_node_iterations(self) -> dict[str, int]: pass
+
+    @abstractmethod
+    def increment_node(self, uid: str): pass
 
     def update_node_status(self, node_uid: str, status: NodeExecutionStatus, result: Optional[dict[str, Any]] = None):
         if node_uid in self.node_status:

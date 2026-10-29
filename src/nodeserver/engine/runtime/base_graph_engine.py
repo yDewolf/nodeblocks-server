@@ -100,7 +100,7 @@ class BaseGraphEngine(ABC):
             current_hash = EngineRuntimeHelper._compute_node_hash(node_instance, context)
             context.node_hashes[node_instance.uid] = current_hash
 
-            if not logic_node.config.bypass_cache and not EngineRuntimeHelper._has_bypassed_dependencies(node_instance.uid, context):
+            if not logic_node.config.bypass_cache: #and not EngineRuntimeHelper._has_bypassed_dependencies(node_instance.uid, context):
                 cached_data = context.persistent_cache.get(node_instance.uid)
                 
                 if cached_data and cached_data.get("hash") == current_hash:
@@ -130,6 +130,9 @@ class BaseGraphEngine(ABC):
                 "hash": current_hash,
                 "outputs": outputs_dict
             }
+
+            if logic_node.config.bypass_cache:
+                context.increment_node(node_instance.uid)
 
             logic_node.post_forward_cleanup()
             return True

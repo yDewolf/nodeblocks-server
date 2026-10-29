@@ -11,7 +11,8 @@ class EngineRuntimeHelper:
         state_dict = {
             "fqn": node_instance.fqn,
             "params": node_instance.node_data.data,
-            "input_hashes": {}
+            "input_hashes": {},
+            "iterations": context.uncached_node_iterations.get(node_instance.uid, None)
         }
 
         incoming_connections = context.scene.graph.get_node_connections(node_instance.uid)

@@ -8,6 +8,7 @@ from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 class SceneSuperContext:
     scene: NodeScene
     persistent_cache: dict[str, dict[str, Any]]
+    uncached_node_iterations: dict[str, int]
     node_hashes: dict[str, str]
     
     _emit_event_callback: Optional[Callable[[IPCEngineEvent], None]]
@@ -21,6 +22,7 @@ class SceneSuperContext:
         self.scene = scene
         self._emit_event_callback = emit_event_callback
         self.persistent_cache = persistent_cache if persistent_cache is not None else {}
+        self.uncached_node_iterations = {}
         self.node_hashes = {}
 
     def invalidate_node_cache(self, node_uid: str, recursive: bool = True):
@@ -99,6 +101,12 @@ class JobExecutionContext(EngineRuntimeContext):
     def persistent_cache(self) -> dict[str, dict[str, Any]]:
         return self.global_context.persistent_cache
 
+    @property
+    def uncached_node_iterations(self) -> dict[str, int]:
+        return self.global_context.uncached_node_iterations
+
+    def increment_node(self, uid: str):
+        self.global_context.uncached_node_iterations[uid] = self.global_context.uncached_node_iterations.get(uid, 0) + 1
 
 class StepJobExecutionContext(JobExecutionContext):
     execution_order: Optional[list[str]]
