@@ -4,6 +4,7 @@ import logging
 from typing import Any, Optional
 
 from nodeserver.engine.runtime.context_injectors import HashAwareInput
+from nodeserver.engine.runtime.context_injectors import ContextAwareInput
 from nodeserver.engine.runtime.protocols.engine_context import ContextInjector
 from pydantic import ValidationError
 
@@ -11,7 +12,6 @@ from nodeserver.engine.exceptions.runtime_exceptions import NodeParamRuntimeErro
 from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeOutputs
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
-from nodeserver.engine.runtime.extra_node_io import ContextAwareInput
 from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
 from nodeserver.engine.runtime.job_runtime_context import EngineRuntimeContext
 from nodeserver.engine.runtime.protocols.engine_events import EngineError

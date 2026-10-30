@@ -3,7 +3,7 @@ from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_events import EngineError, NodeExecutionStatus
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 class ContextInjector(ABC):
     id: str

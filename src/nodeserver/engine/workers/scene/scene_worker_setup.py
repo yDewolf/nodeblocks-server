@@ -45,3 +45,5 @@ def run_scene_worker_loop(
         scene_worker.setup_plugins()
         # scene_worker.runtime_loop()
         asyncio.run(scene_worker.run())
+
+    artifact_provider.cleanup_artifacts
