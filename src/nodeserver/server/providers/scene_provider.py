@@ -60,6 +60,10 @@ class SceneProvider(IServerSceneProvider):
         perms = self._load_or_create_scene_permissions(scene_uid)
         return perms.default_perm
 
+    def get_all_scene_perms(self, scene_uid: str) -> ListedScenePerms:
+        perms = self._load_or_create_scene_permissions(scene_uid)
+        return perms
+
     def get_scene_permissions(self, scene_uid: str, user_id: str) -> ScenePermission: 
         perms = self._load_or_create_scene_permissions(scene_uid)
         return perms.user_permissions.get(user_id, perms.default_perm)

@@ -43,11 +43,12 @@ class SceneHTTPRouter(BaseRouter):
             if not ScenePermission.READ in perms:
                 continue
 
+            scene.user_perms = perms
             filtered_scenes.append(scene)
 
 
         return web.json_response([
-            scene.model_dump() for scene in filtered_scenes
+            scene.model_dump(mode="json") for scene in filtered_scenes
         ])
 
     async def get_scene_data(self, request: web.Request):
@@ -63,8 +64,15 @@ class SceneHTTPRouter(BaseRouter):
 
     async def get_scene_perms(self, request: web.Request):
         scene_uid = request.match_info["uid"]
-
         user = await self.app.auth_policy.authenticate(request)
+        
+        target = request.query.get("target")
+        if target == "all":
+            listed_perms = await self.app.scene_perm_policy.get_all_scene_perms(user, scene_uid)
+            return web.json_response(
+                listed_perms.model_dump(mode="json")
+            )
+
         perms = await self.app.scene_perm_policy.get_scene_permissions(user, scene_uid)
         return web.json_response({
             "user_perms": perms.value
