@@ -9,6 +9,7 @@ from nodeserver.server.protocols.session_protocols import SceneConnectionSession
 from nodeserver.server.protocols.web.messages.client.client_message_enums import GraphActionTypes
 from nodeserver.server.protocols.web.messages.client.graph.client_graph_commands import ClientGraphCommand, ConnGraphCommand, NodeGraphCommand
 from nodeserver.server.protocols.web.messages.client.graph.graph_action_payloads import ConnActionPayloadAdapter, ConnAddUpdateAction, ConnRemoveAction, NodeActionPayloadAdapter, NodeAddUpdateAction, NodeRemoveAction
+from nodeserver.server.web.exceptions.cmd_handler_exceptions import CmdDispatchNotImplemented
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 
 # TODO: implement command stacks (multiple subcommands that map to a single request id)
@@ -25,11 +26,14 @@ class GraphCommandHandler(BaseSceneCmdHandler):
         worker_manager: ISceneWorkerManager
     ):
         cmd: Optional[SceneGraphCommand] = None
-        if isinstance(message, NodeGraphCommand):
-            cmd = self.generate_node_cmd(message.payload, message.cmd_uid)
-        
-        elif isinstance(message, ConnGraphCommand):
-            cmd = self.generate_conn_cmd(message.payload, message.cmd_uid)
+        try:
+            if isinstance(message, NodeGraphCommand):
+                cmd = self.generate_node_cmd(message.payload, message.cmd_uid)
+            
+            elif isinstance(message, ConnGraphCommand):
+                cmd = self.generate_conn_cmd(message.payload, message.cmd_uid)
+        except NotImplementedError:
+            raise CmdDispatchNotImplemented(self.__class__, cmd.__class__)
 
         if cmd:
             worker_manager.send_command_to_scene(session.scene_id, cmd)
@@ -39,8 +43,7 @@ class GraphCommandHandler(BaseSceneCmdHandler):
 
     @singledispatchmethod
     def generate_node_cmd(self, payload: NodeActionPayloadAdapter, cmd_uid: str) -> SceneGraphCommand:
-        # FIXME: exception
-        raise Exception(f"Command not implemented for payload: {payload.__class__.__name__}")
+        raise NotImplementedError()
     
 
     @generate_node_cmd.register
@@ -81,8 +84,7 @@ class GraphCommandHandler(BaseSceneCmdHandler):
 
     @singledispatchmethod
     def generate_conn_cmd(self, payload: ConnActionPayloadAdapter, cmd_uid: str) -> SceneGraphCommand:
-        # FIXME: exception
-        raise Exception(f"Command not implemented for payload: {payload.__class__.__name__}")
+        raise NotImplementedError()
 
     @generate_conn_cmd.register
     def _(self, payload: ConnAddUpdateAction, cmd_uid: str):

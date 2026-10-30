@@ -6,6 +6,7 @@ from nodeserver.server.protocols.providers.scene_worker_manager_protocol import 
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
 from nodeserver.server.protocols.web.messages.client.base_client_command import BaseClientCommand
 from nodeserver.server.protocols.web.messages.client.scene.client_scene_commands import ClientGetSceneDataCmd, ClientLoadSceneCmd, ClientSaveSceneCmd, ClientSceneCommand, ClientSetSceneAutosaveCmd, SceneCommandAdapter
+from nodeserver.server.web.exceptions.cmd_handler_exceptions import CmdDispatchNotImplemented
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 
 
@@ -25,8 +26,7 @@ class SceneCommandHandler(BaseSceneCmdHandler):
 
     @singledispatchmethod
     def generate_cmd(self, cmd: ClientSceneCommand) -> IPCSceneWorkerCommand:
-        # FIXME: exception
-        raise Exception(f"Command not implemented for payload: {cmd.__class__.__name__}")
+        raise CmdDispatchNotImplemented(self.__class__, cmd.__class__)
 
     @generate_cmd.register
     def _(self, cmd: ClientLoadSceneCmd):

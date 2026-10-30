@@ -17,7 +17,7 @@ class ServerDomainError(Exception):
         self.details = details or {}
 
 
-class ServerPolicyError(Exception):
+class ServerPolicyError(ServerDomainError):
     def __init__(
         self,
         policy_cls: type[BaseWebPolicy],
@@ -25,8 +25,5 @@ class ServerPolicyError(Exception):
         message: str,
         details: Optional[dict[str, Any]] = None,
     ) -> None:
-        super().__init__(message)
-        self.error_code = error_code
-        self.message = message
-        self.details = {"policy_cls": policy_cls, **(details or {})}
+        super().__init__(error_code, message, {"policy_cls": policy_cls, **(details or {})})
 

@@ -8,6 +8,7 @@ from nodeserver.server.protocols.providers.scene_worker_manager_protocol import 
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
 from nodeserver.server.protocols.web.messages.client.base_client_command import BaseClientCommand
 from nodeserver.server.protocols.web.messages.client.client_message_enums import ExecutionShortcuts
+from nodeserver.server.web.exceptions.cmd_handler_exceptions import CmdDispatchNotImplemented
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 
 
@@ -36,8 +37,7 @@ class ExecutionCommandHandler(BaseSceneCmdHandler):
 
     @singledispatchmethod
     def generate_engine_cmd(self, cmd: SceneExecutionCommand) -> RuntimeCommand:
-        # FIXME: better exception
-        raise Exception(f"Command '{cmd.__class__.__name__}' is not implemented")
+        raise CmdDispatchNotImplemented(self.__class__, cmd.__class__)
 
     @generate_engine_cmd.register
     def _(self, cmd: SetExecutionStateCommand):

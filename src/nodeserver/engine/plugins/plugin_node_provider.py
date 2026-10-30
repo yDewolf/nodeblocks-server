@@ -86,8 +86,8 @@ class PluginNodeProvider(INodeProvider):
             datatype_ref = self.plugin_manager.ensure_plugin_datatype_ref(datatype_fqn)
             plugin_manifest = self.plugin_manager.ensure_plugin_manifest(datatype_ref.namespace)
             self._assign_datatype_python_type(plugin_manifest, datatype_ref, datatype_fqn)
-            
-    # FIXME: this shouldn't be done here
+    
+    
     def _assign_datatype_python_type(self, plugin_manifest: PluginManifest, datatype_ref: PluginDatatypeRef, datatype_fqn: str):
         compiler = self.plugin_manager.compiler
         registry = self.plugin_manager.registry

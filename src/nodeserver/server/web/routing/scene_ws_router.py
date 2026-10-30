@@ -11,6 +11,7 @@ from nodeserver.server.protocols.web.messages.server.server_messages import Serv
 from nodeserver.server.protocols.web.messages.server.mappings.cmd_response_map import get_response_payload
 from nodeserver.server.protocols.web.messages.server.mappings.engine_event_map import get_engine_event_payload
 from nodeserver.server.web.app import NodeServerWebApp
+from nodeserver.server.web.exceptions.router_exceptions import CmdReponseMissingRequestId
 from nodeserver.server.web.handlers.scene_websocket_handler import SceneWebsocketHandler
 from nodeserver.server.web.routing.base_router import BaseRouter
 
@@ -38,8 +39,7 @@ class SceneWebsocketRouter(BaseRouter):
         message: Optional[BaseServerMessage] = None
         if isinstance(event, SceneWorkerCommandResponse):
             if not event.request_id: 
-                # FIXME: exception
-                raise Exception("Command response is missing request id (command id)")
+                raise CmdReponseMissingRequestId(self.__class__, event.__class__)
 
             message = ServerCmdResponse(
                 cmd_uid=event.request_id,

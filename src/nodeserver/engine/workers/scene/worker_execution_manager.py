@@ -121,7 +121,7 @@ class SceneWorkerRunManager:
                 engine_event=EvtFailedProcess(
                     job_id=job_id, 
                     error=str(e),
-                    tracker=None # FIXME: isso aqui devia incluir trackers sim
+                    tracker=None
                 )
             )
 
