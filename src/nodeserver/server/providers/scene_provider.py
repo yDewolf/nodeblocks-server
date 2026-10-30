@@ -23,7 +23,7 @@ class SceneProvider(IServerSceneProvider):
 
     # IServerSceneProvider
 
-    def create_scene(self, scene_id: str, author_id: str):
+    def create_scene(self, scene_id: str, author_id: str, default_perms: ScenePermission):
         scene_folder = self.get_scene_folder(scene_id)
         if scene_folder.exists():
             raise Exception("A scene with the same id already exists")
@@ -31,7 +31,7 @@ class SceneProvider(IServerSceneProvider):
         scene_folder.mkdir()
         self._load_or_create_scene_permissions(scene_id, perms=ListedScenePerms(
             user_permissions={author_id: ScenePermission.ALL},
-            default_perm=ScenePermission.NONE
+            default_perm=default_perms
         ))
         self.save_scene_data(SceneData(uid=scene_id, dependencies={}))
 

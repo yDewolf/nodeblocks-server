@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.scene_list_protocol import ListedScene
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
-from nodeserver.server.protocols.web.scene_body_model import UpdateScenePermsModel
+from nodeserver.server.protocols.web.scene_requests import CreateSceneModel, UpdateScenePermsModel
 from nodeserver.server.web.routing.base_router import BaseRouter
 
 
@@ -14,7 +14,7 @@ class SceneHTTPRouter(BaseRouter):
     def _setup_routes(self):
         self.app.router.add_get("/api/scenes", self.get_scene_list)
         self.app.router.add_post("/api/scenes", self.get_scene_list)
-        self.app.router.add_post("/api/scene/create/{id}", self.create_scene)
+        self.app.router.add_post("/api/scene/create", self.create_scene)
 
         self.app.router.add_post("/api/scene/{uid}", self.get_scene_data)
         self.app.router.add_post("/api/scene/{uid}/token", self.handle_scene_token_create)
@@ -128,13 +128,14 @@ class SceneHTTPRouter(BaseRouter):
             return web.json_response({"error": "invalid_json", "message": str(e)})
 
         user = await self.app.auth_policy.authenticate(request)
-        
-        # FIXME: its probably better to keep scene info in body
-        # but I'm too lazy to do it right now lol
-        scene_id = request.match_info["id"]
 
         try:
-            self.app.scene_provider.create_scene(scene_id, user.user_id)
+            parsed_data = CreateSceneModel.model_validate(data)
+        except ValidationError as e:
+            return web.json_response({"error": "invalid_body", "message": str(e)})
+        
+        try:
+            self.app.scene_provider.create_scene(parsed_data.scene_id, user.user_id, parsed_data.default_perm)
         except Exception as e:
             return web.json_response({"error": "failed", "message": str(e)})
 
