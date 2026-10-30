@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Protocol
 
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission

@@ -7,6 +7,7 @@ from nodeserver.server.protocols.permission.scene_permissions import ScenePermis
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeserver.server.protocols.scene_list_protocol import ListedScenePerms
 from nodeserver.server.protocols.session_protocols import UserSession
+from nodeserver.server.web.exceptions.scene_perm_exceptions import SceneNotFoundError, SceneUnauthorizedActionError
 from nodeserver.server.web.policies.base_policy import BaseWebPolicy
 
 
@@ -25,8 +26,7 @@ class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
         )
 
         if not ScenePermission.ADMIN in actor_perms:
-            # TODO: better exceptions I guess
-            raise Exception("User must have admin permissions to get all perms")
+            raise SceneUnauthorizedActionError(self.__class__, "get_all_scene_perms", user.user_id, actor_perms, ScenePermission.ADMIN)
 
         perms = self.app.scene_provider.get_all_scene_perms(scene_id)
         return perms
@@ -37,8 +37,7 @@ class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
         )
 
         if not ScenePermission.ADMIN in actor_perms:
-            # TODO: better exceptions I guess
-            raise Exception("User must have admin permissions to update another user's permission")
+            raise SceneUnauthorizedActionError(self.__class__, "update_scene_permissions", user.user_id, actor_perms, ScenePermission.ADMIN)
 
         self.app.scene_provider.update_scene_permissions(
             scene_id, perms, user_id=target_user
@@ -50,8 +49,7 @@ class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
         )
 
         if not ScenePermission.ADMIN in actor_perms:
-            # TODO: better exceptions I guess
-            raise Exception("User must have admin permissions to update another user's permission")
+            raise SceneUnauthorizedActionError(self.__class__, "update_default_scene_perms", user.user_id, actor_perms, ScenePermission.ADMIN)
 
         self.app.scene_provider.update_scene_permissions(
             scene_id, perms
@@ -60,12 +58,10 @@ class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
     async def get_scene_data(self, user: UserSession, scene_id: str) -> SceneData:
         perms = self.app.scene_provider.get_scene_permissions(scene_id, user.user_id)
         if not ScenePermission.VIEWER in perms:
-            # TODO: better exceptions I guess
-            raise Exception("User must have view permission to get scene data")
+            raise SceneUnauthorizedActionError(self.__class__, "get_scene_data", user.user_id, perms, ScenePermission.VIEWER)
         
         scene_data = self.app.scene_provider.load_scene_data(scene_id)
         if not scene_data:
-            # TODO: better exceptions I guess
-            raise Exception(f"Couldn't find scene data for scene: {scene_id}")
+            raise SceneNotFoundError(self.__class__, scene_id)
 
         return scene_data
