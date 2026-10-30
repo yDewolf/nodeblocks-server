@@ -3,7 +3,7 @@ from abc import abstractmethod
 from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
 from pydantic.dataclasses import dataclass
 from typing import Optional, Protocol
-from nodeserver.engine.workers.protocols.ipc_protocol import IPCCommandResponse, IPCEvent
+from nodeserver.engine.workers.protocols.ipc_protocol import CmdStatus, IPCCommandResponse, IPCCommandStatus, IPCEvent, MultipleStatusCommandResponse
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
@@ -101,7 +101,6 @@ class AddNodeCommandResponse(SceneActionResult):
 @dataclass(frozen=True)
 class AddConnCommandResponse(SceneActionResult):
     conns: Optional[list[str]]
-
     
     @classmethod
     def successful(cls, conns: list[str], message: str | None = None, request_id: str | None = None):
@@ -110,3 +109,19 @@ class AddConnCommandResponse(SceneActionResult):
     @classmethod
     def failed(cls, message: str | None = None, request_id: str | None = None):
         return super().failed(message, request_id, conns=None)
+
+# multiple status commands
+
+@dataclass(frozen=True)
+class RemoveNodesCommandResponse(SceneActionResult, MultipleStatusCommandResponse):
+    pass
+
+@dataclass(frozen=True)
+class UpdateNodesCommandResponse(SceneActionResult, MultipleStatusCommandResponse):
+    pass
+
+@dataclass(frozen=True)
+class RemoveConnsCommandResponse(SceneActionResult, MultipleStatusCommandResponse):
+    pass
+
+

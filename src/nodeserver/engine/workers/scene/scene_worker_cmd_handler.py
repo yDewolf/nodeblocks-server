@@ -2,9 +2,10 @@ from functools import singledispatchmethod
 import logging
 from multiprocessing.queues import Queue
 
+from nodeserver.engine.workers.protocols.ipc_protocol import CmdStatus
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddConnectionsCommand, AddNodesCommand, CheckExecutionState, GetSceneDataCommand, GraphStepCommand, IPCSceneWorkerCommand, LoadSceneCommand, LoadSceneDataCommand, PauseGraphCommand, RemoveConnectionsCommand, RemoveNodesCommand, ResetSceneCommand, SaveSceneCommand, SetSceneAutosaveCommand, StopWorkerCommand, UpdateExecutionConfigCmd, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateNodesCommand, UpdateTargetNodesCmd
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, GetSceneDataResponse, IPCSceneWorkerEvent, SaveSceneResponse, SceneWorkerCommandResponse, UpdateExecutionConfigResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddConnCommandResponse, AddNodeCommandResponse, GetSceneDataResponse, IPCSceneWorkerEvent, RemoveConnsCommandResponse, RemoveNodesCommandResponse, SaveSceneResponse, SceneWorkerCommandResponse, UpdateExecutionConfigResponse, UpdateNodesCommandResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandler
 from nodeserver.protocols.manifest.node.node_graph import SceneData
@@ -221,30 +222,33 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         if not self.execution_manager.context:
             return AddNodeCommandResponse.failed("No active scene context loaded")
 
-        # TODO: return each node status
+        statuses: dict[str, CmdStatus] = {}
         for uid in cmd.uids:
             successful = self.execution_manager.context.scene.delete_node(uid)
             if not successful:
-                return SceneWorkerCommandResponse.failed(f"Failed to remove node: {uid}")
+                statuses[uid] = CmdStatus.failed()
 
-        return SceneWorkerCommandResponse.successful()
+        return RemoveNodesCommandResponse.new(statuses)
 
     @dispatch.register
     def _(self, cmd: UpdateNodesCommand) -> SceneWorkerCommandResponse:
         if not self.execution_manager.context:
             return SceneWorkerCommandResponse.failed("No active scene context loaded")
         
-        # TODO: Return each node status
+        statuses: dict[str, CmdStatus] = {}
         for uid, cmd_data in cmd.nodes.items():
             node = self.execution_manager.context.scene.get_logic_node(uid)
             if not node:
-                return SceneWorkerCommandResponse.failed("This node doesn't exist in the current scene")
+                statuses[uid] = CmdStatus.failed("This node doesn't exist in the current scene")
+                continue
 
             node.update_parameters(cmd_data.data)
             if cmd_data.position:
                 node.scene_data.position = cmd_data.position
+            
+            statuses[uid] = CmdStatus.successful()
         
-        return SceneWorkerCommandResponse.successful()
+        return UpdateNodesCommandResponse.new(statuses)
 
     # Connection Commands:
 
@@ -279,10 +283,10 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
         if not self.execution_manager.context:
             return SceneWorkerCommandResponse.failed("No active scene context loaded")
 
-        # TODO: return each conn status
+        statuses: dict[str, CmdStatus] = {}
         for conn_uid in cmd.uids:
             successful = self.execution_manager.context.scene.graph.disconnect(conn_uid)
             if not successful:
-                return SceneWorkerCommandResponse.failed(f"Failed to remove connection: {conn_uid}")
+                statuses[conn_uid] = CmdStatus.failed()
 
-        return SceneWorkerCommandResponse.successful()
+        return RemoveConnsCommandResponse.new(statuses)
