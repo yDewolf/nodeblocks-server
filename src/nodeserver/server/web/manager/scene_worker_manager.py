@@ -8,11 +8,11 @@ from nodeserver.engine.workers.scene.protocols.scene_worker_commands import Chec
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, UpdateExecutionConfigResponse
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
+from nodeserver.server.server_env import SERVER_ENV
 from nodeserver.server.workers.scene_worker_controller import SceneWorkerController
 
 logger = logging.getLogger("nds.server")
 
-CHECK_STATUS_INTERVAL = 10.0 # seconds
 EventCallback = Callable[[str, IPCSceneWorkerEvent], Coroutine[Any, Any, None]]
 class SceneWorkerManager(ISceneWorkerManager):
     plugins_folder: Path
@@ -94,7 +94,7 @@ class SceneWorkerManager(ISceneWorkerManager):
                     self._check_request_ids.add(cmd.request_id)
                     worker.send_command(cmd)
                 
-                await asyncio.sleep(CHECK_STATUS_INTERVAL)
+                await asyncio.sleep(SERVER_ENV.worker_status_check_interval)
             except asyncio.CancelledError:
                 break
 

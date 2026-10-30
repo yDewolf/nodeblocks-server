@@ -1,4 +1,4 @@
-from nodeserver.engine.runtime.job_graph_engine import EvtJobStatusChanged
+from nodeserver.engine.runtime.protocols.job_engine_events import EvtJobStatusChanged
 from nodeserver.engine.runtime.protocols.engine_events import EvtFailedProcess, EvtNodeStatusChanged, EvtRuntimeError, IPCEngineEvent
 from nodeserver.server.protocols.web.messages.server.engine_messages import EngineEventPayloadAdapter, FailedProcessPayload, JobStatusPayload, NodeStatusPayload, RuntimeErrorPayload
 

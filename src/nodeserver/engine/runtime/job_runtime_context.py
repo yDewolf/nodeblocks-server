@@ -1,8 +1,6 @@
-import logging
-from pathlib import Path
 from typing import Any, Callable, Optional
 from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.runtime.job_graph_engine import EvtJobStatusChanged
+from nodeserver.engine.runtime.protocols.job_engine_events import EvtJobStatusChanged
 from nodeserver.engine.runtime.protocols.engine_context import EngineRuntimeContext
 from nodeserver.engine.runtime.protocols.engine_events import EngineError, EvtNodeStatusChanged, EvtRuntimeError, IPCEngineEvent, NodeExecutionStatus
 from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker

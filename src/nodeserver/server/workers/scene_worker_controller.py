@@ -1,4 +1,4 @@
-import multiprocessing as mp
+import multiprocessing
 from multiprocessing.context import SpawnContext, SpawnProcess
 from queue import Empty
 from pathlib import Path
@@ -8,6 +8,7 @@ from nodeserver.engine.workers.protocols.general_worker_protocol import EvtWorke
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand, StopWorkerCommand
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent
 from nodeserver.engine.workers.scene.scene_worker_setup import run_scene_worker_loop
+from nodeserver.server.server_env import SERVER_ENV
 
 class SceneWorkerController:
     scene_id: str
@@ -16,8 +17,8 @@ class SceneWorkerController:
 
     _ctx: SpawnContext
 
-    _command_queue: mp.queues.Queue[IPCSceneWorkerCommand]
-    _event_queue: mp.queues.Queue[IPCSceneWorkerEvent]
+    _command_queue: multiprocessing.queues.Queue[IPCSceneWorkerCommand]
+    _event_queue: multiprocessing.queues.Queue[IPCSceneWorkerEvent]
     _process: Optional[SpawnProcess]
 
     def __init__(self, scene_id: str, plugins_folder: Path, scenes_folder: Path):
@@ -25,7 +26,7 @@ class SceneWorkerController:
         self.plugins_folder = plugins_folder
         self.scenes_folder = scenes_folder
         
-        self._ctx = mp.get_context("spawn")
+        self._ctx = multiprocessing.get_context("spawn")
         
         self._command_queue = self._ctx.Queue()
         self._event_queue = self._ctx.Queue()
@@ -38,7 +39,7 @@ class SceneWorkerController:
 
         self._process = self._ctx.Process(
             target=run_scene_worker_loop,
-            args=(self.scene_id, self.plugins_folder, self.scenes_folder, self._command_queue, self._event_queue),
+            args=(self.scene_id, self.plugins_folder, self.scenes_folder, self._command_queue, self._event_queue, SERVER_ENV.scene_autosave_interval),
             daemon=True
         )
         self._process.start()

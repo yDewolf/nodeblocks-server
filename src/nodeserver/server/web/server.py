@@ -18,6 +18,7 @@ from nodeserver.server.protocols.providers.scene_provider_protocol import IServe
 from nodeserver.server.providers.metadata_provider import FileMetadataProvider
 from nodeserver.server.providers.scene_artifact_provider import ServerFileArtifactProvider
 from nodeserver.server.providers.scene_provider import SceneProvider
+from nodeserver.server.server_env import SERVER_ENV
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
@@ -33,9 +34,6 @@ from nodeserver.server.web.routing.user_http_router import UserHTTPRouter
 
 
 logger = logging.getLogger("nds.server")
-SCENE_WORKER_GRACE_PERIOD = 5 * 60 # seconds
-INACTIVITY_CHECK_INTERVAL = 15.0 # seconds
-
 class NodeServer:
     app: NodeServerWebApp
     routers: list[BaseRouter]
@@ -144,7 +142,7 @@ class NodeServer:
     async def _clear_inactive_workers_task(self):
         while True:
             stopped_scenes = self.app.scene_worker_manager.get_scene_id_by_state(
-                SceneWorkerExecutionState.STOPPED, min_elapsed_time=SCENE_WORKER_GRACE_PERIOD
+                SceneWorkerExecutionState.STOPPED, min_elapsed_time=SERVER_ENV.scene_worker_grace_period
             )
             for scene_id, timestamp in stopped_scenes:
                 sessions = self.app.session_manager.get_scene_sessions(scene_id)
@@ -152,4 +150,4 @@ class NodeServer:
                     logger.info("Killing %s's scene worker because of inactivity. Stopped since %s", scene_id, time.ctime(timestamp))
                     self.app.scene_worker_manager.kill_scene_worker(scene_id)
             
-            await asyncio.sleep(INACTIVITY_CHECK_INTERVAL)
+            await asyncio.sleep(SERVER_ENV.inactivty_check_interval)

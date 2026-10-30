@@ -1,8 +1,8 @@
-from nodeserver.protocols.manifest.node.datatype_value_meta import SerializedDataTypeValue
 from pydantic.dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Optional, Union
 
+from nodeserver.protocols.manifest.node.datatype_value_meta import SerializedDataTypeValue
 from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 from nodeserver.engine.workers.protocols.ipc_protocol import IPCEvent
 

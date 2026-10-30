@@ -25,10 +25,9 @@ from nodeserver.engine.workers.worker_command_handler import WorkerCommandHandle
 from nodeserver.engine.workers.scene.worker_execution_manager import SceneWorkerRunManager
 from nodeserver.protocols.manifest.node.datatype_value_meta import SerializedDataTypeValue
 from nodeserver.protocols.manifest.node.node_graph import SceneData
+from nodeserver.server.server_env import SERVER_ENV
 
 logger = logging.getLogger("nds.worker")
-
-SCENE_AUTOSAVE_INTERVAL: float = 2 * 60 # seconds
 
 # Basico do basico do scene worker
 
@@ -54,6 +53,8 @@ class SceneWorker(ISceneWorker):
     target_fps: float = 60.0
 
     autosave: bool = True
+    scene_autosave_interval: float = 3 * 60
+
     tasks: list[asyncio.Task]
 
     def __init__(
@@ -220,6 +221,6 @@ class SceneWorker(ISceneWorker):
                     self.command_handler._handle_command(SaveSceneCommand())
                 else:
                     self.execution_manager.context.scene.save_state()
-                await asyncio.sleep(SCENE_AUTOSAVE_INTERVAL)
+                await asyncio.sleep(self.scene_autosave_interval)
             except asyncio.CancelledError:
                 break

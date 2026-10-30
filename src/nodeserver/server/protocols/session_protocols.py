@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
 import datetime
-from typing import Any, Optional, Self
+from typing import Self
 from aiohttp import web
 import jwt
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
-from nodeserver.server.server_env import SECRET_KEY
+from nodeserver.server.server_env import SERVER_ENV
 
 
 @dataclass(frozen=True)
@@ -32,11 +32,11 @@ class SceneSessionToken:
 
     @classmethod
     def from_token_str(cls, token: str) -> Self:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(token, SERVER_ENV.secret_key, algorithms=["HS256"])
         return cls(**payload)
 
     def __str__(self) -> str:
-        return jwt.encode(self.__dict__, SECRET_KEY, algorithm="HS256")
+        return jwt.encode(self.__dict__, SERVER_ENV.secret_key, algorithm="HS256")
 
 @dataclass
 class SceneConnectionSession:

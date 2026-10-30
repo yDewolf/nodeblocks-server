@@ -3,11 +3,9 @@ import logging
 from multiprocessing.queues import Queue
 from pathlib import Path
 
-from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.providers.file_artifact_provider import FileArtifactProvider
 from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
-from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand
@@ -21,7 +19,8 @@ def run_scene_worker_loop(
     plugins_folder: Path, 
     scenes_folder: Path, 
     command_queue: Queue[IPCSceneWorkerCommand], 
-    event_queue: Queue[IPCSceneWorkerEvent]
+    event_queue: Queue[IPCSceneWorkerEvent],
+    scene_autosave_interval: float
 ):
     logger.info(f"Starting worker for scene {scene_id}")
 
@@ -38,6 +37,8 @@ def run_scene_worker_loop(
         plugin_manager=plugin_manager,
         scene_artifact_provider=artifact_provider
     )
+    scene_worker.scene_autosave_interval = scene_autosave_interval
+    
     command_handler = SceneWorkerCommandHandler(scene_worker, command_queue, event_queue)
     scene_worker.set_command_handler(command_handler)
 
@@ -46,4 +47,4 @@ def run_scene_worker_loop(
         # scene_worker.runtime_loop()
         asyncio.run(scene_worker.run())
 
-    artifact_provider.cleanup_artifacts
+    artifact_provider.cleanup_artifacts()
