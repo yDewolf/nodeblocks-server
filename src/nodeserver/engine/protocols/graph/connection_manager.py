@@ -12,7 +12,7 @@ SlotPairKey = tuple[str, str, str, str]
 class ConnectionManager:
     _connections: dict[str, ConnectionSceneData] = {}
     _registry: TypeRegistry
-    _endpoints_index: set[SlotPairKey] # TODO: pensar se a gente vai manter isso
+    _endpoints_index: set[SlotPairKey]
 
     @property
     def conn_index(self): return self._connections

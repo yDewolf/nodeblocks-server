@@ -44,4 +44,3 @@ class SceneCommandHandler(BaseSceneCmdHandler):
     def _(self, cmd: ClientGetSceneDataCmd):
         return GetSceneDataCommand(request_id=cmd.cmd_uid)
 
-    

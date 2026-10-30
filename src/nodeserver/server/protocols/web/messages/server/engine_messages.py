@@ -5,7 +5,7 @@ from nodeserver.protocols.manifest.node.datatype_value_meta import SerializedDat
 from pydantic import BaseModel, Field
 
 from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
-from nodeserver.engine.runtime.protocols.engine_events import JobStatus
+from nodeserver.engine.runtime.protocols.job_engine_events import JobStatus
 from nodeserver.engine.runtime.protocols.engine_tracker import EngineTracker
 
 

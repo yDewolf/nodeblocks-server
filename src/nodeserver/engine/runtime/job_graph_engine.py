@@ -1,8 +1,10 @@
 import logging
 
+from pydantic.dataclasses import dataclass
+
 from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
-from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
-from nodeserver.engine.runtime.job_runtime_context import JobStatus
+from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent, NodeExecutionStatus
+from nodeserver.engine.runtime.protocols.job_engine_events import JobStatus
 from nodeserver.engine.runtime.job_runtime_context import JobExecutionContext, StepJobExecutionContext
 
 logger = logging.getLogger("nds.engine")
@@ -84,3 +86,8 @@ class JobStlGraphEngine(StatelessGraphEngine):
             if reraise_exception: raise e
         
         return job_context
+
+
+@dataclass(frozen=True)
+class EvtJobStatusChanged(IPCEngineEvent):
+    status: JobStatus

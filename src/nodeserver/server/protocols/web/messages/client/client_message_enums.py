@@ -33,8 +33,6 @@ class SceneExecutionCmdTypes(StrEnum):
     UPDATE_TARGET_NODES = "update_target_nodes"
     UPDATE_EXECUTION_CONFIG = "update_execution_config"
 
-# TODO repensar o nome desse enum
-# 
 class ExecutionShortcuts(StrEnum):
     EXECUTION_STEP = "step"
     EXECUTION_PAUSE = "pause"

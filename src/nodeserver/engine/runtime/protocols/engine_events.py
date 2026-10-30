@@ -39,16 +39,3 @@ class EngineError:
 class EvtRuntimeError(IPCEngineEvent):
     message: str
 
-
-# TODO: these should be in another file
-class JobStatus(StrEnum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    PARTIAL_SUCCESS = "partial_success"
-
-@dataclass(frozen=True)
-class EvtJobStatusChanged(IPCEngineEvent):
-    status: JobStatus
-

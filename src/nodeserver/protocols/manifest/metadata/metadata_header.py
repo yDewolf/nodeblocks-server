@@ -8,8 +8,6 @@ from nodeserver.protocols.manifest.metadata.meta_filter import MetaCategory, Met
 from nodeserver.protocols.manifest.metadata.node_meta import NodeTypeMeta
 
 class MetadataHeader(BaseModel):
-    # types_id: str
-    # types_version: int
     package_id: str
     package_version: str
 

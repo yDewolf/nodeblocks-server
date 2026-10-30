@@ -8,7 +8,6 @@ from nodeserver.protocols.manifest.node.node_manifest import NodeTypeSpec
 class ManifestPackage(DataModel):
     # format: Optional[int] = None # FIXME on client -> remove this
     
-    # TODO: implement package versioning
     version: str # FIXME on client: int -> str
     package_id: str # FIXME on client: id -> package_id
     
@@ -18,7 +17,3 @@ class ManifestPackage(DataModel):
 
     def serialize(self) -> dict:
         return self.model_dump(by_alias=True)
-
-# TODO: talvez serializar esse manifest de um jeito que data_types e node_types
-# sejam listas e incluam apenas o id ao invés de ser fqn -> namespace, id
-# assim a gente evita redundância....

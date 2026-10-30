@@ -36,7 +36,6 @@ class SceneWebsocketHandler:
             CommandGroups.GRAPH: GraphCommandHandler(),
             CommandGroups.SCENE: SceneCommandHandler(),
             CommandGroups.EXECUTION: ExecutionCommandHandler(),
-            # TODO: notification command handler
         })
 
 
@@ -83,11 +82,5 @@ class SceneWebsocketHandler:
             socket=socket
         )
         self.session_manager.register_connection(session)
-        # TODO: send handshake
-        # await socket.send_json({
-        #     "type": "HANDSHAKE_ACK",
-        #     "connection_id": session.id,
-        #     "scene_id": session.scene_id
-        # })
         await self.socket_listen_loop(socket, session)
         return socket

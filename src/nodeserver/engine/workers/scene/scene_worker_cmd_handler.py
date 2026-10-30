@@ -60,7 +60,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
 
     @dispatch.register
     def _(self, cmd: CheckExecutionState) -> UpdateExecutionConfigResponse:
-        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations)
+        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations, self.execution_manager._current_iteration)
 
     # Mode Updates:
     @dispatch.register
@@ -74,13 +74,13 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
             self.execution_manager._target_iterations = cmd.target_iterations
             self.execution_manager._current_iteration = 0
         
-        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations)
+        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations, self.execution_manager._current_iteration)
 
     
     @dispatch.register
     def _(self, cmd: UpdateExecutionModeCmd):
         self.execution_manager.execution_mode = cmd.mode
-        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations)
+        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations, self.execution_manager._current_iteration)
 
 
     @dispatch.register
@@ -94,7 +94,7 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
                 return UpdateExecutionConfigResponse.failed(message="some nodes doesn't exist")
         
         self.execution_manager.target_nodes = cmd.target_nodes
-        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations)
+        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations, self.execution_manager._current_iteration)
 
     @dispatch.register
     def _(self, cmd: UpdateExecutionConfigCmd):
@@ -117,20 +117,20 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
             if all_nodes_exist:
                 self.execution_manager.target_nodes = cmd.target_nodes
 
-        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations)
+        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations, self.execution_manager._current_iteration)
 
     # Runtime Control:
 
     @dispatch.register
     def _(self, cmd: PauseGraphCommand):
         self.execution_manager.execution_state = SceneWorkerExecutionState.STOPPED
-        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations)
+        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations, self.execution_manager._current_iteration)
 
     @dispatch.register
     def _(self, cmd: GraphStepCommand):
         self.execution_manager.execution_state = SceneWorkerExecutionState.RUNNING
         self.execution_manager.execution_mode = SceneWorkerExecutionMode.GRAPH_STEP
-        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations)
+        return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations, self.execution_manager._current_iteration)
 
 
     # Scene Actions:

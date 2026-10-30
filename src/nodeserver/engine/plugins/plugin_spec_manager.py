@@ -130,7 +130,6 @@ class PluginSpecManager:
         logger.debug("Indexing plugin - package_id: %s", plugin_manifest.package_id)
         self._installed_plugins[plugin_manifest.package_id] = plugin_manifest
         
-        # TODO: index other stuff
         for datatype in plugin_manifest.data_types:
             self._loaded_datatypes[datatype.fqn] = datatype
 
@@ -180,7 +179,6 @@ class PluginSpecManager:
         return self._loaded_datatypes.get(datatype_fqn)
 
 
-    # TODO: make a generalized kahn algorithm
     def resolve_plugin_load_order(self, manifests: list[tuple[PluginManifest, Path]]) -> list[tuple[PluginManifest, Path]]:
         plugins_map: dict[str, tuple[PluginManifest, Path]] = {}
         for manifest, path in manifests:

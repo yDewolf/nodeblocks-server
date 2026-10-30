@@ -50,14 +50,17 @@ class UpdateExecutionConfigResponse(SceneWorkerCommandResponse):
     target_nodes: Optional[list[str]]
     target_iterations: Optional[int]
 
+    current_iteration: Optional[int]
+
     @classmethod
     def successful(
         cls, 
         state: SceneWorkerExecutionState, mode: SceneWorkerExecutionMode, 
         target_nodes: Optional[list[str]], target_iterations: Optional[int],
+        current_iter: Optional[int],
         request_id: str | None = None
     ):
-        return super().successful("", request_id, state=state, target_nodes=target_nodes, target_iterations=target_iterations, mode=mode)
+        return super().successful("", request_id, state=state, target_nodes=target_nodes, target_iterations=target_iterations, mode=mode, current_iteration=current_iter)
 
 
 @dataclass(frozen=True)

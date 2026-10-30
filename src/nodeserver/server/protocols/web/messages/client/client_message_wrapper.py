@@ -10,7 +10,7 @@ from nodeserver.server.protocols.web.messages.client.scene.scene_runtime_command
 ClientCommandAdapter = Annotated[
     Union[
         SceneGraphCommandAdapter, SceneCommandAdapter, ExecutionCommandAdapter
-    ], # TODO: implementar notificações aqui
+    ],
     Field(discriminator="cmd_group")
 ]
 

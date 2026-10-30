@@ -7,8 +7,6 @@ from nodeserver.server.protocols.web.base_socket_model import BaseSocketModel
 from nodeserver.engine.workers.protocols.ipc_protocol import CmdStatus
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
 
-# TODO: criar models para usar isso aqui como
-# discriminator do response_payload em BaseServerCmdResponse
 class ServerResponseTypes(StrEnum):
     SCENE_WORKER = "scene_worker" # generic
     

@@ -32,8 +32,7 @@ class SceneWebsocketRouter(BaseRouter):
     def _setup_routes(self):
         self.app.router.add_get("/ws/scene", self.handle_scene_websocket)
 
-    # TODO: intercept engine events and select which should be sent to the client
-    # also, some events should become other things like notifications 
+
     async def _on_worker_event(self, scene_id: str, event: IPCSceneWorkerEvent):
         logger.debug("Event from scene: '%s': %s", scene_id, event)
         message: Optional[BaseServerMessage] = None
@@ -61,8 +60,6 @@ class SceneWebsocketRouter(BaseRouter):
             logger.error("No wrap implementation for engine event: %s", event)
             raise Exception(f"Unhandled worker event: {event}")
 
-        # TODO: instead of sending a dummy successful message
-        # we should wait for the actual command result (resulting engine event)
         await self.app.session_manager.broadcast_to_scene(
             scene_id=scene_id, 
             message=message

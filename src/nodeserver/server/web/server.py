@@ -23,6 +23,7 @@ from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManage
 from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
 from nodeserver.server.web.policies.dev_policies import DevAuthPolicy
 from nodeserver.server.web.policies.scene_permission_policy import FilePermissionPolicy
+from nodeserver.server.web.routing.base_router import BaseRouter
 from nodeserver.server.web.routing.metadata_http_router import MetadataHTTPRouter
 from nodeserver.server.web.routing.plugin_http_router import PluginHTTPRouter
 from nodeserver.server.web.routing.scene_artifact_http_router import SceneArtifactHTTPRouter
@@ -35,17 +36,9 @@ logger = logging.getLogger("nds.server")
 SCENE_WORKER_GRACE_PERIOD = 5 * 60 # seconds
 INACTIVITY_CHECK_INTERVAL = 15.0 # seconds
 
-# TODO: reimplement previous protocols
 class NodeServer:
     app: NodeServerWebApp
-
-    # TODO: Talvez fazer uma lista de routers
-    scene_ws_router: SceneWebsocketRouter
-    plugin_http_router: PluginHTTPRouter
-    scene_http_router: SceneHTTPRouter
-    scene_artifact_http_router: SceneArtifactHTTPRouter
-    user_http_router: UserHTTPRouter
-    metadata_http_router: MetadataHTTPRouter
+    routers: list[BaseRouter]
 
     plugins_folder: Path
     scenes_folder: Path
@@ -64,6 +57,7 @@ class NodeServer:
         scene_provider: Optional[IServerSceneProvider] = None,
         scene_artifact_provider: Optional[IServerSceneArtifactProvider] = None,
         metadata_provider: Optional[IServerMetadataProvider] = None,
+        extra_routers: list[BaseRouter] = [],
         host: str = "127.0.0.1",
         port: int = 8080
     ) -> None:
@@ -90,24 +84,22 @@ class NodeServer:
         )
         self.app._setup_plugins(self.plugins_folder)
 
-        self.scene_ws_router = SceneWebsocketRouter(self.app)
-        self.plugin_http_router = PluginHTTPRouter(self.app)
-        self.scene_http_router = SceneHTTPRouter(self.app)
-        self.scene_artifact_http_router = SceneArtifactHTTPRouter(self.app)
-        self.user_http_router = UserHTTPRouter(self.app)
-        self.metadata_http_router = MetadataHTTPRouter(self.app)
+        self.routers = [
+            SceneWebsocketRouter(self.app),
+            PluginHTTPRouter(self.app),
+            SceneHTTPRouter(self.app),
+            SceneArtifactHTTPRouter(self.app),
+            UserHTTPRouter(self.app),
+            MetadataHTTPRouter(self.app),
+            *extra_routers
+        ]
         self._setup_routes()
         self._setup_cors()
 
 
     def _setup_routes(self):
-        self.user_http_router._setup_routes()
-        self.plugin_http_router._setup_routes()
-        self.metadata_http_router._setup_routes()
-
-        self.scene_http_router._setup_routes()
-        self.scene_artifact_http_router._setup_routes()
-        self.scene_ws_router._setup_routes()
+        for router in self.routers:
+            router._setup_routes()
 
     # FIXME: arrumar o cors pra ser menos abrangente e talvez específico de cada rota
     def _setup_cors(self):

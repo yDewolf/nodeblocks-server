@@ -9,14 +9,13 @@ from nodeserver.engine.protocols.providers.scene_state_provider import ISceneSta
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.helpers.uuid_utils import IDGenerator
 from nodeserver.protocols.manifest.node.node_graph import NodeSceneData, SceneData
-from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 
 
 class NodeScene:
     # TODO: add scene metadata like name, description, modified timestamps, etc
     scene_id: str
     graph: SceneGraph
-    _logic_nodes: dict[str, BaseNode] # TODO?: talvez fazer um submanager para isso
+    _logic_nodes: dict[str, BaseNode]
 
     registry: TypeRegistry
 

@@ -24,5 +24,4 @@ class BaseNodeProvider(INodeProvider):
 
 
     def extract_node_dependencies(self, node: BaseNode) -> set[ManifestPackage]:
-        # TODO
         return set()

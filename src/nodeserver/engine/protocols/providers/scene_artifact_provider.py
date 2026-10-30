@@ -17,7 +17,6 @@ class ISceneArtifactProvider(Protocol):
 
     @abstractmethod
     def commit_node_artifact(self, node_uid: str, new_path: Union[Path, list[Path]]):
-        # TODO: avaliar se isso deve ficar no RuntimeContext ou aqui mesmo
         pass
 
     @abstractmethod

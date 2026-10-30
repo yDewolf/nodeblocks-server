@@ -130,7 +130,8 @@ class SceneWorker(ISceneWorker):
                 UpdateExecutionConfigResponse.successful(
                     request_id="sync_worker_state", state=state, mode=mode, 
                     target_iterations=self.execution_manager._target_iterations, 
-                    target_nodes=self.execution_manager.target_nodes
+                    target_nodes=self.execution_manager.target_nodes,
+                    current_iter=self.execution_manager._current_iteration
                 )
             )
 
