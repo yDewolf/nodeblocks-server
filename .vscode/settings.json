@@ -5,4 +5,10 @@
         "./tests/*"
     ],
     "python.analysis.typeCheckingMode": "basic",
+    "python.testing.pytestArgs": [
+        "tests/nodeserver/engine/",
+        "tests/nodeserver/server/",
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
 }

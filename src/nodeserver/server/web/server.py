@@ -1,0 +1,153 @@
+
+import asyncio
+import logging
+from pathlib import Path
+import time
+from typing import Optional
+
+from aiohttp import web
+import aiohttp_cors
+
+from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
+from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
+from nodeserver.server.protocols.policies.auth_policy_protocol import IAuthPolicy
+from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
+from nodeserver.server.protocols.providers.artifact_provider_protocol import IServerSceneArtifactProvider
+from nodeserver.server.protocols.providers.metadata_provider_protocol import IServerMetadataProvider
+from nodeserver.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
+from nodeserver.server.providers.metadata_provider import FileMetadataProvider
+from nodeserver.server.providers.scene_artifact_provider import ServerFileArtifactProvider
+from nodeserver.server.providers.scene_provider import SceneProvider
+from nodeserver.server.server_env import SERVER_ENV
+from nodeserver.server.web.app import NodeServerWebApp
+from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManager
+from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
+from nodeserver.server.web.policies.dev_policies import DevAuthPolicy
+from nodeserver.server.web.policies.scene_permission_policy import FilePermissionPolicy
+from nodeserver.server.web.routing.base_router import BaseRouter
+from nodeserver.server.web.routing.metadata_http_router import MetadataHTTPRouter
+from nodeserver.server.web.routing.plugin_http_router import PluginHTTPRouter
+from nodeserver.server.web.routing.scene_artifact_http_router import SceneArtifactHTTPRouter
+from nodeserver.server.web.routing.scene_http_router import SceneHTTPRouter
+from nodeserver.server.web.routing.scene_ws_router import SceneWebsocketRouter
+from nodeserver.server.web.routing.user_http_router import UserHTTPRouter
+
+
+logger = logging.getLogger("nds.server")
+class NodeServer:
+    app: NodeServerWebApp
+    routers: list[BaseRouter]
+
+    plugins_folder: Path
+    scenes_folder: Path
+
+    host: str
+    port: int
+
+    _tasks: list[asyncio.Task]
+
+    def __init__(
+        self,
+        plugins_folder: Path,
+        scenes_folder: Path,
+        permission_policy: Optional[IScenePermPolicy] = None,
+        auth_policy: Optional[IAuthPolicy] = None,
+        scene_provider: Optional[IServerSceneProvider] = None,
+        scene_artifact_provider: Optional[IServerSceneArtifactProvider] = None,
+        metadata_provider: Optional[IServerMetadataProvider] = None,
+        extra_routers: list[BaseRouter] = [],
+        host: str = "127.0.0.1",
+        port: int = 8080
+    ) -> None:
+        self._tasks = []
+        self.host = host
+        self.port = port
+        self.plugins_folder = plugins_folder
+        self.scenes_folder = scenes_folder
+
+        self.app = NodeServerWebApp()
+        self.app.on_startup.append(self._on_startup)
+        self.app.on_cleanup.append(self._on_cleanup)
+
+        plugin_manager = PluginSpecManager.new()
+        self.app._setup(
+            plugin_manager,
+            SceneSessionManager(),
+            SceneWorkerManager(self.plugins_folder, self.scenes_folder),
+            permission_policy or FilePermissionPolicy(self.app),
+            auth_policy or DevAuthPolicy(),
+            scene_provider or SceneProvider(self.scenes_folder),
+            scene_artifact_provider or ServerFileArtifactProvider(self.scenes_folder),
+            metadata_provider or FileMetadataProvider(self.plugins_folder, plugin_manager)
+        )
+        self.app._setup_plugins(self.plugins_folder)
+
+        self.routers = [
+            SceneWebsocketRouter(self.app),
+            PluginHTTPRouter(self.app),
+            SceneHTTPRouter(self.app),
+            SceneArtifactHTTPRouter(self.app),
+            UserHTTPRouter(self.app),
+            MetadataHTTPRouter(self.app),
+            *extra_routers
+        ]
+        self._setup_routes()
+        self._setup_cors()
+
+
+    def _setup_routes(self):
+        for router in self.routers:
+            router._setup_routes()
+
+    # FIXME: arrumar o cors pra ser menos abrangente e talvez específico de cada rota
+    def _setup_cors(self):
+        cors = aiohttp_cors.setup(self.app, defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+                allow_methods="*",
+            )
+        })
+        for route in list(self.app.router.routes()):
+            cors.add(route)
+
+    
+    def run(self):
+        web.run_app(self.app, host=self.host, port=self.port)
+
+
+    async def _on_startup(self, app: web.Application):
+        logger.info("Starting Nodeserver on %s:%s ...", self.host, self.port)
+        self._tasks.append(
+            asyncio.create_task(self._clear_inactive_workers_task(), name="inactivity_tracker")
+        )
+        await self.app.scene_worker_manager.start()
+
+    async def _on_cleanup(self, app: web.Application):
+        logger.info("Finishing Nodeserver. Cleaning subprocesses...")
+        for task in self._tasks:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+            logger.info("Finished server task: %s", task.get_name())
+        
+        await self.app.scene_worker_manager.stop()
+
+    # Tasks and event handlers
+
+    async def _clear_inactive_workers_task(self):
+        while True:
+            stopped_scenes = self.app.scene_worker_manager.get_scene_id_by_state(
+                SceneWorkerExecutionState.STOPPED, min_elapsed_time=SERVER_ENV.scene_worker_grace_period
+            )
+            for scene_id, timestamp in stopped_scenes:
+                sessions = self.app.session_manager.get_scene_sessions(scene_id)
+                if len(sessions) == 0:
+                    logger.info("Killing %s's scene worker because of inactivity. Stopped since %s", scene_id, time.ctime(timestamp))
+                    self.app.scene_worker_manager.kill_scene_worker(scene_id)
+            
+            await asyncio.sleep(SERVER_ENV.inactivty_check_interval)
