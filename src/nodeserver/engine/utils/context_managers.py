@@ -3,23 +3,26 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+from typing import Union
 
 @contextmanager
-def scoped_sys_path(path: Path):
-    path_str = str(path.resolve())
-    inserted = False
-    
-    print("Adding ", path_str, " to sys path")
-    if path_str not in sys.path:
-        sys.path.insert(0, path_str)
-        inserted = True
+def scoped_sys_path(paths: Union[Path, list[Path]]):
+    path_strs: list[str] = []
+    for path in paths if isinstance(paths, list) else [paths]:
+        path_str = str(path.resolve())
+
+        print("Adding ", path_str, " to sys path")
+        if path_str not in sys.path:
+            sys.path.insert(0, path_str)
+            path_strs.append(path_str)
         
     try:
         yield
     
     finally:
-        if inserted and path_str in sys.path:
-            sys.path.remove(path_str)
+        for path_str in path_strs:
+            if path_str in sys.path:
+                sys.path.remove(path_str)
 
 
 

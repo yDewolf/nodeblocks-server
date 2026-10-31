@@ -4,6 +4,7 @@ import multiprocessing
 from pathlib import Path
 from typing import Optional
 
+from nodeserver.engine.engine_env import ENGINE_ENV
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.utils.context_managers import scoped_sys_path
@@ -11,22 +12,24 @@ from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import Plugi
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.engine.registry.type_registry import TypeRegistry, TypeSpecRegistry
 
 import logging
 
 logger = logging.getLogger("nds.plugins")
 
-def _run_indexer_task(plugins_folder: Path):
+def _run_indexer_task(plugins_folder: Path, compile_core_plugins: bool = True):
     full_registry = TypeRegistry()
     plugin_manager = PluginManager(
         full_registry,
         compiler=PluginCompiler(full_registry, plugins_base_package=plugins_folder.name)
     )
 
-    with scoped_sys_path(plugins_folder):
+    with scoped_sys_path([plugins_folder, ENGINE_ENV.core_plugins_folder]):
         try:
+            if compile_core_plugins:
+                plugin_manager.compile_plugins(ENGINE_ENV.core_plugins_folder)
+
             plugin_manager.compile_plugins(plugins_folder, save_to_disk=True)
         except Exception as e:
             logger.error("Failed to compile plugins in subprocess: %s", str(e))
@@ -34,21 +37,25 @@ def _run_indexer_task(plugins_folder: Path):
 
 class PluginSubprocessHelper:
     @classmethod
-    def compile_plugins_subprocess(cls, plugins_folder: Path):
+    def compile_plugins_subprocess(cls, plugins_folder: Path, compile_core_plugins: bool = True):
         ctx = multiprocessing.get_context("spawn")
         with ProcessPoolExecutor(max_workers=1, mp_context=ctx) as executor:
-            future = executor.submit(_run_indexer_task, plugins_folder)
+            future = executor.submit(_run_indexer_task, plugins_folder, compile_core_plugins)
             future.result()
 
     @classmethod
-    def setup_and_load_plugins(cls, plugins_folder: Path, spec_manager: Optional[PluginSpecManager]):
-        if cls.needs_reindex(plugins_folder) and not multiprocessing.current_process().daemon:
-            logger.info("Detected changes in plugins folder. Will recompile plugins in a subprocess... path: %s", plugins_folder)
-            cls.compile_plugins_subprocess(plugins_folder)
+    def setup_and_load_plugins(cls, plugins_folder: Path, spec_manager: Optional[PluginSpecManager], load_core_plugins: bool = True):
+        if not multiprocessing.current_process().daemon:
+            if cls.needs_reindex(plugins_folder) or (cls.needs_reindex(ENGINE_ENV.core_plugins_folder) and load_core_plugins): 
+                logger.info("Detected changes in plugins folder. Will recompile plugins in a subprocess... path: %s", plugins_folder)
+                cls.compile_plugins_subprocess(plugins_folder, load_core_plugins)
 
-            logger.info("Finished plugin recompilation")
+                logger.info("Finished plugin recompilation")
 
         spec_manager = spec_manager or PluginSpecManager(TypeSpecRegistry())
+        if load_core_plugins:
+            spec_manager.load_plugin_manifests(ENGINE_ENV.core_plugins_folder)
+        
         spec_manager.load_plugin_manifests(plugins_folder)
         
         return spec_manager

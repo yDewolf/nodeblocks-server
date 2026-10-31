@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from nodeserver.engine.engine_env import ENGINE_ENV
 from nodeserver.engine.metadata.plugin_metadata import PluginMetadataGenerator
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.server.utils.metadata_file_utils import METADATA_FOLDER_NAME, _MetadataLoad, MetadataFileUtils
@@ -68,5 +69,8 @@ class FileMetadataProvider(IServerMetadataProvider):
     # Utils
 
     def get_plugin_metadata_folder(self, package_id: str) -> Path:
+        if package_id in ENGINE_ENV.core_plugins:
+            return ENGINE_ENV.core_plugins_folder / package_id / METADATA_FOLDER_NAME
+
         return self.plugins_folder / package_id / METADATA_FOLDER_NAME
 
