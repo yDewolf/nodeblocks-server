@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Optional, Self
+from typing import Optional, Self, Union
 
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import  PluginMissingSourceHash
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
@@ -81,41 +81,42 @@ class PluginManager(PluginSpecManager):
         return self._installed_plugins
 
     def compile_plugins(
-        self, 
-        source_folder: Path, 
-        save_to_disk: bool = True, 
+        self,
+        source_folders: Union[Path, list[Path]],
+        plugin_list_path: Optional[Path] = None,
+        save_plugin_cache: bool = True,
         output_folder: Optional[Path] = None
     ) -> list[ManifestPackage]:
         """
         Scans a folder using PluginScanner then compiles each plugin found by it
         optionally saves ManifestPackage json (for fast boot)
         """
-        source_folder = Path(source_folder)
-        discovered_manifests = self.scanner.discover_plugins(source_folder)
+        discovered_manifests: list[tuple[PluginManifest, Path]] = []
+        for folder in source_folders if isinstance(source_folders, list) else [source_folders]:
+            discovered_manifests += self.scanner.discover_plugins(folder)
 
         cached_plugin_list = PluginListCache(cached_plugins={})
-        if save_to_disk:
-            cached_plugin_list = PluginManifestHelper.load_or_create_plugin_list_cache(source_folder)
-
+        if plugin_list_path:
+            cached_plugin_list = PluginManifestHelper.load_or_create_plugin_list_cache(plugin_list_path)
             if output_folder:
                 output_folder.mkdir(parents=True, exist_ok=True)
 
-        logger.info("Compiling plugins from %s...", source_folder)
+        logger.info("Compiling plugins from %s...", source_folders)
         compiled_manifests: list[ManifestPackage] = []
         for manifest, file_path in self.resolve_plugin_load_order(discovered_manifests):
             self.version_manager.validate_plugin_requirements(
                 manifest, self._installed_plugins
             )
 
-            package = self._compile_plugin_manifest(manifest, file_path, save_to_disk, output_folder, assign_to_registry=True)
+            package = self._compile_plugin_manifest(manifest, file_path, save_plugin_cache, output_folder, assign_to_registry=True)
             compiled_manifests.append(package)
             self.index_plugin(manifest)
             
             manifest.source_hash = PluginHasher.calculate_plugin_hash(file_path.parent)
             cached_plugin_list.cached_plugins[manifest.package_id] = manifest.source_hash               
 
-        if save_to_disk:
-            PluginManifestHelper.save_plugin_list_cache(source_folder, cached_plugin_list)
+        if plugin_list_path:
+            PluginManifestHelper.save_plugin_list_cache(plugin_list_path, cached_plugin_list)
         
         return compiled_manifests
 

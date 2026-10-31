@@ -1,7 +1,7 @@
 from collections import deque
 import logging
 from pathlib import Path
-from typing import Optional, Self, Type
+from typing import Optional, Self, Type, Union
 
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import DuplicatePluginError, PluginCircularDependencyError, PluginMissingDependency, PluginNotLoadedError
@@ -54,21 +54,24 @@ class PluginSpecManager:
         self._loaded_packages = {}
         self._installed_plugins = {}
     
-    def load_plugin_manifests(self, manifests_folder: Path) -> dict[str, ManifestPackage]:
+    def load_plugin_manifests(self, manifest_folders: Union[Path, list[Path]]) -> dict[str, ManifestPackage]:
         """
         Loads and registers specs from packages .manifest.json pre-compiled 
         in a folder (see compile_plugins(...))
         """
-        manifests_folder = Path(manifests_folder)
-        logger.info("Loading plugin manifests from: %s...", manifests_folder)
-        if not manifests_folder.exists():
-            logger.error("Failed to load plugins since the provided folder doesn't exist.")
-            return {}
+        logger.info("Loading plugin manifests from: %s...", manifest_folders)
+        manifest_folder_list = manifest_folders if isinstance(manifest_folders, list) else [manifest_folders]
+        
+        plugin_manifests: list[tuple[PluginManifest, Path]] = []
+        for folder in manifest_folder_list:
+            if not folder.exists():
+                logger.error("Failed to load plugins since the provided folder doesn't exist.")
+                return {}
 
-        plugin_manifests: list[tuple[PluginManifest, Path]] = [
-            (PluginManifestHelper.load_plugin_manifest(cache_file), cache_file) 
-            for cache_file in PluginManifestHelper.iterate_plugin_cache_files(manifests_folder)
-        ]
+            plugin_manifests += [
+                (PluginManifestHelper.load_plugin_manifest(cache_file), cache_file) 
+                for cache_file in PluginManifestHelper.iterate_plugin_cache_files(folder)
+            ]
 
         logger.info(
             "Found %s plugins: %s", 
@@ -91,10 +94,11 @@ class PluginSpecManager:
             # plugin_manifest.data_types = converted_datatypes
             self.index_plugin(plugin_manifest)
 
-        for manifest_file in PluginManifestHelper.iterate_manifest_cache_files(manifests_folder):
-            package = PluginManifestHelper.load_package_manifest(manifest_file)
-            if self.is_plugin_loaded(package.package_id):
-                self.register_compiled_package(package)
+        for folder in manifest_folder_list:
+            for manifest_file in PluginManifestHelper.iterate_manifest_cache_files(folder):
+                package = PluginManifestHelper.load_package_manifest(manifest_file)
+                if self.is_plugin_loaded(package.package_id):
+                    self.register_compiled_package(package)
 
         return self._loaded_packages
 

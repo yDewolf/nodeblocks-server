@@ -42,7 +42,7 @@ def plugin_manager(plugins_setup):
         registry=dummy_registry, 
         compiler=PluginCompiler(registry=dummy_registry, plugins_base_package="test_plugins")
     )
-    dummy_manager.compile_plugins(plugins_path, save_to_disk=True)
+    dummy_manager.compile_plugins(plugins_path, save_plugin_cache=True)
 
     registry = TypeRegistry()
     compiler = PluginCompiler(registry=registry, plugins_base_package="test_plugins")

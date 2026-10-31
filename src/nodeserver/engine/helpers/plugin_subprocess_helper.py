@@ -27,10 +27,11 @@ def _run_indexer_task(plugins_folder: Path, compile_core_plugins: bool = True):
 
     with scoped_sys_path([plugins_folder, ENGINE_ENV.core_plugins_folder]):
         try:
-            if compile_core_plugins:
-                plugin_manager.compile_plugins(ENGINE_ENV.core_plugins_folder)
+            plugin_folders = [plugins_folder]
+            if compile_core_plugins: plugin_folders.append(ENGINE_ENV.core_plugins_folder)
 
-            plugin_manager.compile_plugins(plugins_folder, save_to_disk=True)
+            plugin_manager.compile_plugins(plugin_folders, plugins_folder, save_plugin_cache=True)
+        
         except Exception as e:
             logger.error("Failed to compile plugins in subprocess: %s", str(e))
             raise e
@@ -53,10 +54,10 @@ class PluginSubprocessHelper:
                 logger.info("Finished plugin recompilation")
 
         spec_manager = spec_manager or PluginSpecManager(TypeSpecRegistry())
-        if load_core_plugins:
-            spec_manager.load_plugin_manifests(ENGINE_ENV.core_plugins_folder)
-        
-        spec_manager.load_plugin_manifests(plugins_folder)
+
+        plugin_folders = [plugins_folder]
+        if load_core_plugins: plugin_folders.append(ENGINE_ENV.core_plugins_folder)
+        spec_manager.load_plugin_manifests(plugin_folders)
         
         return spec_manager
 
