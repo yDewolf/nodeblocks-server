@@ -1,1 +1,1 @@
-{"uid":"test","dependencies":{},"nodes":{},"connections":{}}
+{"uid":"test","dependencies":{"core":"0.2.0","test_plugin":"0.0.0"},"nodes":{"pGUjlV":{"uid":"pGUjlV","nodetype_fqn":"test_plugin:TestNode","position":{"x":560.0,"y":200.0},"data":{}},"43HYVx":{"uid":"43HYVx","nodetype_fqn":"test_plugin:TestNode","position":{"x":820.0,"y":120.0},"data":{}}},"connections":{"xeFlKzBv":{"uid":"xeFlKzBv","from_slot":"nodes:pGUjlV:slots:out_0","to_slot":"nodes:43HYVx:slots:in_0"}}}
