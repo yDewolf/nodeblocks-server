@@ -6,7 +6,7 @@ from nodeserver.protocols.manifest.base_manifest import DataModel
 from pydantic import Field
 
 
-ValidSerializedDataType = Union[dict, str, bool, int, float, list, tuple, NoneType]
+ValidSerializedDataType = Union[dict, str, bool, int, float, list, tuple, bytes, NoneType]
 
 class DataTypeValueMeta(DataModel):
     type: DefaultDataTypes
