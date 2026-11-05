@@ -1,12 +1,14 @@
+import json
+
 from nodeserver.generated.server import engine_messages_pb2
 from nodeserver.protocols.utils.datatype_value_protoc_serialize import serialize_datatype_value
 from nodeserver.server.protocols.web.messages.server.engine_messages import EngineEventPayload, FailedProcessPayload, JobStatusPayload, NodeStatusPayload, RuntimeErrorPayload
 
 
-def serialize_engine_event(pydantic_event: EngineEventPayload) -> bytes:
+def serialize_engine_event(pydantic_event: EngineEventPayload) -> engine_messages_pb2.EngineEventMessage:
     proto_msg = engine_messages_pb2.EngineEventMessage()
     proto_msg.job_id = pydantic_event.job_id
-
+    proto_msg.tracker_json = json.dumps(pydantic_event.tracker)
     if isinstance(pydantic_event, NodeStatusPayload):
         proto_msg.type = engine_messages_pb2.NODE_STATUS
         proto_msg.node_status.node_uid = pydantic_event.node_uid
