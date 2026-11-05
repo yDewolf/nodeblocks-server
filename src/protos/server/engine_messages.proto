@@ -4,6 +4,14 @@ package nodeblocks.api.v1;
 import "protocols/datatype_value.proto";
 
 
+message EngineTrackerMessage {
+    optional string node_id = 1;
+    optional string slot_id = 2;
+    optional string param_id = 3;
+    optional string conn_id = 4;
+    map<string, string> other = 5;
+}
+
 enum ProtoEngineEventType {
     NODE_STATUS = 0;
     JOB_STATUS = 1;
@@ -13,8 +21,8 @@ enum ProtoEngineEventType {
 
 message EngineEventMessage {
     ProtoEngineEventType type = 1;
-    string job_id = 2;
-    string tracker_json = 3;
+    EngineTrackerMessage tracker = 2;
+    string job_id = 3;
 
     oneof payload {
         NodeStatusPayloadMessage node_status = 4;

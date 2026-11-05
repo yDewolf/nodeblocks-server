@@ -6,7 +6,7 @@ from nodeserver.engine.runtime.protocols.engine_events import IPCEngineNodeEvent
 from nodeserver.engine.workers.protocols.general_worker_protocol import WorkerEvent
 from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
 from nodeserver.server.protocols.web.messages.server.mappings.worker_event_map import get_worker_event_payload
-from nodeserver.server.protocols.web.messages.server.server_messages import ServerBatchEventWrapper, ServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper, ServerWorkerEventWrapper
+from nodeserver.server.protocols.web.messages.server.server_messages import ServerBatchEventWrapper, ServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper, ServerMessageAdapter, ServerWorkerEventWrapper
 from nodeserver.server.protocols.web.messages.server.mappings.cmd_response_map import get_response_payload
 from nodeserver.server.protocols.web.messages.server.mappings.engine_event_map import get_engine_event_payload
 from nodeserver.server.web.app import NodeServerWebApp
@@ -73,17 +73,19 @@ class SceneWebsocketEventRouter(BaseDynamicRouter):
                     if not events:
                         continue
 
-                    current_batch = events.copy()
-                    events.clear()
-
-                    throttled_events = self._apply_throttling(current_batch)
+                    throttled_events = self._apply_throttling(events)
                     
-                    batch_messages = []
+                    batch_messages: list[ServerMessageAdapter] = []
                     for event in throttled_events:
                         message = self._wrap_event(event)
                         if message: batch_messages.append(message)
 
-                    if batch_messages:
+                    if len(batch_messages) == 1:
+                        await self.app.session_manager.broadcast_to_scene(
+                            scene_id=scene_id,
+                            message=batch_messages[0],
+                        )
+                    elif batch_messages:
                         batch_packet = ServerBatchEventWrapper(
                             messages=batch_messages
                         )
@@ -92,6 +94,8 @@ class SceneWebsocketEventRouter(BaseDynamicRouter):
                             scene_id=scene_id,
                             message=batch_packet
                         )
+                    
+                    events.clear()
 
             except asyncio.CancelledError:
                 break
@@ -115,7 +119,7 @@ class SceneWebsocketEventRouter(BaseDynamicRouter):
         return other_events + list(latest_node_events.values())
 
 
-    def _wrap_event(self, event: IPCSceneWorkerEvent) -> Optional[BaseServerMessage]:
+    def _wrap_event(self, event: IPCSceneWorkerEvent) -> Optional[ServerMessageAdapter]:
         if isinstance(event, SceneWorkerCommandResponse):
             if not event.request_id:
                 raise CmdReponseMissingRequestId(self.__class__, event.__class__)
