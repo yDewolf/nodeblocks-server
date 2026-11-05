@@ -52,7 +52,7 @@ class SceneSessionManager:
                 continue
             try:
                 logger.debug("Broadcasting to scene '%s': %s", scene_id, message)
-                await session.socket.send_json(message.model_dump())
+                await session.socket.send_json(message.model_dump(mode="json"))
             
             except Exception as e:
                 logger.error(

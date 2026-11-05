@@ -3,7 +3,7 @@ from abc import abstractmethod
 from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
 from pydantic.dataclasses import dataclass
 from typing import Optional, Protocol
-from nodeserver.engine.workers.protocols.ipc_protocol import CmdStatus, IPCCommandResponse, IPCCommandStatus, IPCEvent, MultipleStatusCommandResponse
+from nodeserver.engine.workers.protocols.ipc_protocol import BufferableIPCEvent, CmdStatus, IPCCommandResponse, IPCCommandStatus, IPCEvent, MultipleStatusCommandResponse
 from nodeserver.engine.protocols.node.node_scene import NodeScene
 from nodeserver.engine.runtime.protocols.engine_events import IPCEngineEvent
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
@@ -32,7 +32,7 @@ class IPCSceneWorkerEvent(IPCEvent):
     pass
 
 @dataclass(frozen=True)
-class WorkerEngineEventWrapper(IPCSceneWorkerEvent):
+class WorkerEngineEventWrapper(IPCSceneWorkerEvent, BufferableIPCEvent):
     engine_event: IPCEngineEvent
 
 

@@ -18,7 +18,7 @@ class ServerRouterError(ServerDomainError):
 class CmdReponseMissingRequestId(ServerRouterError):
     def __init__(
         self,
-        router_cls: type[BaseRouter],
+        router_cls: type,
         response_type: type
     ) -> None:
         super().__init__(

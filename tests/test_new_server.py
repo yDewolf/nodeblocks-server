@@ -1,7 +1,6 @@
 import logging
 from pathlib import Path
 from nodeserver.engine.logging_config import setup_logging
-from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.server.web.server import NodeServer
 
 setup_logging(default_level=logging.DEBUG)

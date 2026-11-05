@@ -5,7 +5,7 @@ import time
 from typing import Any, Callable, Coroutine, Optional
 
 from nodeserver.engine.workers.scene.protocols.scene_worker_commands import CheckExecutionState, IPCSceneWorkerCommand, LoadSceneCommand
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, UpdateExecutionConfigResponse
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, UpdateExecutionConfigResponse, WorkerEngineEventWrapper
 from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeserver.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
 from nodeserver.server.server_env import SERVER_ENV
@@ -58,6 +58,9 @@ class SceneWorkerManager(ISceneWorkerManager):
         return True        
 
     def set_event_callback(self, callback: EventCallback):
+        if self._on_event_callback:
+            raise Exception("Trying to set SceneWorkerManager on_event_callback multiple times")
+        
         self._on_event_callback = callback
 
     # Async
@@ -86,6 +89,8 @@ class SceneWorkerManager(ISceneWorkerManager):
 
         self.active_workers.clear()
 
+    # Tasks
+
     async def _poll_worker_status(self):
         while True:
             try:
@@ -112,21 +117,10 @@ class SceneWorkerManager(ISceneWorkerManager):
             except asyncio.CancelledError:
                 break
             except Exception as e:
+                logger.error("Error polling worker events: %s", e)
                 await asyncio.sleep(0.1)
 
-    async def repass_event(self, scene_id: str, event: IPCSceneWorkerEvent):
-        if isinstance(event, UpdateExecutionConfigResponse):
-            if not scene_id in self.worker_statuses or self.worker_statuses[scene_id][0] != event.state:
-                self.worker_statuses[scene_id] = (
-                    event.state,
-                    time.time()
-                )
-            elif event.request_id in self._check_request_ids:
-                self._check_request_ids.remove(event.request_id)
-                return
-
-        if self._on_event_callback:
-            await self._on_event_callback(scene_id, event)
+    # Methods
 
     def kill_scene_worker(self, scene_id: str):
         if not scene_id in self.active_workers:
@@ -136,7 +130,6 @@ class SceneWorkerManager(ISceneWorkerManager):
         worker_controller.stop()
         del self.worker_statuses[scene_id]
     
-
     def get_scene_state(self, scene_id: str) -> SceneWorkerExecutionState:
         if scene_id in self.worker_statuses:
             state, _ = self.worker_statuses[scene_id]
@@ -152,3 +145,19 @@ class SceneWorkerManager(ISceneWorkerManager):
                 workers.append((scene_id, timestamp))
 
         return workers
+
+    # Utils
+
+    async def repass_event(self, scene_id: str, event: IPCSceneWorkerEvent):
+        if isinstance(event, UpdateExecutionConfigResponse):
+            if not scene_id in self.worker_statuses or self.worker_statuses[scene_id][0] != event.state:
+                self.worker_statuses[scene_id] = (
+                    event.state,
+                    time.time()
+                )
+            elif event.request_id in self._check_request_ids:
+                self._check_request_ids.remove(event.request_id)
+                return
+
+        if self._on_event_callback:
+            await self._on_event_callback(scene_id, event)

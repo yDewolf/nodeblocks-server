@@ -29,9 +29,13 @@ class CmdStatus:
         return cls(status=IPCCommandStatus.PARTIAL_SUCCESS, message=message)
     
 
+
 @dataclass(frozen=True)
 class IPCEvent:
     # Engine -> ...
+    pass
+
+class BufferableIPCEvent(IPCEvent):
     pass
 
 @dataclass(frozen=True, kw_only=True)

@@ -27,44 +27,10 @@ class SceneWebsocketRouter(BaseRouter):
             self.app.scene_worker_manager, 
             self.app.session_manager
         )
-        self.app.scene_worker_manager.set_event_callback(self._on_worker_event)
 
     # Called by NodeServer
     def _setup_routes(self):
         self.app.router.add_get("/ws/scene", self.handle_scene_websocket)
-
-
-    async def _on_worker_event(self, scene_id: str, event: IPCSceneWorkerEvent):
-        logger.debug("Event from scene: '%s': %s", scene_id, event)
-        message: Optional[BaseServerMessage] = None
-        if isinstance(event, SceneWorkerCommandResponse):
-            if not event.request_id: 
-                raise CmdReponseMissingRequestId(self.__class__, event.__class__)
-
-            message = ServerCmdResponse(
-                cmd_uid=event.request_id,
-                response_payload=get_response_payload(event)
-            )
-
-        elif isinstance(event, WorkerEvent):
-            message = ServerWorkerEventWrapper(
-                event_payload=get_worker_event_payload(event)
-            )
-
-        elif isinstance(event, WorkerEngineEventWrapper):
-            message = ServerEngineEventWrapper(
-                event_payload=get_engine_event_payload(event.engine_event),
-            )
-
-        if not message:
-            logger.error("No wrap implementation for engine event: %s", event)
-            raise Exception(f"Unhandled worker event: {event}")
-
-        await self.app.session_manager.broadcast_to_scene(
-            scene_id=scene_id, 
-            message=message
-        )
-    
 
     async def handle_scene_websocket(self, request: web.Request) -> web.StreamResponse:
         token_str = request.query.get("token")
