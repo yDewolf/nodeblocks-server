@@ -11,11 +11,12 @@ dependencies = [
     "packaging>=26.3",
     "aiohttp>=3.13.5",
     "aiohttp_cors>=0.8.1",
-    "multidict>=6.7.1",
+    # "multidict>=6.7.1",
     "pydantic>=2.13.3",
     "PyJWT>=2.12.1",
     "pydantic-settings>=2.16.2",
-    "watchdog>=6.0.0"
+    # "watchdog>=6.0.0",
+    "protobuf>=7.36.2"
 ]
 
 [project.scripts]
