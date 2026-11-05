@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package nodeserver.scene;
+package nodeblocks.protocols.v1.data;
 
 message Vector2Message {
     float x = 1;

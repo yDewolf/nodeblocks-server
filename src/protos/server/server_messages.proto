@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package nodeblocks.api.v1;
+import "protocols/scene_data.proto";
+import "protocols/datatype_value.proto";
+
+// -- engine events
+
+enum ProtoEngineEventType {
+    NODE_STATUS = 0;
+    JOB_STATUS = 1;
+    FAILED_PROCESS = 2;
+    RUNTIME_ERROR = 3;
+}
+
+message EngineEventMessage {
+    ProtoEngineEventType type = 1;
+    string job_id = 2;
+    string tracker_json = 3;
+
+    oneof payload {
+        NodeStatusPayloadMessage node_status = 4;
+        JobStatusPayloadMessage job_status = 5;
+        FailedProcessPayloadMessage failed_process = 6;
+        RuntimeErrorPayloadMessage runtime_error = 7;
+    }
+}
+
+message NodeStatusPayloadMessage {
+    string node_uid = 1;
+    string status = 2;
+    map<string, nodeblocks.protocols.v1.data.SerializedDataTypeValueMessage> node_result = 3;
+}
+
+message JobStatusPayloadMessage {
+    string status = 1;
+}
+
+message FailedProcessPayloadMessage {
+    string error = 1;
+}
+
+message RuntimeErrorPayloadMessage {
+    string message = 1;
+}
+
+// -- worker events
+enum ProtoWorkerEventType {
+    READY = 0;
+    STOPPED = 1;
+    FATAL_ERROR = 2;
+}
+
+message WorkerEventMessage {
+    ProtoWorkerEventType type = 1;
+    string error = 2;
+}
+
+// -- command responses
+message CmdStatusMessage {
+    string status = 1;
+    string message = 2;
+}
+
+message ServerCmdResponseMessage {
+    string type = 1;
+    string request_id = 2;
+    CmdStatusMessage status = 3;
+    
+    oneof payload {
+        ExecutionStateSyncPayloadMessage execution_state_sync = 4;
+        AddNodePayloadMessage add_node = 5;
+        AddConnPayloadMessage add_conn = 6;
+        GetSceneDataPayloadMessage get_scene_data = 7;
+        GenericCommandPayloadMessage generic = 8;
+    }
+}
+
+message ExecutionStateSyncPayloadMessage {
+    string state = 1;
+    string mode = 2;
+    repeated string target_nodes = 3;
+    int32 target_iterations = 4;
+}
+
+message AddNodePayloadMessage {
+    repeated string nodes = 1;
+}
+
+message AddConnPayloadMessage {
+    repeated string conns = 1;
+}
+
+message GetSceneDataPayloadMessage {
+    nodeblocks.protocols.v1.data.SceneDataMessage scene_data = 1;
+}
+
+message GenericCommandPayloadMessage {}
+
+
+
+// -- wrapper
+message ServerMessageWrapper {
+    oneof message {
+        WorkerEventMessage worker_event = 1;
+        ServerCmdResponseMessage cmd_response = 2;
+        EngineEventMessage engine_event = 3;
+    }
+}
+
+message ServerBatchMessage {
+    repeated ServerMessageWrapper messages = 1;
+}

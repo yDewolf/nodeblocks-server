@@ -1,6 +1,6 @@
 import json
 
-from nodeserver.generated import scene_data_pb2
+from nodeserver.generated.protocols import scene_data_pb2
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 def serialize_scene_data(scene_data_obj: SceneData) -> scene_data_pb2.SceneDataMessage:
