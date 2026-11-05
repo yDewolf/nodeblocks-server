@@ -27,8 +27,8 @@ def serialize_datatype_value(data_val: SerializedDataTypeValue) -> datatype_valu
 
     if data_val.metadata:
         meta = data_val.metadata
+        proto_val.metadata.type = meta.type.value
         if isinstance(meta, ArrayMetadata):
-            proto_val.metadata.type = datatype_value_pb2.DATA_TYPE_ARRAY
             proto_val.metadata.array_metadata.shape.extend(meta.shape)
             if meta.min is not None:
                 proto_val.metadata.array_metadata.min = meta.min
@@ -37,7 +37,6 @@ def serialize_datatype_value(data_val: SerializedDataTypeValue) -> datatype_valu
                 proto_val.metadata.array_metadata.max = meta.max
                 
         elif isinstance(meta, FileMetadata):
-            proto_val.metadata.type = datatype_value_pb2.DATA_TYPE_FILE
             proto_val.metadata.file_metadata.is_artifact = meta.is_artifact
 
     return proto_val
