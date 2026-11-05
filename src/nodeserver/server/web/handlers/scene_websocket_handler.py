@@ -65,7 +65,7 @@ class SceneWebsocketHandler:
 
     
 
-    async def handle_session_start(self, token_payload: SceneSessionToken, user: UserSession, request: web.Request) -> web.StreamResponse:
+    async def handle_session_start(self, token_payload: SceneSessionToken, user: UserSession, use_protoc: bool, request: web.Request) -> web.StreamResponse:
         permissions = await self.permission_policy.get_scene_permissions(user, token_payload.sid)
         if not (ScenePermission.READ in permissions):
             raise web.HTTPForbidden(reason="Insufficient permissions to access scene")
@@ -79,8 +79,10 @@ class SceneWebsocketHandler:
             token_payload=token_payload,
             user=user,
             permissions=permissions,
-            socket=socket
+            socket=socket,
+            use_protoc=use_protoc
         )
+        
         self.session_manager.register_connection(session)
         await self.socket_listen_loop(socket, session)
         return socket

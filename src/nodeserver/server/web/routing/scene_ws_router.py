@@ -34,6 +34,7 @@ class SceneWebsocketRouter(BaseRouter):
 
     async def handle_scene_websocket(self, request: web.Request) -> web.StreamResponse:
         token_str = request.query.get("token")
+        use_protoc = request.query.get("protoc") != None
         if not token_str:
             raise web.HTTPUnauthorized(reason="Missing session token")
 
@@ -43,4 +44,4 @@ class SceneWebsocketRouter(BaseRouter):
             raise web.HTTPForbidden(reason="Invalid or expired session token")
 
         user = UserSession(user_id=token_payload.sub)
-        return await self.scene_websocket_handler.handle_session_start(token_payload, user, request)
+        return await self.scene_websocket_handler.handle_session_start(token_payload, user, use_protoc, request)
