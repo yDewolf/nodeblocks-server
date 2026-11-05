@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package nodeblocks.api.v1;
+
+enum ProtoWorkerEventType {
+    READY = 0;
+    STOPPED = 1;
+    FATAL_ERROR = 2;
+}
+
+message WorkerEventMessage {
+    ProtoWorkerEventType type = 1;
+    string error = 2;
+}
