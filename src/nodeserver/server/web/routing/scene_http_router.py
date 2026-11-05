@@ -3,6 +3,7 @@ from typing import Optional
 
 from aiohttp import web
 from pydantic import ValidationError
+from nodeserver.server.exceptions.server_exceptions import ServerPolicyError
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.scene_list_protocol import ListedScene
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
@@ -68,7 +69,11 @@ class SceneHTTPRouter(BaseRouter):
         
         target = request.query.get("target")
         if target == "all":
-            listed_perms = await self.app.scene_perm_policy.get_all_scene_perms(user, scene_uid)
+            try: 
+                listed_perms = await self.app.scene_perm_policy.get_all_scene_perms(user, scene_uid)
+            except ServerPolicyError as e:
+                return web.json_response({"error": e.error_code, "message": str(e)}, status=e.http_status)
+
             return web.json_response(
                 listed_perms.model_dump(mode="json")
             )
