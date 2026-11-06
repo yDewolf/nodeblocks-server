@@ -7,9 +7,9 @@ def check_mypy_protobuf_installed() -> bool:
     return importlib.util.find_spec("mypy_protobuf") is not None
 
 def compile_protos():
-    root_dir = Path(__file__).resolve().parent.parent
-    proto_root_dir = root_dir / "src/protos"
-    out_dir = root_dir / "src/nodeserver/generated"
+    src_dir = Path(__file__).resolve().parent.parent.parent
+    proto_root_dir = src_dir / "protos"
+    out_dir = src_dir / "nodeserver/generated"
 
     if not proto_root_dir.exists():
         print(f"Couldn't find protos dir in: {proto_root_dir}")
