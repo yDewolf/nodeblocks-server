@@ -9,6 +9,7 @@ from nodeserver.server.protocols.web.messages.client.base_client_command import 
 from nodeserver.server.protocols.web.messages.server.mappings.cmd_response_map import get_response_payload
 from nodeserver.server.protocols.web.messages.server.server_messages import ServerCmdResponse
 from nodeserver.server.web.dispatchers.scene_command_dispatcher import WSSceneCommandDispatcher
+from nodeserver.server.web.exceptions.cmd_dispatcher_exceptions import ServerCmdDispatchError
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 from nodeserver.server.web.handlers.command.execution_command_handler import ExecutionCommandHandler
 from nodeserver.server.web.handlers.command.graph_command_handler import GraphCommandHandler
@@ -50,15 +51,16 @@ class SceneWebsocketHandler:
                         logger.debug("Received message from %s", session.user.user_id)
                         try:
                             data = msg.json()
-                            success, cmd_uid = await self.dispatcher.dispatch(data, session, self.scene_worker_manager)
-                            # FIXME: exception -> usar tratamento de exceções personalizadas aqui
-                            if not success and cmd_uid:
+                            try: 
+                                await self.dispatcher.dispatch(data, session, self.scene_worker_manager)
+                            except ServerCmdDispatchError as e:
                                 await self.session_manager.broadcast_to_scene(
                                     scene_id=session.scene_id,
                                     message=ServerCmdResponse(
-                                        cmd_uid=cmd_uid,
+                                        cmd_uid=e.cmd_uid or "",
                                         response_payload=get_response_payload(SceneWorkerCommandResponse.failed(
-                                            request_id=cmd_uid
+                                            request_id=e.cmd_uid,
+                                            message=e.message
                                         ))
                                     )
                                 )

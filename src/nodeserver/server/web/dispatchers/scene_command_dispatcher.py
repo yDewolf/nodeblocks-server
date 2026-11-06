@@ -10,6 +10,7 @@ from nodeserver.server.protocols.providers.scene_worker_manager_protocol import 
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
 from nodeserver.server.protocols.web.messages.client.base_client_command import CommandGroups
 from nodeserver.server.protocols.web.messages.client.client_message_wrapper import ClientCommandAdapter, ClientCommandPayloadAdapter, ClientMessageWrapper
+from nodeserver.server.web.exceptions.cmd_dispatcher_exceptions import UnauthorizedCommandUsage, UnimplementedCommandError, UnknownCommandError
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 
 logger = logging.getLogger("nds.server")
@@ -24,29 +25,28 @@ class WSSceneCommandDispatcher(ABC):
         raw_payload: dict,
         session: SceneConnectionSession,
         worker_manager: ISceneWorkerManager
-    ) -> tuple[bool, Optional[str]]:
+    ):
         try:
             parsed_message: ClientCommandAdapter = ClientCommandPayloadAdapter.validate_python(raw_payload)
-            
-        
+
         except ValidationError as e:
             logger.warning(f"Invalid websocket message from {session.user.user_id}: {e}")
-            await session.socket.send_json({"error": "validation_error", "details": e.errors()})
-            return False, None
+            # await session.socket.send_json({"error": "validation_error", "details": e.errors()})
+            raise UnknownCommandError(None, e.errors())
 
         handler = self._handlers.get(parsed_message.cmd_group)
         if not handler:
             logger.error(f"No handler was registered for group: {parsed_message.cmd_group}")
-            await session.socket.send_json({"error": "unimplemented"})
-            return False, parsed_message.cmd_uid
+            # await session.socket.send_json({"error": "unimplemented"})
+            raise UnimplementedCommandError(parsed_message.cmd_group, parsed_message.cmd_uid)
 
-        if not session.has_permission(handler.required_permission_for(parsed_message)):
+        required_perms = handler.required_permission_for(parsed_message)
+        if not session.has_permission(required_perms):
             logger.warning(f"User {session.user.user_id} isn't allowed to use command: {parsed_message.__class__.__name__}. Must have {handler.required_permission}")
-            await session.socket.send_json({
-                "error": "permission_denied", 
-                "message": f"Requires {handler.required_permission_for(parsed_message).name} permission."
-            })
-            return False, parsed_message.cmd_uid
+            # await session.socket.send_json({
+            #     "error": "permission_denied", 
+            #     "message": f"Requires {required_perms.name} permission."
+            # })
+            raise UnauthorizedCommandUsage(parsed_message.type, parsed_message.cmd_uid, required_perms, session.permissions)
 
         await handler.handle(parsed_message, session, worker_manager)
-        return True, parsed_message.cmd_uid
