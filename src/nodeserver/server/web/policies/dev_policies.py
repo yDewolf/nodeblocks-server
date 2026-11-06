@@ -5,7 +5,7 @@ from nodeserver.server.protocols.permission.scene_permissions import ScenePermis
 from nodeserver.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeserver.server.protocols.scene_list_protocol import ListedScenePerms
-from nodeserver.server.protocols.session_protocols import UserSession
+from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
 
 from aiohttp import web
 
@@ -20,6 +20,9 @@ class DevAuthPolicy(IAuthPolicy):
         return UserSession(user_id=user_id, display_name=f"User-{user_id}")
 
 class DevScenePermPolicy(IScenePermPolicy):
+    async def create_scene_token(self, user: UserSession, scene_id: str) -> SceneSessionToken:
+        return SceneSessionToken.new(user.user_id, scene_id)
+
     async def get_scene_permissions(self, user: UserSession, scene_id: str) -> ScenePermission:
         return ScenePermission.ALL
 
