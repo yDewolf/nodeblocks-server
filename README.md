@@ -26,8 +26,7 @@ O requisito mínimo é o [python 3.13](https://www.python.org/downloads/release/
 
 ````
 # Como instalar usando pip:
-pip install -e .
+pip install -e .[dev]
 ````
 
-## Como instalar no seu projeto:
 ...

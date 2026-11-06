@@ -24,6 +24,7 @@ nodeserver = "nodeserver.cli.main:main"
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    "mypy-protobuf>=5.1.0"
 ]
 
 [tool.pytest]

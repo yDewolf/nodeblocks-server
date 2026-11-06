@@ -1,6 +1,10 @@
+import importlib.util
 import re
 from pathlib import Path
 from grpc_tools import protoc
+
+def check_mypy_protobuf_installed() -> bool:
+    return importlib.util.find_spec("mypy_protobuf") is not None
 
 def compile_protos():
     root_dir = Path(__file__).resolve().parent.parent
@@ -18,14 +22,24 @@ def compile_protos():
         print("Couldn't find any .proto file")
         return
 
+    has_mypy_protobuf = check_mypy_protobuf_installed()
+    if has_mypy_protobuf:
+        print("mypy-protobuf detected: type stubs (.pyi) will be generated.")
+    else:
+        print("mypy-protobuf not installed: skipping type stubs generation.")
+
     for proto_file in proto_files:
         print(f"Compiling: {proto_file.relative_to(proto_root_dir)}...")
         command = [
             'grpc_tools.protoc',
             f'-I{proto_root_dir}',
             f'--python_out={out_dir}',
-            str(proto_file)
         ]
+
+        if has_mypy_protobuf:
+            command.append(f'--mypy_out={out_dir}')
+
+        command.append(str(proto_file))
         
         result = protoc.main(command)
         if result != 0:
