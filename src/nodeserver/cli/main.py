@@ -1,4 +1,5 @@
 import argparse
+import multiprocessing
 import sys
 
 from nodeserver.cli.commands.base_command import CLICommand
@@ -13,6 +14,7 @@ COMMANDS: list[type[CLICommand]] = [
 ]
 
 def main():
+    multiprocessing.freeze_support()
     parser = argparse.ArgumentParser(
         prog="nodeserver",
         description="CLI for NodeBlocks Engine",

@@ -1,12 +1,17 @@
 import importlib.util
 import re
 from pathlib import Path
-from grpc_tools import protoc
 
 def check_mypy_protobuf_installed() -> bool:
     return importlib.util.find_spec("mypy_protobuf") is not None
 
 def compile_protos():
+    try:
+        from grpc_tools import protoc
+    except ImportError:
+        print("Error: grpc_tools is not installed. Compile protos should only be used in development environment.")
+        return
+    
     src_dir = Path(__file__).resolve().parent.parent.parent
     proto_root_dir = src_dir / "protos"
     out_dir = src_dir / "nodeserver/generated"
