@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package nodeblocks.protocols.v1.data;
+
+message Vector2Message {
+    float x = 1;
+    float y = 2;
+}
+
+message NodePathMessage {
+    string node_id = 1;
+    string slot_id = 2;
+}
+
+message NodeSceneDataMessage {
+    string uid = 1;
+    string nodetype_fqn = 2;
+    Vector2Message position = 3;
+    map<string, string> data = 4; // parameters
+}
+
+message ConnectionSceneDataMessage {
+    string uid = 1;
+    NodePathMessage from_slot = 2;
+    NodePathMessage to_slot = 3;
+}
+
+message SceneDataMessage {
+    string uid = 1;
+    map<string, string> dependencies = 2; // package_id -> version
+    map<string, NodeSceneDataMessage> nodes = 3;
+    map<string, ConnectionSceneDataMessage> connections = 4;
+}

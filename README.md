@@ -26,8 +26,17 @@ O requisito mínimo é o [python 3.13](https://www.python.org/downloads/release/
 
 ````
 # Como instalar usando pip:
-pip install -e .
+pip install -e .[dev]
+````
+Depois compile os arquivos .proto:
+````
+nodeserver build:protos
 ````
 
-## Como instalar no seu projeto:
+## Como rodar o servidor:
+1. Instale o projeto usando `pip install -e .`
+2. Compile os protobuffers com: `nodeserver build:protos`
+3. Rode o servidor base com: `nodeserver run --plugins {caminho/dos/plugins} --scenes {caminho/para/guardar/cenas}`
+  - `--plugins` é `./plugins` por padrão;
+  - `--scenes` é `./scenes` por padrão.
 ...

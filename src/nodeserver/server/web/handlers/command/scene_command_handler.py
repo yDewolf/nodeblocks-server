@@ -5,6 +5,7 @@ from nodeserver.server.protocols.permission.scene_permissions import ScenePermis
 from nodeserver.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
 from nodeserver.server.protocols.web.messages.client.base_client_command import BaseClientCommand
+from nodeserver.server.protocols.web.messages.client.client_message_wrapper import ClientCommandAdapter
 from nodeserver.server.protocols.web.messages.client.scene.client_scene_commands import ClientGetSceneDataCmd, ClientLoadSceneCmd, ClientSaveSceneCmd, ClientSceneCommand, ClientSetSceneAutosaveCmd, SceneCommandAdapter
 from nodeserver.server.web.exceptions.cmd_handler_exceptions import CmdDispatchNotImplemented
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
@@ -14,6 +15,12 @@ class SceneCommandHandler(BaseSceneCmdHandler):
     @property
     def required_permission(self) -> ScenePermission:
         return ScenePermission.ADMIN # TODO: talvez mudar essa permissão aqui
+
+    def required_permission_for(self, cmd: ClientCommandAdapter) -> ScenePermission:
+        if isinstance(cmd, ClientGetSceneDataCmd):
+            return ScenePermission.READ
+        
+        return super().required_permission_for(cmd)
 
     async def handle(
         self, 

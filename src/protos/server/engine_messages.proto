@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package nodeblocks.api.v1;
+import "protocols/datatype_value.proto";
+
+
+message EngineTrackerMessage {
+    optional string node_id = 1;
+    optional string slot_id = 2;
+    optional string param_id = 3;
+    optional string conn_id = 4;
+    map<string, string> other = 5;
+}
+
+enum ProtoEngineEventType {
+    NODE_STATUS = 0;
+    JOB_STATUS = 1;
+    FAILED_PROCESS = 2;
+    RUNTIME_ERROR = 3;
+}
+
+message EngineEventMessage {
+    ProtoEngineEventType type = 1;
+    EngineTrackerMessage tracker = 2;
+    string job_id = 3;
+
+    oneof payload {
+        NodeStatusPayloadMessage node_status = 4;
+        JobStatusPayloadMessage job_status = 5;
+        FailedProcessPayloadMessage failed_process = 6;
+        RuntimeErrorPayloadMessage runtime_error = 7;
+    }
+}
+
+message NodeStatusPayloadMessage {
+    string node_uid = 1;
+    string status = 2;
+    map<string, nodeblocks.protocols.v1.data.SerializedDataTypeValueMessage> node_result = 3;
+}
+
+message JobStatusPayloadMessage {
+    string status = 1;
+}
+
+message FailedProcessPayloadMessage {
+    string error = 1;
+}
+
+message RuntimeErrorPayloadMessage {
+    string message = 1;
+}

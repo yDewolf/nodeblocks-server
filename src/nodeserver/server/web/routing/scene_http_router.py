@@ -3,6 +3,7 @@ from typing import Optional
 
 from aiohttp import web
 from pydantic import ValidationError
+from nodeserver.server.exceptions.server_exceptions import ServerPolicyError
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.scene_list_protocol import ListedScene
 from nodeserver.server.protocols.session_protocols import SceneSessionToken, UserSession
@@ -57,6 +58,9 @@ class SceneHTTPRouter(BaseRouter):
         try:
             data = await self.app.scene_perm_policy.get_scene_data(user, scene_uid)
 
+        except ServerPolicyError as e:
+            return web.json_response({"error": "failed", "message": str(e)}, status=e.http_status)
+        
         except Exception as e:
             return web.json_response({"error": "failed", "message": str(e)})
         
@@ -68,7 +72,14 @@ class SceneHTTPRouter(BaseRouter):
         
         target = request.query.get("target")
         if target == "all":
-            listed_perms = await self.app.scene_perm_policy.get_all_scene_perms(user, scene_uid)
+            try: 
+                listed_perms = await self.app.scene_perm_policy.get_all_scene_perms(user, scene_uid)
+            except ServerPolicyError as e:
+                return web.json_response({"error": e.error_code, "message": str(e)}, status=e.http_status)
+            
+            except Exception as e:
+                return web.json_response({"error": "failed", "message": str(e)})
+
             return web.json_response(
                 listed_perms.model_dump(mode="json")
             )
@@ -100,6 +111,9 @@ class SceneHTTPRouter(BaseRouter):
                 await self.app.scene_perm_policy.update_default_scene_perms(
                     user, scene_uid, parsed_data.user_perms
                 )
+        except ServerPolicyError as e:
+            return web.json_response({"error": "failed", "message": str(e)}, status=e.http_status)
+        
         except Exception as e:
             return web.json_response({"error": "failed", "message": str(e)})
     
@@ -112,13 +126,17 @@ class SceneHTTPRouter(BaseRouter):
             return web.json_response({"error": "invalid_json", "message": str(e)})
 
         user = await self.app.auth_policy.authenticate(request)
-
         scene_id = request.match_info["uid"]
-        token = SceneSessionToken.new(user.user_id, scene_id)
-        return web.json_response({
-            "token": str(token),
-            "scene_id": scene_id
-        })
+
+        try:
+            token = await self.app.scene_perm_policy.create_scene_token(user, scene_id)
+            return web.json_response({
+                "token": str(token),
+                "scene_id": scene_id
+            })
+
+        except ServerPolicyError as e:
+            return web.json_response({"error": "failed", "message": str(e)}, status=e.http_status)
 
 
     async def create_scene(self, request: web.Request):
@@ -136,6 +154,9 @@ class SceneHTTPRouter(BaseRouter):
         
         try:
             self.app.scene_provider.create_scene(parsed_data.scene_id, user.user_id, parsed_data.default_perm)
+        except ServerPolicyError as e:
+            return web.json_response({"error": "failed", "message": str(e)}, status=e.http_status)
+        
         except Exception as e:
             return web.json_response({"error": "failed", "message": str(e)})
 

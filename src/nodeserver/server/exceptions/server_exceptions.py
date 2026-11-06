@@ -1,6 +1,8 @@
 
 from typing import Any, Optional
 
+from aiohttp import web
+
 from nodeserver.server.web.policies.base_policy import BaseWebPolicy
 
 
@@ -23,7 +25,9 @@ class ServerPolicyError(ServerDomainError):
         policy_cls: type[BaseWebPolicy],
         error_code: str,
         message: str,
+        http_code: int = 400,
         details: Optional[dict[str, Any]] = None,
     ) -> None:
-        super().__init__(error_code, message, {"policy_cls": policy_cls, **(details or {})})
+        self.http_status = http_code
+        super().__init__(error_code, message, {"policy_cls": policy_cls, "http_code": http_code, **(details or {})})
 

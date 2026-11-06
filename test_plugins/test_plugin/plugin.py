@@ -8,5 +8,6 @@ class TestPlugin(Plugin):
         package_id="test_plugin",
         plugin_version="0.0.0",
         plugin_api_version=CURRENT_PLUGIN_API_VERSION,
-        engine_version=CURRENT_ENGINE_VERSION
+        engine_version=CURRENT_ENGINE_VERSION,
+        dependencies={"core": ">=0.2.0"}
     )

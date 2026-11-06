@@ -18,8 +18,11 @@ class NodeExecutionStatus(StrEnum):
     FAILED = "failed"
     SKIPPED = "skipped"
 
+class IPCEngineNodeEvent(IPCEngineEvent):
+    node_uid: str
+
 @dataclass(frozen=True)
-class EvtNodeStatusChanged(IPCEngineEvent):
+class EvtNodeStatusChanged(IPCEngineNodeEvent):
     node_uid: str
     status: NodeExecutionStatus
 

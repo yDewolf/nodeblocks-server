@@ -1,9 +1,10 @@
 from typing import Any, Optional
 
+from nodeserver.server.exceptions.server_exceptions import ServerDomainError
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 
 
-class ServerCmdHandlerError(Exception):
+class ServerCmdHandlerError(ServerDomainError):
     def __init__(
         self,
         handler_cls: type[BaseSceneCmdHandler],

@@ -24,11 +24,12 @@ from nodeserver.server.web.manager.scene_worker_manager import SceneWorkerManage
 from nodeserver.server.web.manager.scene_session_manager import SceneSessionManager
 from nodeserver.server.web.policies.dev_policies import DevAuthPolicy
 from nodeserver.server.web.policies.scene_permission_policy import FilePermissionPolicy
-from nodeserver.server.web.routing.base_router import BaseRouter
+from nodeserver.server.web.routing.base_router import BaseDynamicRouter, BaseRouter
 from nodeserver.server.web.routing.metadata_http_router import MetadataHTTPRouter
 from nodeserver.server.web.routing.plugin_http_router import PluginHTTPRouter
 from nodeserver.server.web.routing.scene_artifact_http_router import SceneArtifactHTTPRouter
 from nodeserver.server.web.routing.scene_http_router import SceneHTTPRouter
+from nodeserver.server.web.routing.scene_ws_event_router import SceneWebsocketEventRouter
 from nodeserver.server.web.routing.scene_ws_router import SceneWebsocketRouter
 from nodeserver.server.web.routing.user_http_router import UserHTTPRouter
 
@@ -84,6 +85,7 @@ class NodeServer:
 
         self.routers = [
             SceneWebsocketRouter(self.app),
+            SceneWebsocketEventRouter(self.app),
             PluginHTTPRouter(self.app),
             SceneHTTPRouter(self.app),
             SceneArtifactHTTPRouter(self.app),
@@ -98,6 +100,17 @@ class NodeServer:
     def _setup_routes(self):
         for router in self.routers:
             router._setup_routes()
+
+    async def _start_routers(self):
+        for router in self.routers:
+            if isinstance(router, BaseDynamicRouter):
+                await router.start()
+
+    async def _stop_routers(self):
+        for router in self.routers:
+            if isinstance(router, BaseDynamicRouter):
+                await router.stop()
+
 
     # FIXME: arrumar o cors pra ser menos abrangente e talvez específico de cada rota
     def _setup_cors(self):
@@ -123,6 +136,7 @@ class NodeServer:
             asyncio.create_task(self._clear_inactive_workers_task(), name="inactivity_tracker")
         )
         await self.app.scene_worker_manager.start()
+        await self._start_routers()
 
     async def _on_cleanup(self, app: web.Application):
         logger.info("Finishing Nodeserver. Cleaning subprocesses...")
@@ -135,6 +149,7 @@ class NodeServer:
 
             logger.info("Finished server task: %s", task.get_name())
         
+        await self._stop_routers()
         await self.app.scene_worker_manager.stop()
 
     # Tasks and event handlers

@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package nodeblocks.api.v1;
+import "server/worker_messages.proto";
+import "server/command_responses.proto";
+import "server/engine_messages.proto";
+
+enum ProtoServerMessageTypes {
+    SCENE_EVENT = 0;
+    GRAPH_EVENT = 1;
+    COMMAND_RESPONSE = 2;
+    BATCH = 3;
+}
+
+message ServerWorkerEventWrapperMessage {
+    WorkerEventMessage event_payload = 1;
+}
+
+message ServerEngineEventWrapperMessage {
+    EngineEventMessage event_payload = 1;
+}
+
+message ServerCmdResponseWrapperMessage {
+    string cmd_uid = 1;
+    ServerCmdResponseMessage response_payload = 2;
+}
+
+message ServerBatchItemMessage {
+    oneof message {
+        ServerWorkerEventWrapperMessage scene_event = 1;
+        ServerEngineEventWrapperMessage graph_event = 2;
+        ServerCmdResponseWrapperMessage cmd_response = 3;
+    }
+}
+
+message ServerBatchEventWrapperMessage {
+    repeated ServerBatchItemMessage messages = 1;
+}
+
+message ServerMessageWrapper {
+    ProtoServerMessageTypes type = 1;
+
+    oneof message {
+        ServerWorkerEventWrapperMessage scene_event = 2;
+        ServerEngineEventWrapperMessage graph_event = 3;
+        ServerCmdResponseWrapperMessage cmd_response = 4;
+        ServerBatchEventWrapperMessage batch = 5;
+    }
+}

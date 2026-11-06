@@ -46,6 +46,8 @@ class SceneConnectionSession:
     permissions: ScenePermission
 
     socket: web.WebSocketResponse
+    use_protoc: bool = field(default=True)
+
     connection_id: str = field(default_factory=lambda: IDGenerator.generate_generic_id(length=4))
 
     def has_permission(self, required: ScenePermission) -> bool:

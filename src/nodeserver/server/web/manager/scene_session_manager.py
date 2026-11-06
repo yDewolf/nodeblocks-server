@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession
+from nodeserver.server.protocols.utils.server_msg_protoc_serialize import serialize_server_msg_to_bytes
 from nodeserver.server.protocols.web.messages.server.server_messages import BaseServerMessage
 
 logger = logging.getLogger("nds.server")
@@ -52,7 +53,13 @@ class SceneSessionManager:
                 continue
             try:
                 logger.debug("Broadcasting to scene '%s': %s", scene_id, message)
-                await session.socket.send_json(message.model_dump())
+                if session.use_protoc:
+                    proto_bytes = serialize_server_msg_to_bytes(message)
+                    if proto_bytes is not None:
+                        await session.socket.send_bytes(proto_bytes)
+                        continue
+
+                await session.socket.send_json(message.model_dump(mode="json"))
             
             except Exception as e:
                 logger.error(

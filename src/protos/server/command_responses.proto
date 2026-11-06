@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package nodeblocks.api.v1;
+import "protocols/scene_data.proto";
+
+message CmdStatusMessage {
+    string status = 1;
+    string message = 2;
+}
+
+message ServerCmdResponseMessage {
+    string type = 1;
+    string request_id = 2;
+    CmdStatusMessage status = 3;
+    
+    oneof payload {
+        ExecutionStateSyncPayloadMessage execution_state_sync = 4;
+        AddNodePayloadMessage add_node = 5;
+        AddConnPayloadMessage add_conn = 6;
+        GetSceneDataPayloadMessage get_scene_data = 7;
+        GenericCommandPayloadMessage generic = 8;
+    }
+}
+
+message ExecutionStateSyncPayloadMessage {
+    string state = 1;
+    string mode = 2;
+    repeated string target_nodes = 3;
+    int32 target_iterations = 4;
+}
+
+message AddNodePayloadMessage {
+    repeated string nodes = 1;
+}
+
+message AddConnPayloadMessage {
+    repeated string conns = 1;
+}
+
+message GetSceneDataPayloadMessage {
+    nodeblocks.protocols.v1.data.SceneDataMessage scene_data = 1;
+}
+
+message GenericCommandPayloadMessage {}
+
