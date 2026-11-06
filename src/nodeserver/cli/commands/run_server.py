@@ -4,8 +4,6 @@ from pathlib import Path
 
 from nodeserver.cli.commands.base_command import CLICommand
 from nodeserver.engine.logging_config import setup_logging
-from nodeserver.server.web.server import NodeServer
-
 
 class RunServerCMD(CLICommand):
     @classmethod
@@ -30,6 +28,7 @@ class RunServerCMD(CLICommand):
 
     @classmethod
     def run(cls, args: Namespace):
+        from nodeserver.server.web.server import NodeServer
         setup_logging(default_level=logging.DEBUG)
 
         plugins_folder: Path = args.plugins.resolve()
