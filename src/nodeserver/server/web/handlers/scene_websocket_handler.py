@@ -1,10 +1,13 @@
 import logging
 from aiohttp import WSMsgType, web
 
+from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import SceneWorkerCommandResponse
 from nodeserver.server.protocols.permission.scene_permissions import ScenePermission
 from nodeserver.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeserver.server.protocols.session_protocols import SceneConnectionSession, SceneSessionToken, UserSession
 from nodeserver.server.protocols.web.messages.client.base_client_command import CommandGroups
+from nodeserver.server.protocols.web.messages.server.mappings.cmd_response_map import get_response_payload
+from nodeserver.server.protocols.web.messages.server.server_messages import ServerCmdResponse
 from nodeserver.server.web.dispatchers.scene_command_dispatcher import WSSceneCommandDispatcher
 from nodeserver.server.web.handlers.base_command_handler import BaseSceneCmdHandler
 from nodeserver.server.web.handlers.command.execution_command_handler import ExecutionCommandHandler
@@ -47,7 +50,19 @@ class SceneWebsocketHandler:
                         logger.debug("Received message from %s", session.user.user_id)
                         try:
                             data = msg.json()
-                            await self.dispatcher.dispatch(data, session, self.scene_worker_manager)
+                            success, cmd_uid = await self.dispatcher.dispatch(data, session, self.scene_worker_manager)
+                            # FIXME: exception -> usar tratamento de exceções personalizadas aqui
+                            if not success and cmd_uid:
+                                await self.session_manager.broadcast_to_scene(
+                                    scene_id=session.scene_id,
+                                    message=ServerCmdResponse(
+                                        cmd_uid=cmd_uid,
+                                        response_payload=get_response_payload(SceneWorkerCommandResponse.failed(
+                                            request_id=cmd_uid
+                                        ))
+                                    )
+                                )
+
                         except ValueError as e:
                             await socket.send_json({"error": "invalid_body", "message": str(e)})
                     

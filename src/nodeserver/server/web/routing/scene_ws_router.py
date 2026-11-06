@@ -25,7 +25,8 @@ class SceneWebsocketRouter(BaseRouter):
         self.scene_websocket_handler = SceneWebsocketHandler(
             self.app.scene_perm_policy, 
             self.app.scene_worker_manager, 
-            self.app.session_manager
+            self.app.session_manager,
+            
         )
 
     # Called by NodeServer
