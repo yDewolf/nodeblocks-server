@@ -7,6 +7,7 @@ from nodeserver.engine.plugins.protocols.plugin_specs import NodeCacheEntry
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.protocols.manifest.base_manifest import make_namespace_fqn
 
+SERVERSIDE_FIELDS = {"nodes_cache", "python_dependencies", "node_modules", "data_types"}
 class PluginManifest(BaseModel):
     """
         Manifest to provide info about the plugin and its modules
@@ -23,7 +24,8 @@ class PluginManifest(BaseModel):
     description: Optional[str] = None
     authors: list[str] = []
     
-    dependencies: dict[str, str] = {} # ex: {"com.company.core_nodes": ">=1.0.0"}
+    dependencies: dict[str, str] = Field(default_factory=dict) # ex: {"com.company.core_nodes": ">=1.0.0"}
+    python_dependencies: dict[str, str] = Field(default_factory=dict)
     
     nodes_cache: Optional[dict[str, NodeCacheEntry]] = None # fqn -> NodeCacheEntry
 
