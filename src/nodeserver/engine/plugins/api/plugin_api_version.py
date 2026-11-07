@@ -1,2 +1,3 @@
 
+# FIXME: bump version
 CURRENT_PLUGIN_API_VERSION: str = "1.2.0"

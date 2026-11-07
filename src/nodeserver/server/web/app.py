@@ -50,7 +50,7 @@ class NodeServerWebApp(web.Application):
         self._metadata_provider = metadata_provider
 
     def _setup_plugins(self, plugins_folder: Path):
-        PluginSubprocessHelper.setup_and_load_plugins(plugins_folder, self.plugin_manager)
+        PluginSubprocessHelper.setup_and_load_plugins(plugins_folder, self.plugin_manager, allow_install=True)
         self._metadata_provider.setup_metadata()
 
     @property

@@ -109,6 +109,18 @@ class PluginMissingDependency(PluginDomainException):
             plugin_id, {"loaded_plugins": loaded_plugins, "dependencies": plugin_dependencies, "missing_dependencies": missing_dependencies}
         )
 
+# FIXME: better exception
+class PluginPythonDependencyError(PluginDomainException):
+    def __init__(
+        self,
+        error: str,
+    ) -> None:
+        super().__init__(
+            "PLUGIN_PYTHON_DEPENDENCY",
+            error
+        )
+
+
 class PluginCircularDependencyError(PluginDomainException):
     def __init__(
         self,

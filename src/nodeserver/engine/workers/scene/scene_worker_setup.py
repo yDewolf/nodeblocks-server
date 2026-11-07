@@ -4,6 +4,7 @@ from multiprocessing.queues import Queue
 from pathlib import Path
 
 from nodeserver.engine.engine_env import ENGINE_ENV
+from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.providers.file_artifact_provider import FileArtifactProvider
 from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
@@ -43,7 +44,11 @@ def run_scene_worker_loop(
     command_handler = SceneWorkerCommandHandler(scene_worker, command_queue, event_queue)
     scene_worker.set_command_handler(command_handler)
 
-    with scoped_sys_path([plugins_folder, ENGINE_ENV.core_plugins_folder]):
+    libs_dir = PluginSubprocessHelper.get_libs_dir(plugins_folder)
+    paths = [plugins_folder, ENGINE_ENV.core_plugins_folder]
+    if libs_dir: paths.append(libs_dir)
+
+    with scoped_sys_path(paths):
         scene_worker.setup_plugins()
         # scene_worker.runtime_loop()
         asyncio.run(scene_worker.run())
