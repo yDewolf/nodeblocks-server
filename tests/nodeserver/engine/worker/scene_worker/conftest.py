@@ -7,8 +7,9 @@ from pathlib import Path
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
 from nodeserver.engine.plugins.plugin_manager import PluginManager
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
+from nodeserver.engine.providers.file_artifact_provider import FileArtifactProvider
 from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
 from nodeserver.engine.workers.scene.scene_worker import SceneWorker
 from nodeserver.engine.workers.scene.scene_worker_cmd_handler import SceneWorkerCommandHandler
@@ -37,7 +38,7 @@ class SceneWorkerNode(BaseNode[SceneWorkerNodeIn, SceneWorkerNodeOut]):
 @pytest.fixture
 def packages():
     package_id: str = "test_package"
-    test_plugin = PluginManifest(
+    test_plugin = EnginePluginManifest(
         source_hash="test", package_id=package_id, 
         engine_version=CURRENT_ENGINE_VERSION, plugin_api_version=CURRENT_PLUGIN_API_VERSION,
         plugin_version="0.0.0"
@@ -86,10 +87,13 @@ def worker(tmp_path: Path, packages) -> SceneWorker:
     scene_id = "test_scene"
 
     plugin_manager = PluginManager.new()
+        
+    data_provider = FileSceneDataProvider(scene_id, plugin_manager, tmp_path / "scenes")
     worker = SceneWorker(
         scene_id, plugins_folder,
-        FileSceneDataProvider(scene_id, plugin_manager, tmp_path / "scenes"),
+        data_provider,
         FileSceneStateProvider(scene_id),
+        FileArtifactProvider(data_provider),
         plugin_manager=plugin_manager
     )
     command_handler = SceneWorkerCommandHandler(worker, Queue(), Queue())

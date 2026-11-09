@@ -3,13 +3,13 @@ import shutil
 import hashlib, os, subprocess, sys, tempfile
 from importlib.metadata import distributions
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from filelock import FileLock
 from packaging.utils import canonicalize_name
 
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginPythonDependencyError
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest, PluginManifest
 
 logger = logging.getLogger("nds.plugins")
 
@@ -35,7 +35,7 @@ class PluginLibsManager:
         return hash.hexdigest()[:16]
 
     @classmethod
-    def ensure_libs(cls, manifests: list[PluginManifest], libs_root: Path, allow_install: bool = True) -> Optional[Path]:
+    def ensure_libs(cls, manifests: Union[list[PluginManifest], list[EnginePluginManifest]], libs_root: Path, allow_install: bool = True) -> Optional[Path]:
         reqs = sorted({req for manifest in manifests for req in manifest.python_dependencies})
         if not reqs:
             return None

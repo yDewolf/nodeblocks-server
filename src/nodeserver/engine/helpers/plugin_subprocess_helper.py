@@ -8,7 +8,7 @@ from nodeserver.engine.engine_env import ENGINE_ENV
 from nodeserver.engine.plugins.helpers.plugin_libs_manager import PluginLibsManager
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
 from nodeserver.engine.utils.context_managers import scoped_sys_path
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingSourceHash
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
@@ -91,7 +91,7 @@ class PluginSubprocessHelper:
             return True
 
         scanner = PluginScanner()
-        manifests: list[tuple[PluginManifest, Path]] = []
+        manifests: list[tuple[EnginePluginManifest, Path]] = []
         for folder in [plugins_folder] + additional_plugin_folders:
             discovered_manifests = scanner.discover_plugins(folder)
             manifests += discovered_manifests

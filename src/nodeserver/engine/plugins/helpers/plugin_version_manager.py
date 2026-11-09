@@ -7,7 +7,7 @@ from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import Incom
 from nodeserver.engine.exceptions.plugin.scene_plugin_exceptions import IncompatibleSceneDependency, MissingSceneDependency
 from nodeserver.engine.helpers.version_helper import VersionHelper
 from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest, PluginManifest
 
 import logging
 
@@ -29,7 +29,7 @@ class PluginVersionManager:
     def validate_plugin_requirements(
         self, 
         plugin_manifest: PluginManifest,
-        installed_plugins: dict[str, PluginManifest]
+        installed_plugins: dict[str, EnginePluginManifest]
     ):
         self.validate_api_compatibility(
             plugin_manifest.plugin_api_version, plugin_manifest.package_id
@@ -73,7 +73,7 @@ class PluginVersionManager:
             )
 
     def validate_plugin_dependencies(
-        self, plugin_manifest: PluginManifest, installed_plugins: dict[str, PluginManifest]
+        self, plugin_manifest: PluginManifest, installed_plugins: dict[str, EnginePluginManifest]
     ) -> None:
         for dep_package_id, version_req in plugin_manifest.dependencies.items():
             if dep_package_id not in installed_plugins:

@@ -9,7 +9,7 @@ from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManif
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.helpers.plugin_version_manager import PluginVersionManager
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest, PluginManifest
 from nodeserver.engine.registry.type_registry import TypeSpecRegistry
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 
@@ -21,7 +21,7 @@ class PluginSpecManager:
     version_manager: PluginVersionManager
 
     _loaded_packages: dict[str, ManifestPackage] # package_id -> ManifestPackage
-    _installed_plugins: dict[str, PluginManifest] # package_id -> PluginManifest
+    _installed_plugins: dict[str, EnginePluginManifest] # package_id -> EnginePluginManifest
     _loaded_datatypes: dict[str, PluginDatatypeRef]
 
     def __init__(
@@ -62,7 +62,7 @@ class PluginSpecManager:
         logger.info("Loading plugin manifests from: %s...", manifest_folders)
         manifest_folder_list = manifest_folders if isinstance(manifest_folders, list) else [manifest_folders]
         
-        plugin_manifests: list[tuple[PluginManifest, Path]] = []
+        plugin_manifests: list[tuple[EnginePluginManifest, Path]] = []
         for folder in manifest_folder_list:
             if not folder.exists():
                 logger.error("Failed to load plugins since the provided folder doesn't exist.")
@@ -118,7 +118,7 @@ class PluginSpecManager:
         self._loaded_packages[package.package_id] = package
 
     
-    def _load_plugin_from_cache(self, manifest: PluginManifest, plugin_file_path: Path) -> ManifestPackage:
+    def _load_plugin_from_cache(self, manifest: EnginePluginManifest, plugin_file_path: Path) -> ManifestPackage:
         cache_folder = PluginManifestHelper.get_plugin_cache_folder(plugin_file_path.parent)
         manifest_file = PluginManifestHelper.ensure_cache_file(cache_folder, manifest.package_id)
         package = PluginManifestHelper.load_package_manifest(manifest_file)
@@ -130,7 +130,7 @@ class PluginSpecManager:
 
     # Indexing
 
-    def index_plugin(self, plugin_manifest: PluginManifest):
+    def index_plugin(self, plugin_manifest: EnginePluginManifest):
         logger.debug("Indexing plugin - package_id: %s", plugin_manifest.package_id)
         self._installed_plugins[plugin_manifest.package_id] = plugin_manifest
         
@@ -145,7 +145,7 @@ class PluginSpecManager:
 
         return self._loaded_packages[package_id]
 
-    def ensure_plugin_manifest(self, package_id: str) -> PluginManifest:
+    def ensure_plugin_manifest(self, package_id: str) -> EnginePluginManifest:
         if not package_id in self._installed_plugins:
             raise PluginNotLoadedError(package_id)
 
@@ -174,7 +174,7 @@ class PluginSpecManager:
     def get_all_loaded_packages(self) -> dict[str, ManifestPackage]:
         return self._loaded_packages.copy()
 
-    def get_installed_plugins(self) -> dict[str, PluginManifest]:
+    def get_installed_plugins(self) -> dict[str, EnginePluginManifest]:
         return self._installed_plugins.copy()
 
     # Datatype Getters
@@ -183,8 +183,8 @@ class PluginSpecManager:
         return self._loaded_datatypes.get(datatype_fqn)
 
 
-    def resolve_plugin_load_order(self, manifests: list[tuple[PluginManifest, Path]]) -> list[tuple[PluginManifest, Path]]:
-        plugins_map: dict[str, tuple[PluginManifest, Path]] = {}
+    def resolve_plugin_load_order(self, manifests: list[tuple[EnginePluginManifest, Path]]) -> list[tuple[EnginePluginManifest, Path]]:
+        plugins_map: dict[str, tuple[EnginePluginManifest, Path]] = {}
         for manifest, path in manifests:
             if manifest.package_id in plugins_map:
                 raise DuplicatePluginError(
@@ -210,7 +210,7 @@ class PluginSpecManager:
                 in_degree[pkg_id] += 1
 
         queue = deque([pkg_id for pkg_id, degree in in_degree.items() if degree == 0])
-        ordered_manifests: list[tuple[PluginManifest, Path]] = []
+        ordered_manifests: list[tuple[EnginePluginManifest, Path]] = []
 
         while queue:
             current_id = queue.popleft()

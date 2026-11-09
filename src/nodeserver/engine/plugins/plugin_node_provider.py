@@ -5,7 +5,7 @@ from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import Plugi
 from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
 from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
 from nodeserver.engine.plugins.plugin_manager import PluginManager
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef, PluginDatatypeSpec
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.protocols.node.node_instance import NodeInstance
@@ -88,7 +88,7 @@ class PluginNodeProvider(INodeProvider):
             self._assign_datatype_python_type(plugin_manifest, datatype_ref, datatype_fqn)
     
     
-    def _assign_datatype_python_type(self, plugin_manifest: PluginManifest, datatype_ref: PluginDatatypeRef, datatype_fqn: str):
+    def _assign_datatype_python_type(self, plugin_manifest: EnginePluginManifest, datatype_ref: PluginDatatypeRef, datatype_fqn: str):
         compiler = self.plugin_manager.compiler
         registry = self.plugin_manager.registry
     

@@ -11,7 +11,9 @@ class PluginHasher:
         "__pycache__",
         ".git",
         ".vscode",
-        ".pytest_cache"
+        ".pytest_cache",
+        ".venv",
+        ".mypy_cache",
     }
 
     @classmethod

@@ -10,7 +10,7 @@ from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingSourceHash, PluginNotLoadedError
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.plugin_manager import PluginManager
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
@@ -29,8 +29,8 @@ def create_manifest(
     dependencies: Optional[dict] = None,
     source_hash: str = "hash_123",
     data_types: Optional[list] = None,
-) -> PluginManifest:
-    return PluginManifest(
+) -> EnginePluginManifest:
+    return EnginePluginManifest(
         engine_version=CURRENT_ENGINE_VERSION,
         plugin_api_version=CURRENT_PLUGIN_API_VERSION,
         package_id=package_id,
@@ -183,7 +183,7 @@ class TestPluginDiskOperations:
 
         plugin_file = plugin_dir / "plugin.py"
         plugin_file.write_text(
-            f"from {PluginManifest.__module__} import {PluginManifest.__name__}\n"
+            f"from {EnginePluginManifest.__module__} import {EnginePluginManifest.__name__}\n"
             f"from {Plugin.__module__} import {Plugin.__name__}\n"
             f"class TestPlugin({Plugin.__name__}): manifest = PluginManifest(package_id='my_plugin', plugin_version='1.0.0', plugin_api_version='{CURRENT_PLUGIN_API_VERSION}', engine_version='{CURRENT_ENGINE_VERSION}')\n"
         )

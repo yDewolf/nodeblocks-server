@@ -8,26 +8,31 @@ from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
 from nodeserver.protocols.manifest.base_manifest import make_namespace_fqn
 
 SERVERSIDE_FIELDS = {"nodes_cache", "python_dependencies", "node_modules", "data_types"}
+
 class PluginManifest(BaseModel):
+    package_id: str # must be the same as plugin's folder name
+    
+    # versioning (SemVer)
+    plugin_version: str
+    engine_version: str
+    plugin_api_version: str
+
+    # dependencies
+    dependencies: dict[str, str] = Field(default_factory=dict)
+    python_dependencies: dict[str, str] = Field(default_factory=dict)
+
+    # metadata
+    authors: list[str] = Field(default_factory=list)
+    description: Optional[str] = Field(default=None)
+
+
+# this is used only by the engine (serverside)
+class EnginePluginManifest(PluginManifest):
     """
         Manifest to provide info about the plugin and its modules
     """
-    source_hash: Optional[str] = None
-
-    package_id: str # must be the same as plugin's folder name
-    
-    plugin_version: str # SemVer
-    
-    engine_version: str # SemVer
-    plugin_api_version: str # SemVer
-
-    description: Optional[str] = None
-    authors: list[str] = []
-    
-    dependencies: dict[str, str] = Field(default_factory=dict) # ex: {"com.company.core_nodes": ">=1.0.0"}
-    python_dependencies: dict[str, str] = Field(default_factory=dict)
-    
-    nodes_cache: Optional[dict[str, NodeCacheEntry]] = None # fqn -> NodeCacheEntry
+    source_hash: Optional[str] = Field(default=None)
+    nodes_cache: Optional[dict[str, NodeCacheEntry]] = Field(default=None) # fqn -> NodeCacheEntry
 
     node_modules: list[str] = Field(default_factory=list) # python modules to import logic classes
     data_types: list[Union[PluginDatatypeSpec, PluginDatatypeRef]] = Field(default_factory=list)

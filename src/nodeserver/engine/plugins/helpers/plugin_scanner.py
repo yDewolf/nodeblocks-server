@@ -4,7 +4,7 @@ from pathlib import Path
 
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
 from nodeserver.engine.plugins.api.plugin import Plugin
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
 
 logger = logging.getLogger("nds.plugins")
 
@@ -12,7 +12,7 @@ class PluginScanner:
     def __init__(self):
         pass
 
-    def discover_plugins(self, plugins_dir: Path) -> list[tuple[PluginManifest, Path]]:
+    def discover_plugins(self, plugins_dir: Path) -> list[tuple[EnginePluginManifest, Path]]:
         """
         Searches for 'plugin.py' files and returns a list of PluginManifests and their
         respective file paths.
@@ -20,7 +20,7 @@ class PluginScanner:
         """
 
         logger.debug("Scanning for plugin manifests in %s ", plugins_dir)
-        manifests: list[tuple[PluginManifest, Path]] = []
+        manifests: list[tuple[EnginePluginManifest, Path]] = []
         for plugin_file in plugins_dir.rglob("plugin.py", case_sensitive=False):
             module_name = PluginScanner.make_module_name(plugin_file.parent.name)
             
@@ -39,7 +39,7 @@ class PluginScanner:
                     and issubclass(attr, Plugin) 
                     and attr is not Plugin
                 ):
-                    manifest: PluginManifest = attr.get_manifest()
+                    manifest: EnginePluginManifest = attr.get_manifest()
                     manifest.source_hash = PluginHasher.calculate_plugin_hash(plugin_file.parent)
                     manifests.append((
                         manifest,
