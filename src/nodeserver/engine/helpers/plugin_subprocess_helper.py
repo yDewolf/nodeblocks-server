@@ -33,20 +33,10 @@ def _run_indexer_task(
         compiler=PluginCompiler(full_registry, plugins_base_package=plugins_folder.name)
     )
 
-    paths = [plugins_folder, ENGINE_ENV.core_plugins_folder]
-    if libs_dir: paths.append(libs_dir)
-    if extraction_folder != plugins_folder: paths.append(extraction_folder)
-
+    paths = get_plugin_sys_paths(plugins_folder, extraction_folder, libs_dir)
     with scoped_sys_path(paths):
         try:
-            plugin_folders = [plugins_folder]
-            if compile_core_plugins: 
-                plugin_folders.append(ENGINE_ENV.core_plugins_folder)
-
-            # we do this since PluginScanner does rglob("plugin.py")
-            if extraction_folder != plugins_folder and not str(extraction_folder).startswith(str(plugins_folder)):
-                plugin_folders.append(extraction_folder)
-            
+            plugin_folders = get_plugin_folders(plugins_folder, extraction_folder, compile_core_plugins)
             plugin_manager.compile_plugins(plugin_folders, plugins_folder, save_plugin_cache=True)
 
             cache = PluginManifestHelper.load_or_create_plugin_list_cache(plugins_folder)
@@ -67,11 +57,7 @@ class PluginSubprocessHelper:
 
     @classmethod
     def setup_and_load_plugins(cls, plugins_folder: Path, extraction_folder: Path, spec_manager: Optional[PluginSpecManager], load_core_plugins: bool = True, allow_install: bool = False):
-        plugin_folders = [plugins_folder]
-        if load_core_plugins: plugin_folders.append(ENGINE_ENV.core_plugins_folder)
-        if extraction_folder != plugins_folder and not str(extraction_folder).startswith(str(plugins_folder)):
-            plugin_folders.append(extraction_folder)
-
+        plugin_folders = get_plugin_folders(plugins_folder, extraction_folder, load_core_plugins)
         if not multiprocessing.current_process().daemon:
             PluginArchiveManager.sync_archives(plugins_folder, extraction_folder)
             scanner = PluginScanner()
@@ -122,3 +108,25 @@ class PluginSubprocessHelper:
     def get_libs_dir(cls, plugins_folder: Path) -> Optional[Path]:
         fingerprint = PluginManifestHelper.load_or_create_plugin_list_cache(plugins_folder).libs_fingerprint
         return ENGINE_ENV.plugin_libs_folder / fingerprint if fingerprint else None
+
+
+
+# -- utils
+
+def get_plugin_folders(plugins_folder: Path, extraction_folder: Path, load_core: bool = True) -> list[Path]:
+    plugin_folders = [plugins_folder]
+    if load_core: 
+        plugin_folders.append(ENGINE_ENV.core_plugins_folder)
+
+    # we do this since PluginScanner does rglob("plugin.py")
+    if extraction_folder != plugins_folder and not str(extraction_folder).startswith(str(plugins_folder)):
+        plugin_folders.append(extraction_folder)
+    
+    return plugin_folders
+
+def get_plugin_sys_paths(plugins_folder: Path, extraction_folder: Path, libs_dir: Optional[Path]) -> list[Path]:
+    paths = [plugins_folder, ENGINE_ENV.core_plugins_folder]
+    if libs_dir: paths.append(libs_dir)
+    if extraction_folder != plugins_folder: paths.append(extraction_folder)
+
+    return paths
