@@ -4,6 +4,7 @@ from pathlib import Path
 
 from nodeserver.cli.commands.base_command import CLICommand
 from nodeserver.engine.plugins.helpers.archive.plugin_packer import PluginPacker
+from nodeserver.engine.plugins.helpers.archive.plugin_unpacker import PluginUnpacker
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.protocols.plugin_archive import DEFAULT_ARCHIVE_EXTENSION, PluginArchive
 
@@ -33,7 +34,7 @@ class PackPluginCMD(CLICommand):
             "--zip",
             dest="zip_suffix",
             type=bool,
-            default=True,
+            default=False,
             help="If True -> file will have .nbplugin.zip suffix instead of only .nbplugin",
         )
         return parser
@@ -67,6 +68,8 @@ class PackPluginCMD(CLICommand):
 
         try:
             archive_path, file_count = PluginPacker.pack(plugin_dir, info, output_dir, zip_suffix)
+            sha256 = PluginUnpacker._sha256(archive_path)
+            archive_path.with_suffix(archive_path.suffix + ".sha256").write_text(f"{sha256} {archive_path.name}", encoding="utf-8")
         
         except Exception as e:
             cls._fail(str(e))
@@ -76,6 +79,7 @@ class PackPluginCMD(CLICommand):
         print(f"    files:   {file_count}")
         print(f"    size:    {size_kb:,.1f} KiB")
         print(f"    archive: {archive_path}\n")
+        print(f"    sha256: {sha256}\n")
 
     @staticmethod
     def _fail(message: str):
