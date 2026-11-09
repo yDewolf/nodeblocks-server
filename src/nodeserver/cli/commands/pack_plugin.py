@@ -1,17 +1,11 @@
-import importlib
 import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from pathlib import Path
 
 from nodeserver.cli.commands.base_command import CLICommand
-from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.plugins.api import Plugin
-
 from nodeserver.engine.plugins.helpers.plugin_packer import PluginPacker
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION, PluginArchive
-from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
-from nodeserver.engine.utils.context_managers import scoped_sys_path
 
 
 class PackPluginCMD(CLICommand):

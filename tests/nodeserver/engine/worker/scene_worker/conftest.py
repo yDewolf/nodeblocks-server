@@ -90,7 +90,7 @@ def worker(tmp_path: Path, packages) -> SceneWorker:
         
     data_provider = FileSceneDataProvider(scene_id, plugin_manager, tmp_path / "scenes")
     worker = SceneWorker(
-        scene_id, plugins_folder,
+        scene_id, plugins_folder, plugins_folder,
         data_provider,
         FileSceneStateProvider(scene_id),
         FileArtifactProvider(data_provider),

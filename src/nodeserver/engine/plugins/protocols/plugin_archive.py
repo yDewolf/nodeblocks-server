@@ -1,4 +1,6 @@
-from pydantic import Field
+from enum import StrEnum
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
@@ -15,3 +17,20 @@ ARCHIVE_EXTENSION = ".nbplugin"
 ARCHIVE_INFO_NAME = "nbplugin.json"
 
 STATE_DIR_NAME = ".nbplugin-state"
+
+
+class ArchiveStatuses(StrEnum):
+    EXTRACTING = "extracting"
+    COMPLETE = "complete"
+
+
+class PluginArchiveState(BaseModel):
+    model_config = ConfigDict(use_enum_values=True)
+    
+    package_id: str
+    plugin_version: str
+    
+    archive_name: str
+    archive_sha256: str
+
+    status: ArchiveStatuses

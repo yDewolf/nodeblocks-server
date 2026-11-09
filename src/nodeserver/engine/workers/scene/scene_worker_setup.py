@@ -18,7 +18,8 @@ logger = logging.getLogger("nds.worker")
 
 def run_scene_worker_loop(
     scene_id: str, 
-    plugins_folder: Path, 
+    plugins_folder: Path,
+    extraction_folder: Path, 
     scenes_folder: Path, 
     command_queue: Queue[IPCSceneWorkerCommand], 
     event_queue: Queue[IPCSceneWorkerEvent],
@@ -34,7 +35,7 @@ def run_scene_worker_loop(
     artifact_provider = FileArtifactProvider(file_data_provider)
 
     scene_worker = SceneWorker(
-        scene_id, plugins_folder, 
+        scene_id, plugins_folder, extraction_folder,
         file_data_provider, state_provider,
         plugin_manager=plugin_manager,
         scene_artifact_provider=artifact_provider
@@ -47,6 +48,7 @@ def run_scene_worker_loop(
     libs_dir = PluginSubprocessHelper.get_libs_dir(plugins_folder)
     paths = [plugins_folder, ENGINE_ENV.core_plugins_folder]
     if libs_dir: paths.append(libs_dir)
+    if extraction_folder != plugins_folder: paths.append(extraction_folder)
 
     with scoped_sys_path(paths):
         scene_worker.setup_plugins()

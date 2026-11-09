@@ -1,9 +1,7 @@
-import json
 import os
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Any
 
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
 from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION, PluginArchive

@@ -40,6 +40,7 @@ class NodeServer:
     routers: list[BaseRouter]
 
     plugins_folder: Path
+    extraction_folder: Path
     scenes_folder: Path
 
     host: str
@@ -57,13 +58,16 @@ class NodeServer:
         scene_artifact_provider: Optional[IServerSceneArtifactProvider] = None,
         metadata_provider: Optional[IServerMetadataProvider] = None,
         extra_routers: list[BaseRouter] = [],
+        extraction_folder: Optional[Path] = None,
         host: str = "127.0.0.1",
         port: int = 8080
     ) -> None:
         self._tasks = []
         self.host = host
         self.port = port
+
         self.plugins_folder = plugins_folder
+        self.extraction_folder = extraction_folder or plugins_folder
         self.scenes_folder = scenes_folder
 
         self.app = NodeServerWebApp()
@@ -74,14 +78,14 @@ class NodeServer:
         self.app._setup(
             plugin_manager,
             SceneSessionManager(),
-            SceneWorkerManager(self.plugins_folder, self.scenes_folder),
+            SceneWorkerManager(self.plugins_folder, self.extraction_folder, self.scenes_folder),
             permission_policy or FilePermissionPolicy(self.app),
             auth_policy or DevAuthPolicy(),
             scene_provider or SceneProvider(self.scenes_folder),
             scene_artifact_provider or ServerFileArtifactProvider(self.scenes_folder),
             metadata_provider or FileMetadataProvider(self.plugins_folder, plugin_manager)
         )
-        self.app._setup_plugins(self.plugins_folder)
+        self.app._setup_plugins(self.plugins_folder, self.extraction_folder)
 
         self.routers = [
             SceneWebsocketRouter(self.app),

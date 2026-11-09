@@ -159,7 +159,7 @@ class PluginSpecManager:
 
     # Getters
 
-    def get_plugin_manifest(self, package_id: str) -> Optional[PluginManifest]:
+    def get_plugin_manifest(self, package_id: str) -> Optional[EnginePluginManifest]:
         return self._installed_plugins.get(package_id)
 
     def is_package_loaded(self, package_id: str) -> bool:

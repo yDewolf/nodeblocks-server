@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field, field_serializer, model_validator
@@ -31,6 +32,7 @@ class EnginePluginManifest(PluginManifest):
     """
         Manifest to provide info about the plugin and its modules
     """
+    root_path: Optional[Path] = Field(default=None)
     source_hash: Optional[str] = Field(default=None)
     nodes_cache: Optional[dict[str, NodeCacheEntry]] = Field(default=None) # fqn -> NodeCacheEntry
 

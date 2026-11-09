@@ -67,6 +67,7 @@ class PluginScanner:
             ):
                 manifest: EnginePluginManifest = attr.get_manifest()
                 manifest.source_hash = PluginHasher.calculate_plugin_hash(plugin_file.parent)
+                manifest.root_path = plugin_file.parent
                 # This return makes so only the first plugin gets loaded
                 # that means every plugin.py should have a single Plugin class
                 return manifest

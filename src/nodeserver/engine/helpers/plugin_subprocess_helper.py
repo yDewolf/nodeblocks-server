@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 from nodeserver.engine.engine_env import ENGINE_ENV
+from nodeserver.engine.plugins.helpers.plugin_archive_manager import PluginArchiveManager
 from nodeserver.engine.plugins.helpers.plugin_libs_manager import PluginLibsManager
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
@@ -22,6 +23,7 @@ logger = logging.getLogger("nds.plugins")
 
 def _run_indexer_task(
     plugins_folder: Path, 
+    extraction_folder: Path, 
     compile_core_plugins: bool = True,
     libs_dir: Optional[Path] = None
 ):
@@ -33,11 +35,18 @@ def _run_indexer_task(
 
     paths = [plugins_folder, ENGINE_ENV.core_plugins_folder]
     if libs_dir: paths.append(libs_dir)
+    if extraction_folder != plugins_folder: paths.append(extraction_folder)
 
     with scoped_sys_path(paths):
         try:
             plugin_folders = [plugins_folder]
-            if compile_core_plugins: plugin_folders.append(ENGINE_ENV.core_plugins_folder)
+            if compile_core_plugins: 
+                plugin_folders.append(ENGINE_ENV.core_plugins_folder)
+
+            # we do this since PluginScanner does rglob("plugin.py")
+            if extraction_folder != plugins_folder and not str(extraction_folder).startswith(str(plugins_folder)):
+                plugin_folders.append(extraction_folder)
+            
             plugin_manager.compile_plugins(plugin_folders, plugins_folder, save_plugin_cache=True)
 
             cache = PluginManifestHelper.load_or_create_plugin_list_cache(plugins_folder)
@@ -50,34 +59,37 @@ def _run_indexer_task(
 
 class PluginSubprocessHelper:
     @classmethod
-    def compile_plugins_subprocess(cls, plugins_folder: Path, compile_core_plugins: bool = True, libs_dir: Optional[Path] = None):
+    def compile_plugins_subprocess(cls, plugins_folder: Path, extraction_folder: Path, compile_core_plugins: bool = True, libs_dir: Optional[Path] = None):
         ctx = multiprocessing.get_context("spawn")
         with ProcessPoolExecutor(max_workers=1, mp_context=ctx) as executor:
-            future = executor.submit(_run_indexer_task, plugins_folder, compile_core_plugins, libs_dir)
+            future = executor.submit(_run_indexer_task, plugins_folder, extraction_folder, compile_core_plugins, libs_dir)
             future.result()
 
     @classmethod
-    def setup_and_load_plugins(cls, plugins_folder: Path, spec_manager: Optional[PluginSpecManager], load_core_plugins: bool = True, allow_install: bool = False):
+    def setup_and_load_plugins(cls, plugins_folder: Path, extraction_folder: Path, spec_manager: Optional[PluginSpecManager], load_core_plugins: bool = True, allow_install: bool = False):
         plugin_folders = [plugins_folder]
         if load_core_plugins: plugin_folders.append(ENGINE_ENV.core_plugins_folder)
+        if extraction_folder != plugins_folder and not str(extraction_folder).startswith(str(plugins_folder)):
+            plugin_folders.append(extraction_folder)
 
         if not multiprocessing.current_process().daemon:
+            PluginArchiveManager.sync_archives(plugins_folder, extraction_folder)
             scanner = PluginScanner()
-            manifests = [manifest for file in plugin_folders for (manifest, _) in scanner.discover_plugins(file)]
+            manifests = [
+                manifest for file in plugin_folders 
+                for (manifest, _) in scanner.discover_plugins(file)
+            ]
             libs_dir = PluginLibsManager.ensure_libs(manifests, ENGINE_ENV.plugin_libs_folder, allow_install)
 
             if cls.needs_reindex(
                 plugins_folder, libs_dir, 
-                [ENGINE_ENV.core_plugins_folder] if load_core_plugins else []
+                [extraction_folder] + [ENGINE_ENV.core_plugins_folder] if load_core_plugins else []
             ):
-                logger.info("Detected changes in plugins folder. Will recompile plugins in a subprocess... path: %s", plugins_folder)
-                cls.compile_plugins_subprocess(plugins_folder, load_core_plugins, libs_dir)
+                logger.info("Detected changes in plugins folder. Will recompile plugins in a subprocess... path: %s. Extracted plugins: %s", plugins_folder, extraction_folder)
+                cls.compile_plugins_subprocess(plugins_folder, extraction_folder, load_core_plugins, libs_dir)
                 logger.info("Finished plugin recompilation")
 
         spec_manager = spec_manager or PluginSpecManager(TypeSpecRegistry())
-
-        plugin_folders = [plugins_folder]
-        if load_core_plugins: plugin_folders.append(ENGINE_ENV.core_plugins_folder)
         spec_manager.load_plugin_manifests(plugin_folders)
         
         return spec_manager
