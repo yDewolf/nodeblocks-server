@@ -4,11 +4,11 @@ import hashlib, os, subprocess, sys, tempfile
 from importlib.metadata import distributions
 from pathlib import Path
 from typing import Optional, Union
-
 from filelock import FileLock
 from packaging.utils import canonicalize_name
 
 from nodeserver.engine.exceptions.plugin.plugin_lib_exceptions import LibCompileFailed, NotAllowedToInstallLibsError
+from nodeserver.engine.helpers.version_helper import VersionHelper
 from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest, PluginManifest
 
 logger = logging.getLogger("nds.plugins")
@@ -36,11 +36,17 @@ class PluginLibsManager:
 
     @classmethod
     def ensure_libs(cls, manifests: Union[list[PluginManifest], list[EnginePluginManifest]], libs_root: Path, allow_install: bool = True) -> Optional[Path]:
-        reqs = sorted({req for manifest in manifests for req in manifest.python_dependencies})
+        reqs = sorted({
+            VersionHelper.to_requirement(name, ver) for manifest in manifests 
+            for name, ver in manifest.python_dependencies.items()}
+        )
         if not reqs:
             return None
 
         freeze = cls._engine_freeze()
+        reqs = VersionHelper.unsatisfied_by_env(reqs, freeze)
+        if not reqs: return None
+
         target = libs_root / cls.fingerprint(reqs, freeze)
         if target.exists():
             return target
@@ -73,20 +79,19 @@ class PluginLibsManager:
         with tempfile.TemporaryDirectory() as work_dir:
             work = Path(work_dir)
             (work / "reqs.in").write_text("\n".join(reqs))
-            (work / "constraints.txt").write_text(
-                "\n".join(f"{key}=={version}" for key, version in freeze.items())
-            )
+            (work / "constraints.txt").write_text(VersionHelper.constraints_text(freeze))
 
-            res = subprocess.run(
-                [*uv, "pip", "compile", str(work / "reqs.in"),
-                    "-c", str(work / "constraints.txt"),
-                    "--python-version", py_ver, "--only-binary=:all:",
-                    "--no-header", "--no-annotate"],
-                capture_output=True, text=True,
-                check=True, timeout=1800
-            )
-            if res.returncode != 0:
-                raise LibCompileFailed(res.stderr, reqs)
+            try:
+                res = subprocess.run(
+                    [*uv, "pip", "compile", str(work / "reqs.in"),
+                        "-c", str(work / "constraints.txt"),
+                        "--python-version", py_ver, "--only-binary=:all:",
+                        "--no-header", "--no-annotate"],
+                    capture_output=True, text=True,
+                    check=True, timeout=1800
+                )
+            except subprocess.CalledProcessError as e:
+                raise LibCompileFailed(e.stderr, reqs)
 
             missing = [
                 line for line in res.stdout.splitlines()
