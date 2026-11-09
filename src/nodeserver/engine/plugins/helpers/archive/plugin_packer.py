@@ -3,6 +3,7 @@ import shutil
 import zipfile
 from pathlib import Path
 
+from nodeserver.engine.exceptions.plugin.plugin_format_exceptions import InvalidPluginFolder, SymlinkInPluginDir
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
 from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION, PluginArchive
 from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_INFO_NAME
@@ -25,8 +26,7 @@ class PluginPacker:
                 continue
             
             if path.is_symlink():
-                # FIXME: better exceptions
-                raise Exception(f"symlinks are not allowed in plugins: {rel.as_posix()}")
+                raise SymlinkInPluginDir(plugin_dir, rel.as_posix())
             
             if path.is_file():
                 files.append(path)
@@ -42,8 +42,10 @@ class PluginPacker:
 
         files = cls.collect_files(plugin_dir)
         if not any(file.relative_to(plugin_dir).as_posix() == "plugin.py" for file in files):
-            # FIXME: better exceptions
-            raise Exception("plugin.py must be directly inside the plugin folder")
+            raise InvalidPluginFolder(plugin_dir, 
+                "plugin.py must be directly inside the plugin folder",
+                package_id=info.package_id
+            )
 
         output_dir.mkdir(parents=True, exist_ok=True)
         out_path = output_dir / f"{info.package_id}-{info.plugin_version}{ARCHIVE_EXTENSION}"

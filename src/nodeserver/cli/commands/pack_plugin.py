@@ -45,8 +45,7 @@ class PackPluginCMD(CLICommand):
 
         try:
             manifest = PluginScanner.get_plugin_manifest(plugin_file)
-            if not manifest:
-                raise Exception()
+            if not manifest: raise Exception()
         
         except Exception as e:
             cls._fail(f"Could not load plugin manifest from plugin.py: {e}")

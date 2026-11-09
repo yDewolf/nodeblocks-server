@@ -1,9 +1,8 @@
 import importlib.util
 import logging
 from pathlib import Path
-from types import ModuleType
-from typing import Optional
 
+from nodeserver.engine.exceptions.plugin.plugin_format_exceptions import InvalidPluginFile, MissingPluginClassInFile
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
 from nodeserver.engine.plugins.api.plugin import Plugin
 from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
@@ -53,7 +52,7 @@ class PluginScanner:
         spec = importlib.util.spec_from_file_location(module_name, plugin_file)
         if not spec or not spec.loader:
             logger.warning("Failed to get module spec while scanning plugins. Skipping: %s", module_name)
-            raise Exception(f"Invalid plugin.py file: {plugin_file}") # FIXME: better exception
+            raise InvalidPluginFile(plugin_file)
         
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -72,7 +71,7 @@ class PluginScanner:
                 # that means every plugin.py should have a single Plugin class
                 return manifest
 
-        raise Exception(f"Couldn't find a Plugin class in {plugin_file}")
+        raise MissingPluginClassInFile(plugin_file)
     
     @staticmethod
     def make_module_name(plugin_parent_name: str) -> str:

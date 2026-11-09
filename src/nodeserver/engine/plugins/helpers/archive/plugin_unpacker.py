@@ -8,6 +8,8 @@ import zipfile
 
 from pydantic import ValidationError
 
+from nodeserver.engine.exceptions.plugin.plugin_archive_exceptions import ArchiveIsTooBig, FailedArchiveInstall, InvalidPluginMemberFile, TooManyFilesInArchive
+from nodeserver.engine.exceptions.plugin.plugin_format_exceptions import InvalidPluginFolder
 from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
 from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_INFO_NAME, STATE_DIR_NAME, ArchiveStatuses, EnginePluginArchive, PluginArchiveState
 from nodeserver.engine.utils.file_utils import rmtree
@@ -29,9 +31,10 @@ class PluginUnpacker:
 
         if target.exists():
             if state is None:
-                raise Exception(
-                    f"Folder '{target}' already exists and was not created from an archive. "
-                    "Remove the folder or the archive."
+                raise FailedArchiveInstall(
+                    f"Folder '{target}' already exists and was not created from an archive.",
+                    target, archive.path, archive.package_id,
+                    solution="Remove the folder or the archive.",
                 )
             
             if state.status == ArchiveStatuses.COMPLETE and state.archive_sha256 == sha256:
@@ -86,7 +89,7 @@ class PluginUnpacker:
                         shutil.copyfileobj(src, out)
 
                 if not (target / "plugin.py").is_file():
-                    raise Exception("plugin.py must be directly inside 'package_id/' in the archive")
+                    raise InvalidPluginFolder(target, "plugin.py must be directly inside 'package_id/' in the archive")
             
             except BaseException:
                 cls.remove_installed(plugins_folder, extraction_folder, package_id)
@@ -98,7 +101,7 @@ class PluginUnpacker:
     @staticmethod
     def _validate_members(members: list[zipfile.ZipInfo], package_id: str, extraction_folder: Path) -> None:
         if len(members) > MAX_ARCHIVE_FILES:
-            raise Exception(f"too many files in plugin archive ({len(members)} > {MAX_ARCHIVE_FILES})")
+            raise TooManyFilesInArchive(len(members), MAX_ARCHIVE_FILES, package_id)
 
         prefix = f"{package_id}/"
         root = (extraction_folder / package_id).resolve()
@@ -113,19 +116,19 @@ class PluginUnpacker:
                 or "\\" in name
                 or ":" in name
             ):
-                raise Exception(f"unsafe entry in archive: {name!r}")
+                raise InvalidPluginMemberFile(f"unsafe entry in archive: {name!r}", name, package_id)
 
             if (info.external_attr >> 16) & 0o170000 == 0o120000:
-                raise Exception(f"symlinks are not allowed in archives: {name!r}")
+                raise InvalidPluginMemberFile(f"symlinks are not allowed in archives: {name!r}", name, package_id)
 
             if not (extraction_folder / name).resolve().is_relative_to(root):
-                raise Exception(f"entry escapes the plugin folder: {name!r}")
+                raise InvalidPluginMemberFile(f"entry escapes the plugin folder: {name!r}", name, package_id)
 
             total += info.file_size
 
         if total > MAX_UNCOMPRESSED_BYTES:
-            raise Exception(
-                f"archive is too large when extracted ({total} > {MAX_UNCOMPRESSED_BYTES} bytes)"
+            raise ArchiveIsTooBig(
+                total, MAX_UNCOMPRESSED_BYTES, package_id
             )
 
     # -- utils
