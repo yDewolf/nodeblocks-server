@@ -3,7 +3,7 @@ from argparse import ArgumentParser, Namespace, _SubParsersAction
 from pathlib import Path
 
 from nodeserver.cli.commands.base_command import CLICommand
-from nodeserver.engine.plugins.helpers.plugin_packer import PluginPacker
+from nodeserver.engine.plugins.helpers.archive.plugin_packer import PluginPacker
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION, PluginArchive
 

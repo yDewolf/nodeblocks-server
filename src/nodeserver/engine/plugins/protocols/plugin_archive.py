@@ -1,4 +1,5 @@
 from enum import StrEnum
+from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -34,3 +35,6 @@ class PluginArchiveState(BaseModel):
     archive_sha256: str
 
     status: ArchiveStatuses
+
+class EnginePluginArchive(PluginArchive):
+    path: Path

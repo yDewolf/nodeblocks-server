@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 from nodeserver.engine.engine_env import ENGINE_ENV
-from nodeserver.engine.plugins.helpers.plugin_archive_manager import PluginArchiveManager
+from nodeserver.engine.plugins.helpers.archive.plugin_archive_manager import PluginArchiveManager
 from nodeserver.engine.plugins.helpers.plugin_libs_manager import PluginLibsManager
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
