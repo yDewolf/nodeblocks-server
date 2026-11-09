@@ -75,7 +75,6 @@ class NodeScene:
 
     
     def as_scene_data(self) -> SceneData:
-        self.state_provider._setup_folder()
         node_dependencies: set[tuple[str, str]] = set()
         for uid, node in self._logic_nodes.items():
             deps = self.node_provider.extract_node_dependencies(node)
@@ -91,6 +90,7 @@ class NodeScene:
         )
     
     def save_state(self):
+        self.state_provider._setup_folder()
         for uid, node in self._logic_nodes.items():
             logic_state = node.save_state(self.state_provider)
             if logic_state:
@@ -99,7 +99,8 @@ class NodeScene:
         self.scene_data_provider.save_scene_data(
             self.as_scene_data()
         )
-    
+
+    # FIXME: isso aqui não é chamado em nenhum lugar
     def load_saved_state(self):
         scene_data = self.scene_data_provider.load_scene_data(self.scene_id)
         if not scene_data:

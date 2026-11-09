@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-
+from pydantic.dataclasses import dataclass
 from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
 from typing import Optional, Union
 

@@ -4,6 +4,7 @@ import sys
 
 import pytest
 
+from nodeserver.engine.engine_env import ENGINE_ENV
 from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.registry.type_registry import TypeRegistry
@@ -23,15 +24,21 @@ def plugins_setup() -> tuple[Path, Path]:
 
 @pytest.fixture(autouse=True)
 def setup_sys_path(plugins_setup):
-    root_path, _ = plugins_setup
+    root_path, plugins_path = plugins_setup
     
-    if str(root_path) not in sys.path:
-        sys.path.insert(0, str(root_path))
+    if str(plugins_path) not in sys.path:
+        sys.path.insert(0, str(plugins_path))
+
+    if str(ENGINE_ENV.core_plugins_folder) not in sys.path:
+        sys.path.insert(0, str(ENGINE_ENV.core_plugins_folder))
     
     yield
 
-    if str(root_path) in sys.path:
-        sys.path.remove(str(root_path))
+    if str(plugins_path) in sys.path:
+        sys.path.remove(str(plugins_path))
+
+    if str(ENGINE_ENV.core_plugins_folder) in sys.path:
+        sys.path.remove(str(ENGINE_ENV.core_plugins_folder))
 
 @pytest.fixture
 def plugin_manager(plugins_setup):
@@ -42,11 +49,12 @@ def plugin_manager(plugins_setup):
         registry=dummy_registry, 
         compiler=PluginCompiler(registry=dummy_registry, plugins_base_package="test_plugins")
     )
-    dummy_manager.compile_plugins(plugins_path, save_plugin_cache=True)
+    plugin_folders = [plugins_path, ENGINE_ENV.core_plugins_folder]
+    dummy_manager.compile_plugins(plugin_folders, save_plugin_cache=True)
 
     registry = TypeRegistry()
     compiler = PluginCompiler(registry=registry, plugins_base_package="test_plugins")
     manager = PluginManager(registry=registry, compiler=compiler)
-    manager.load_plugin_manifests(plugins_path)
+    manager.load_plugin_manifests(plugin_folders)
 
     return manager

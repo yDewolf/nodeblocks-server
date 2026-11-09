@@ -1,5 +1,7 @@
 from abc import abstractmethod
 
+from pydantic import Field
+
 from nodeserver.engine.protocols.providers.scene_artifact_provider import ISceneArtifactProvider
 from pydantic.dataclasses import dataclass
 from typing import Optional, Protocol
@@ -47,10 +49,10 @@ class SceneWorkerCommandResponse(IPCCommandResponse, IPCSceneWorkerEvent):
 class UpdateExecutionConfigResponse(SceneWorkerCommandResponse):
     state: SceneWorkerExecutionState
     mode: SceneWorkerExecutionMode
-    target_nodes: Optional[list[str]]
-    target_iterations: Optional[int]
+    target_nodes: Optional[list[str]] = Field(default=None)
+    target_iterations: Optional[int] = Field(default=None)
 
-    current_iteration: Optional[int]
+    current_iteration: Optional[int] = Field(default=None)
 
     @classmethod
     def successful(

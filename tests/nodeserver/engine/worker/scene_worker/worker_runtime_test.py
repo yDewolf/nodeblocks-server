@@ -1,3 +1,4 @@
+import asyncio
 from queue import Empty
 import threading
 import time
@@ -11,6 +12,9 @@ from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneW
 from nodeserver.protocols.manifest.node.node_graph import SceneData
 
 
+def run_runtime_loop(worker: SceneWorker):
+    asyncio.run(worker.runtime_loop())
+
 class TestSceneWorkerExecutionMatrix:
 
     def test_running_and_graph_step_executes_single_node_and_pauses(
@@ -21,7 +25,7 @@ class TestSceneWorkerExecutionMatrix:
         worker.command_handler.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.GRAPH_STEP))
         worker.command_handler.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING))
 
-        thread = threading.Thread(target=worker.runtime_loop, daemon=True)
+        thread = threading.Thread(target=run_runtime_loop, kwargs={"worker": worker}, daemon=True)
         thread.start()
         time.sleep(0.4)
 
@@ -43,7 +47,7 @@ class TestSceneWorkerExecutionMatrix:
         worker.command_handler.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.FULL_GRAPH))
         worker.command_handler.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING))
 
-        thread = threading.Thread(target=worker.runtime_loop, daemon=True)
+        thread = threading.Thread(target=run_runtime_loop, kwargs={"worker": worker}, daemon=True)
         thread.start()
 
         time.sleep(0.4)
@@ -65,7 +69,7 @@ class TestSceneWorkerExecutionMatrix:
         worker.command_handler.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.GRAPH_STEP))
         worker.command_handler.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING_CONTINUOUS))
 
-        thread = threading.Thread(target=worker.runtime_loop, daemon=True)
+        thread = threading.Thread(target=run_runtime_loop, kwargs={"worker": worker}, daemon=True)
         thread.start()
 
         time.sleep(0.4)
@@ -100,7 +104,7 @@ class TestSceneWorkerExecutionMatrix:
         worker.command_handler.command_queue.put(UpdateExecutionModeCmd(mode=SceneWorkerExecutionMode.FULL_GRAPH))
         worker.command_handler.command_queue.put(UpdateExecutionStateCmd(state=SceneWorkerExecutionState.RUNNING_CONTINUOUS))
 
-        thread = threading.Thread(target=worker.runtime_loop, daemon=True)
+        thread = threading.Thread(target=run_runtime_loop, kwargs={"worker": worker}, daemon=True)
         thread.start()
 
         time.sleep(0.4)
@@ -130,7 +134,7 @@ class TestSceneWorkerExecutionMatrix:
         worker.command_handler.command_queue.put(LoadSceneDataCommand(scene_data=populated_scene))
         
         worker.command_handler.command_queue.put(GraphStepCommand())
-        thread = threading.Thread(target=worker.runtime_loop, daemon=True)
+        thread = threading.Thread(target=run_runtime_loop, kwargs={"worker": worker}, daemon=True)
         thread.start()
         time.sleep(0.4)
 

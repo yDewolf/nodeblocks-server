@@ -62,6 +62,7 @@ class EnclosedEngineContext(EngineRuntimeContext):
     _scene: NodeScene
     _persistent_cache: dict[str, dict[str, Any]]
     _node_hashes: dict[str, str]
+    _uncached_node_iterations: dict[str, int]
 
     def __init__(
         self, 
@@ -72,10 +73,18 @@ class EnclosedEngineContext(EngineRuntimeContext):
         self._scene = scene
         self._persistent_cache = persistent_cache if persistent_cache is not None else {}
         self._node_hashes = {}
-    
+        self._uncached_node_iterations = {}
+
     @property
     def scene(self): return self._scene
     @property
     def node_hashes(self): return self._node_hashes
     @property
     def persistent_cache(self): return self._persistent_cache
+
+    @property
+    def uncached_node_iterations(self) -> dict[str, int]:
+        return self._uncached_node_iterations
+
+    def increment_node(self, uid: str):
+        self._uncached_node_iterations[uid] = self._uncached_node_iterations.get(uid, 0) + 1
