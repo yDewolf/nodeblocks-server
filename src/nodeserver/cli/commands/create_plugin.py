@@ -93,6 +93,7 @@ class {class_name}Plugin({Plugin.__name__}):
         engine_version=f">={CURRENT_ENGINE_VERSION}", # Current Engine Version
         plugin_api_version=f">={CURRENT_PLUGIN_API_VERSION}", # Current Plugin API Version
         dependencies={{"core": ">={CURRENT_ENGINE_VERSION}"}},
+        python_dependencies={{}},
     )
 """
 
