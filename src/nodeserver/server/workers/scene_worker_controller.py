@@ -21,9 +21,11 @@ class SceneWorkerController:
     _event_queue: multiprocessing.queues.Queue[IPCSceneWorkerEvent]
     _process: Optional[SpawnProcess]
 
-    def __init__(self, scene_id: str, plugins_folder: Path, scenes_folder: Path):
+    def __init__(self, scene_id: str, plugins_folder: Path, extraction_folder: Path, scenes_folder: Path):
         self.scene_id = scene_id
+        
         self.plugins_folder = plugins_folder
+        self.extraction_folder = extraction_folder
         self.scenes_folder = scenes_folder
         
         self._ctx = multiprocessing.get_context("spawn")
@@ -39,7 +41,7 @@ class SceneWorkerController:
 
         self._process = self._ctx.Process(
             target=run_scene_worker_loop,
-            args=(self.scene_id, self.plugins_folder, self.scenes_folder, self._command_queue, self._event_queue, SERVER_ENV.scene_autosave_interval),
+            args=(self.scene_id, self.plugins_folder, self.extraction_folder, self.scenes_folder, self._command_queue, self._event_queue, SERVER_ENV.scene_autosave_interval),
             daemon=True
         )
         self._process.start()

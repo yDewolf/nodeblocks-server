@@ -102,7 +102,6 @@ class BaseGraphEngine(ABC):
 
             if not logic_node.config.bypass_cache: #and not EngineRuntimeHelper._has_bypassed_dependencies(node_instance.uid, context):
                 cached_data = context.persistent_cache.get(node_instance.uid)
-                
                 if cached_data and cached_data.get("hash") == current_hash:
                     cached_outputs = cached_data["outputs"]
                     for slot_id, value in cached_outputs.items():

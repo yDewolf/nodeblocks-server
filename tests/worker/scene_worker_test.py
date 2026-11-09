@@ -12,8 +12,9 @@ from nodeserver.server.workers.scene_worker_controller import SceneWorkerControl
 
 if __name__ == "__main__":
     plugins_folder = Path(__file__).parent.parent.parent / "test_plugins"
+    extraction_folder = plugins_folder
     scenes_folder = Path(__file__).parent.parent.parent / "scenes"
-    controller = SceneWorkerController("test_0", plugins_folder, scenes_folder)
+    controller = SceneWorkerController("test_0", plugins_folder, extraction_folder, scenes_folder)
 
     controller.start(wait_ready=True)
     controller.send_command(LoadSceneDataCommand(

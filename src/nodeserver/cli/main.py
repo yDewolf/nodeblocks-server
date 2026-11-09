@@ -5,10 +5,12 @@ import sys
 from nodeserver.cli.commands.base_command import CLICommand
 from nodeserver.cli.commands.build_protos import BuildProtosCMD
 from nodeserver.cli.commands.create_plugin import CreatePluginCMD
+from nodeserver.cli.commands.pack_plugin import PackPluginCMD
 from nodeserver.cli.commands.run_server import RunServerCMD
 
 COMMANDS: list[type[CLICommand]] = [
     CreatePluginCMD,
+    PackPluginCMD,
     RunServerCMD,
     BuildProtosCMD
 ]

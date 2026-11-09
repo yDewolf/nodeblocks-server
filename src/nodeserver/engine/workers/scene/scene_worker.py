@@ -48,6 +48,7 @@ class SceneWorker(ISceneWorker):
     execution_manager: SceneWorkerRunManager
 
     plugins_folder: Path
+    extraction_folder: Path
 
     active: bool
     target_fps: float = 60.0
@@ -61,6 +62,7 @@ class SceneWorker(ISceneWorker):
         self,
         scene_id: str,
         plugins_folder: Path,
+        extraction_folder: Path,
         scene_data_provider: ISceneDataProvider,
         scene_state_provider: ISceneStateProvider,
         scene_artifact_provider: ISceneArtifactProvider,
@@ -69,6 +71,8 @@ class SceneWorker(ISceneWorker):
         self.scene_id = scene_id
 
         self.plugins_folder = plugins_folder
+        self.extraction_folder = extraction_folder
+
         self.plugin_manager = plugin_manager or PluginManager.new()
         self.node_provider = PluginNodeProvider(self.plugin_manager)
         
@@ -90,7 +94,7 @@ class SceneWorker(ISceneWorker):
     def setup_plugins(self):
         logger.info("Setting up %s's scene worker plugins...", self.scene_id)
         PluginSubprocessHelper.setup_and_load_plugins(
-            self.plugins_folder, self.plugin_manager
+            self.plugins_folder, self.extraction_folder, self.plugin_manager
         )
         if self.command_handler:
             self.command_handler.event_queue.put(EvtWorkerReady())

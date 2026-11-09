@@ -4,6 +4,7 @@ from multiprocessing.queues import Queue
 from pathlib import Path
 
 from nodeserver.engine.engine_env import ENGINE_ENV
+from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper, get_plugin_sys_paths
 from nodeserver.engine.plugins.plugin_manager import PluginManager
 from nodeserver.engine.providers.file_artifact_provider import FileArtifactProvider
 from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
@@ -17,7 +18,8 @@ logger = logging.getLogger("nds.worker")
 
 def run_scene_worker_loop(
     scene_id: str, 
-    plugins_folder: Path, 
+    plugins_folder: Path,
+    extraction_folder: Path, 
     scenes_folder: Path, 
     command_queue: Queue[IPCSceneWorkerCommand], 
     event_queue: Queue[IPCSceneWorkerEvent],
@@ -33,7 +35,7 @@ def run_scene_worker_loop(
     artifact_provider = FileArtifactProvider(file_data_provider)
 
     scene_worker = SceneWorker(
-        scene_id, plugins_folder, 
+        scene_id, plugins_folder, extraction_folder,
         file_data_provider, state_provider,
         plugin_manager=plugin_manager,
         scene_artifact_provider=artifact_provider
@@ -43,7 +45,9 @@ def run_scene_worker_loop(
     command_handler = SceneWorkerCommandHandler(scene_worker, command_queue, event_queue)
     scene_worker.set_command_handler(command_handler)
 
-    with scoped_sys_path([plugins_folder, ENGINE_ENV.core_plugins_folder]):
+    libs_dir = PluginSubprocessHelper.get_libs_dir(plugins_folder)
+    paths = get_plugin_sys_paths(plugins_folder, extraction_folder, libs_dir)
+    with scoped_sys_path(paths):
         scene_worker.setup_plugins()
         # scene_worker.runtime_loop()
         asyncio.run(scene_worker.run())

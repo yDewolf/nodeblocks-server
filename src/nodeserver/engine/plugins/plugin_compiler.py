@@ -9,7 +9,7 @@ from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
 from nodeserver.engine.plugins.api.decorators.decorator_models import PluginDataTypeDefModel, PluginDecoDefModels, PluginNodeDefModel
 from nodeserver.engine.plugins.api.decorators.plugin_decorators import get_plugin_spec_definition_meta
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeSpec
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
 from nodeserver.engine.plugins.protocols.plugin_specs import NodeCacheEntry
 from nodeserver.engine.protocols.node.logic_nodes import BaseNode
 from nodeserver.engine.registry.type_registry import TypeRegistry
@@ -126,7 +126,7 @@ class PluginCompiler:
     # so we don't need the other compile methods
     def compile_plugin_modules(
         self,
-        manifest: PluginManifest,
+        manifest: EnginePluginManifest,
         relative_modules: list[str]
     ):
         """
@@ -148,7 +148,7 @@ class PluginCompiler:
 
     def compile_manifest(
         self,
-        manifest: PluginManifest,
+        manifest: EnginePluginManifest,
         assign_to_registry: bool = True
     ) -> ManifestPackage:
         """
@@ -239,7 +239,7 @@ class PluginCompiler:
 
     # Decorator Utility
 
-    def _update_manifest_from_attr_decorators(self, attr: Any, manifest: PluginManifest, module_path: str) -> bool:
+    def _update_manifest_from_attr_decorators(self, attr: Any, manifest: EnginePluginManifest, module_path: str) -> bool:
         meta = get_plugin_spec_definition_meta(attr)
         if not meta:
             return False
@@ -247,7 +247,7 @@ class PluginCompiler:
         self._parse_plugin_decorators(meta, manifest, module_path)
         return True
 
-    def _parse_plugin_decorators(self, meta: PluginDecoDefModels, manifest: PluginManifest, module_path: str):
+    def _parse_plugin_decorators(self, meta: PluginDecoDefModels, manifest: EnginePluginManifest, module_path: str):
         if isinstance(meta, PluginNodeDefModel):
             if not module_path in manifest.node_modules:
                 manifest.node_modules.append(module_path)

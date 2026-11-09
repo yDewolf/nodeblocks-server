@@ -5,7 +5,7 @@ from typing import Iterator
 
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import MissingCacheFilesError
 from nodeserver.engine.plugins.protocols.plugin_list_cache import PluginListCache
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest, PluginManifest
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 
 
@@ -64,10 +64,10 @@ class PluginManifestHelper:
             return package
 
     @staticmethod
-    def load_plugin_manifest(file_path: Path) -> PluginManifest:
+    def load_plugin_manifest(file_path: Path) -> EnginePluginManifest:
         with open(file_path, "r", encoding="utf-8") as file:
             raw_data = json.load(file)
-            plugin_manifest = PluginManifest.model_validate(raw_data)
+            plugin_manifest = EnginePluginManifest.model_validate(raw_data)
             return plugin_manifest
 
 

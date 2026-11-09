@@ -87,12 +87,18 @@ class SceneWorkerCommandHandler(WorkerCommandHandler[IPCSceneWorkerCommand, IPCS
     @dispatch.register
     def _(self, cmd: UpdateTargetNodesCmd):
         if not self.execution_manager.context:
-            return UpdateExecutionConfigResponse.failed(message="missing execution context")
+            return UpdateExecutionConfigResponse.failed(
+                message="missing execution context",
+                state=self.execution_manager.execution_state, mode=self.execution_manager.execution_mode, target_nodes=self.execution_manager.target_nodes, target_iterations=self.execution_manager._target_iterations, current_iteration=self.execution_manager._current_iteration
+            )
 
         if cmd.target_nodes:
             all_nodes_exist = self.execution_manager.context.scene.graph.nodes_exist(cmd.target_nodes)
             if not all_nodes_exist:
-                return UpdateExecutionConfigResponse.failed(message="some nodes doesn't exist")
+                return UpdateExecutionConfigResponse.failed(
+                    message="some nodes doesn't exist",
+                    state=self.execution_manager.execution_state, mode=self.execution_manager.execution_mode, target_nodes=self.execution_manager.target_nodes, target_iterations=self.execution_manager._target_iterations, current_iteration=self.execution_manager._current_iteration
+                )
         
         self.execution_manager.target_nodes = cmd.target_nodes
         return UpdateExecutionConfigResponse.successful(self.execution_manager.execution_state, self.execution_manager.execution_mode, self.execution_manager.target_nodes, self.execution_manager._target_iterations, self.execution_manager._current_iteration)

@@ -109,6 +109,7 @@ class PluginMissingDependency(PluginDomainException):
             plugin_id, {"loaded_plugins": loaded_plugins, "dependencies": plugin_dependencies, "missing_dependencies": missing_dependencies}
         )
 
+
 class PluginCircularDependencyError(PluginDomainException):
     def __init__(
         self,

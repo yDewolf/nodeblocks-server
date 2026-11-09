@@ -1,6 +1,7 @@
 
 from aiohttp import web
 
+from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
 from nodeserver.server.web.app import NodeServerWebApp
 from nodeserver.server.web.routing.base_router import BaseRouter
 
@@ -17,8 +18,9 @@ class PluginHTTPRouter(BaseRouter):
         installed_plugins = self.app.plugin_manager.get_installed_plugins()
         return web.json_response({
             "installed_plugins": [
-                plugin_manifest.model_dump(
-                    exclude={"node_modules", "data_types", "nodes_cache"}
+                # FIXME: testar isso aqui
+                PluginManifest.model_dump(
+                    plugin_manifest,
                 ) for plugin_manifest in installed_plugins.values()
             ]
         })

@@ -11,7 +11,7 @@ from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
 from nodeserver.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeserver.engine.plugins.protocols.plugin_list_cache import PluginListCache
 from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
 from nodeserver.engine.registry.type_registry import TypeRegistry
 from nodeserver.protocols.manifest.package_manifest import ManifestPackage
 
@@ -25,7 +25,7 @@ class PluginManager(PluginSpecManager):
     version_manager: PluginVersionManager
 
     _loaded_packages: dict[str, ManifestPackage] # package_id -> ManifestPackage
-    _installed_plugins: dict[str, PluginManifest] # package_id -> PluginManifest
+    _installed_plugins: dict[str, EnginePluginManifest] # package_id -> EnginePluginManifest
 
     _loaded_datatypes: dict[str, PluginDatatypeRef]
 
@@ -91,7 +91,7 @@ class PluginManager(PluginSpecManager):
         Scans a folder using PluginScanner then compiles each plugin found by it
         optionally saves ManifestPackage json (for fast boot)
         """
-        discovered_manifests: list[tuple[PluginManifest, Path]] = []
+        discovered_manifests: list[tuple[EnginePluginManifest, Path]] = []
         for folder in source_folders if isinstance(source_folders, list) else [source_folders]:
             discovered_manifests += self.scanner.discover_plugins(folder)
 
@@ -122,7 +122,7 @@ class PluginManager(PluginSpecManager):
 
     # Single Plugin 'Actions'
 
-    def _compile_plugin_manifest(self, manifest: PluginManifest, file_path: Path, save_to_disk: bool = True, cache_out_folder: Optional[Path] = None, assign_to_registry: bool = False) -> ManifestPackage:
+    def _compile_plugin_manifest(self, manifest: EnginePluginManifest, file_path: Path, save_to_disk: bool = True, cache_out_folder: Optional[Path] = None, assign_to_registry: bool = False) -> ManifestPackage:
         logger.info("Compiling plugin manifest... - package_id: %s", manifest.package_id)
         modules = self.scanner.discover_modules(file_path.parent)
         self.compiler.compile_plugin_modules(manifest, modules)

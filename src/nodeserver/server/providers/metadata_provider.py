@@ -69,6 +69,10 @@ class FileMetadataProvider(IServerMetadataProvider):
     # Utils
 
     def get_plugin_metadata_folder(self, package_id: str) -> Path:
+        manifest = self.plugin_manager.get_plugin_manifest(package_id)
+        if manifest and manifest.root_path:
+            return manifest.root_path / METADATA_FOLDER_NAME
+        
         if package_id in ENGINE_ENV.core_plugins:
             return ENGINE_ENV.core_plugins_folder / package_id / METADATA_FOLDER_NAME
 

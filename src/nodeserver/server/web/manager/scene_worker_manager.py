@@ -16,6 +16,7 @@ logger = logging.getLogger("nds.server")
 EventCallback = Callable[[str, IPCSceneWorkerEvent], Coroutine[Any, Any, None]]
 class SceneWorkerManager(ISceneWorkerManager):
     plugins_folder: Path
+    extraction_folder: Path
     scenes_folder: Path
 
     _tasks: list[asyncio.Task]
@@ -28,8 +29,9 @@ class SceneWorkerManager(ISceneWorkerManager):
 
     _check_request_ids: set[str]
     
-    def __init__(self, plugins_folder: Path, scenes_folder: Path) -> None:
+    def __init__(self, plugins_folder: Path, extraction_folder: Path, scenes_folder: Path) -> None:
         self.plugins_folder = plugins_folder
+        self.extraction_folder = extraction_folder
         self.scenes_folder = scenes_folder
 
         self.active_workers = {}
@@ -39,7 +41,7 @@ class SceneWorkerManager(ISceneWorkerManager):
 
     def get_or_create_worker(self, scene_id: str, auto_load: bool = True) -> SceneWorkerController:
         if scene_id not in self.active_workers:
-            controller = SceneWorkerController(scene_id, self.plugins_folder, self.scenes_folder)
+            controller = SceneWorkerController(scene_id, self.plugins_folder, self.extraction_folder, self.scenes_folder)
             controller.start()
             self.active_workers[scene_id] = controller
 

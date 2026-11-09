@@ -1,5 +1,5 @@
 
-from typing import Callable, Optional, Type
+from typing import Any, Callable, Optional, Type
 
 from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginDomainException
 
@@ -95,6 +95,18 @@ class InvalidPluginNodeClassPath(PluginDomainException):
         )
 
 # Version stuff
+
+class InvalidPluginVersion(PluginDomainException):
+    def __init__(
+        self,
+        plugin_id: str,
+        version: Any,
+    ) -> None:
+        super().__init__(
+            "INVALID_PLUGIN_VERSION",
+            f"invalid plugin_version: {version!r}",
+            plugin_id, {"version": version}
+        )
 
 class IncompatibleEngineVersionPluginError(PluginDomainException):
     def __init__(
