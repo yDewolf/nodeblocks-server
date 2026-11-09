@@ -8,7 +8,7 @@ from typing import Optional, Union
 from filelock import FileLock
 from packaging.utils import canonicalize_name
 
-from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginPythonDependencyError
+from nodeserver.engine.exceptions.plugin.plugin_lib_exceptions import LibCompileFailed, NotAllowedToInstallLibsError
 from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest, PluginManifest
 
 logger = logging.getLogger("nds.plugins")
@@ -46,10 +46,7 @@ class PluginLibsManager:
             return target
 
         if not allow_install:
-            raise PluginPythonDependencyError(
-                f"Plugin libs {target.name} not installed. "
-                "Libs should only be installed by the server setup."
-            )
+            raise NotAllowedToInstallLibsError(target.name)
         
         libs_root.mkdir(parents=True, exist_ok=True)
         with FileLock(libs_root / ".install.lock", timeout=3600):
@@ -89,7 +86,7 @@ class PluginLibsManager:
                 check=True, timeout=1800
             )
             if res.returncode != 0:
-                raise PluginPythonDependencyError(res.stderr)
+                raise LibCompileFailed(res.stderr, reqs)
 
             missing = [
                 line for line in res.stdout.splitlines()
