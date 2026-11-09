@@ -5,14 +5,13 @@ from pathlib import Path
 
 from nodeserver.engine.exceptions.plugin.plugin_format_exceptions import InvalidPluginFolder, SymlinkInPluginDir
 from nodeserver.engine.plugins.helpers.plugin_hasher import PluginHasher
-from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION, PluginArchive
-from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_INFO_NAME
+from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSIONS, DEFAULT_ARCHIVE_EXTENSION, PluginArchive, ARCHIVE_INFO_NAME
 
 _ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
 
 class PluginPacker:
     EXCLUDED_PARTS = frozenset(PluginHasher.IGNORED_PATHS)
-    EXCLUDED_SUFFIXES = (".pyc", ".pyo", ARCHIVE_EXTENSION)
+    EXCLUDED_SUFFIXES = (".pyc", ".pyo", *ARCHIVE_EXTENSIONS)
 
     @classmethod
     def collect_files(cls, plugin_dir: Path) -> list[Path]:
@@ -22,7 +21,7 @@ class PluginPacker:
             if any(part in cls.EXCLUDED_PARTS for part in rel.parts):
                 continue
 
-            if path.suffix in cls.EXCLUDED_SUFFIXES:
+            if path.name.lower().endswith(cls.EXCLUDED_SUFFIXES):
                 continue
             
             if path.is_symlink():
@@ -34,7 +33,7 @@ class PluginPacker:
         return sorted(files, key=lambda part: part.relative_to(plugin_dir).as_posix())
 
     @classmethod
-    def pack(cls, plugin_dir: Path, info: PluginArchive, output_dir: Path) -> tuple[Path, int]:
+    def pack(cls, plugin_dir: Path, info: PluginArchive, output_dir: Path, zip_suffix: bool = False) -> tuple[Path, int]:
         """
         Generates -> `{output_dir}/{package_id}-{version}.nbplugin`
         Returns -> archive_path, file_amount
@@ -48,7 +47,8 @@ class PluginPacker:
             )
 
         output_dir.mkdir(parents=True, exist_ok=True)
-        out_path = output_dir / f"{info.package_id}-{info.plugin_version}{ARCHIVE_EXTENSION}"
+        suffix = DEFAULT_ARCHIVE_EXTENSION + (".zip" if zip_suffix else "")
+        out_path = output_dir / f"{info.package_id}-{info.plugin_version}{suffix}"
         tmp_path = out_path.with_name(out_path.name + ".tmp")
 
         try:

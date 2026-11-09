@@ -5,7 +5,7 @@ from pathlib import Path
 from nodeserver.cli.commands.base_command import CLICommand
 from nodeserver.engine.plugins.helpers.archive.plugin_packer import PluginPacker
 from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
-from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION, PluginArchive
+from nodeserver.engine.plugins.protocols.plugin_archive import DEFAULT_ARCHIVE_EXTENSION, PluginArchive
 
 
 class PackPluginCMD(CLICommand):
@@ -13,7 +13,7 @@ class PackPluginCMD(CLICommand):
     def on_register_command(cls, subparsers: _SubParsersAction[ArgumentParser]):
         parser = subparsers.add_parser(
             "pack:plugin",
-            description=f"Packs a plugin folder into a {ARCHIVE_EXTENSION} archive.",
+            description=f"Packs a plugin folder into a {DEFAULT_ARCHIVE_EXTENSION} archive.",
         )
         parser.add_argument(
             "path",
@@ -29,12 +29,20 @@ class PackPluginCMD(CLICommand):
             default=Path("dist"),
             help="Where the archive will be written. Defaults to ./dist",
         )
+        parser.add_argument(
+            "--zip",
+            dest="zip_suffix",
+            type=bool,
+            default=True,
+            help="If True -> file will have .nbplugin.zip suffix instead of only .nbplugin",
+        )
         return parser
 
     @classmethod
     def run(cls, args: Namespace):
         plugin_dir = Path(args.path).resolve()
         output_dir = Path(args.output).resolve()
+        zip_suffix = bool(args.zip_suffix)
 
         plugin_file = plugin_dir / "plugin.py"
         if not (plugin_file).is_file():
@@ -58,7 +66,7 @@ class PackPluginCMD(CLICommand):
         info = PluginArchive(**manifest.__dict__)
 
         try:
-            archive_path, file_count = PluginPacker.pack(plugin_dir, info, output_dir)
+            archive_path, file_count = PluginPacker.pack(plugin_dir, info, output_dir, zip_suffix)
         
         except Exception as e:
             cls._fail(str(e))

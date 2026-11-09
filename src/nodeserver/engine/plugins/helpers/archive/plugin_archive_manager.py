@@ -9,9 +9,7 @@ from pydantic import ValidationError
 from nodeserver.engine.exceptions.plugin.plugin_archive_exceptions import InvalidArchiveZip, InvalidArchiveInfoFile, UnsupportedArchiveFormat
 from nodeserver.engine.exceptions.plugin.plugin_exceptions import InvalidPluginVersion
 from nodeserver.engine.plugins.helpers.archive.plugin_unpacker import PluginUnpacker
-from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_FORMAT_VERSION, STATE_DIR_NAME, PluginArchive
-from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION, ARCHIVE_INFO_NAME
-from nodeserver.engine.plugins.protocols.plugin_archive import EnginePluginArchive
+from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSIONS, ARCHIVE_FORMAT_VERSION, STATE_DIR_NAME, PluginArchive, ARCHIVE_INFO_NAME, EnginePluginArchive
 
 logger = logging.getLogger("nds.plugins")
 
@@ -49,7 +47,7 @@ class PluginArchiveManager:
             return []
 
         selected_archives: dict[str, EnginePluginArchive] = {}
-        for path in sorted(plugins_folder.glob(f"*{ARCHIVE_EXTENSION}")):
+        for path in cls.find_archives(plugins_folder):
             try:
                 archive = cls.read_archive(path)
             
@@ -103,3 +101,10 @@ class PluginArchiveManager:
             
             except OSError as e:
                 logger.error("Failed to uninstall plugin %s: %s", package_id, e)
+
+    @staticmethod
+    def find_archives(folder: Path) -> list[Path]:
+        return sorted(
+            path for path in folder.iterdir()
+            if path.is_file() and path.name.lower().endswith(ARCHIVE_EXTENSIONS)
+        )

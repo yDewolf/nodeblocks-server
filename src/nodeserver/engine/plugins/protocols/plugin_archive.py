@@ -14,7 +14,8 @@ class PluginArchive(PluginManifest):
     built_with_engine: str = Field(default=CURRENT_ENGINE_VERSION)
 
 
-ARCHIVE_EXTENSION = ".nbplugin"
+DEFAULT_ARCHIVE_EXTENSION = ".nbplugin"
+ARCHIVE_EXTENSIONS = (DEFAULT_ARCHIVE_EXTENSION, ".nbplugin.zip")
 ARCHIVE_INFO_NAME = "nbplugin.json"
 
 STATE_DIR_NAME = ".nbplugin-state"

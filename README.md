@@ -62,6 +62,7 @@ Em `path` coloque o caminho da sua pasta de plugins (crie uma se não tiver) da 
 - `nodeserver pack:plugin <path>` -> compacta um plugin no formato `.nbplugin` (.zip)
   - `path`: Caminho da pasta do plugin que deve ser compactado. É `.` por padrão;
   - `-o`/`--output`: Pasta onde o arquivo compactado deve ser gerado.
+  - `--zip`: Se verdadeiro -> adiciona .zip ao sufixo do arquivo (o arquivo final fica como: `nbplugin.zip`). Útil para fazer upload no Github Releases.
 
 ## Sobre a arquitetura do projeto:
 O projeto usa uma "arquitetura hexagonal" bem adaptada dividida nas seguintes camadas:
