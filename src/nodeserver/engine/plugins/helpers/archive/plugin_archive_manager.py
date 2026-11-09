@@ -6,6 +6,8 @@ from pathlib import Path
 from packaging.version import InvalidVersion, Version
 from pydantic import ValidationError
 
+from nodeserver.engine.exceptions.plugin.plugin_archive_exceptions import InvalidArchiveZip, InvalidArchiveInfoFile, UnsupportedArchiveFormat
+from nodeserver.engine.exceptions.plugin.plugin_exceptions import InvalidPluginVersion
 from nodeserver.engine.plugins.helpers.archive.plugin_unpacker import PluginUnpacker
 from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_FORMAT_VERSION, STATE_DIR_NAME, PluginArchive
 from nodeserver.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION, ARCHIVE_INFO_NAME
@@ -14,38 +16,30 @@ from nodeserver.engine.plugins.protocols.plugin_archive import EnginePluginArchi
 logger = logging.getLogger("nds.plugins")
 
 
-_PACKAGE_ID_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.\-]*$")
-
 class PluginArchiveManager:
     @classmethod
     def read_archive(cls, path: Path) -> EnginePluginArchive:
         if not zipfile.is_zipfile(path):
-            raise Exception(f"not a valid zip file (incomplete copy?). Path: {path}")
+            raise InvalidArchiveZip(path, f"not a valid zip file (incomplete copy?). Path: {path}")
 
         try:
             with zipfile.ZipFile(path) as zip_file:
                 info = PluginArchive.model_validate_json(zip_file.read(ARCHIVE_INFO_NAME))
         
         except ValidationError as e:
-            raise Exception(f"Failed to validate info file: {e}")
+            raise InvalidArchiveInfoFile(path, f"Failed to validate info file: {e}")
         
         except (ValueError, zipfile.BadZipFile) as e:
-            raise Exception(f"Unreadable {ARCHIVE_INFO_NAME}: {e}")
+            raise InvalidArchiveInfoFile(path, f"Unreadable {ARCHIVE_INFO_NAME}: {e}")
 
         if info.format_version != ARCHIVE_FORMAT_VERSION:
-            raise Exception(
-                f"unsupported archive format (engine reads format_version {ARCHIVE_FORMAT_VERSION})"
-            )
-
-        package_id = info.package_id
-        if not isinstance(package_id, str) or not _PACKAGE_ID_RE.match(package_id):
-            raise Exception(f"invalid package_id: {package_id!r}")
+            raise UnsupportedArchiveFormat(info.format_version, ARCHIVE_FORMAT_VERSION, info.package_id)
 
         try:
             version = Version(str(info.plugin_version))
         
         except InvalidVersion:
-            raise Exception(f"invalid plugin_version: {info.plugin_version!r}") from None
+            raise InvalidPluginVersion(info.package_id, info.plugin_version)
 
         return EnginePluginArchive(**info.__dict__, path=path)
 
