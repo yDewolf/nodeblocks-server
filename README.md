@@ -2,24 +2,20 @@
 
 [NodeEditor](https://github.com/yDewolf/NodeEditor/) • [Nodeblocks::Server](https://github.com/yDewolf/node-editor-server-api) • [Documentação](https://github.com/yDewolf/NodeEditor/blob/server-docs/docs/server-docs.md) • [TODOs](TODO.md)
 
-# Nodeblocks
-Nodeblocks é um framework de sistemas baseados em nodes voltado para edição e em tempo real.
+## Nodeblocks
+Nodeblocks é um framework de nodes voltado para edição e processamento em tempo real.
 
 ## Aviso:
-Esse projeto está em constante desenvolvimento e está atualmente em estado de **beta**, ou seja, não há garantia alguma de que novas versões serão compatíveis com ``NodeScenes`` e ``TypeData`` de formatos anteriores.
-
-## Aviso sobre esse Branch:
-Esse branch busca atualizar a arquitetura do projeto para melhorar a escalabilidade, separando o projeto em 3 partes:
-- `Protocols`: Definição dos protocolos de `NodeScene`, etc; (basicamente o atual `wrapper/`)
-- `Engine`: implementação abstrata dos `Nodes` e coisas relacionadas ao runtime das cenas;
-- `Server`: tudo que é relacionado à comunicação externa
-
+Esse projeto está em constante desenvolvimento e está atualmente em **beta**, ou seja, espere encontrar os seguintes problemas ao transitar entre commits:
+- Incompatibilidade com determinados plugins;
+- Incompatibilidade com protocolos de comunicação antigos;
+- Bugs inesperados ([reportar aqui](https://github.com/yDewolf/nodeblocks-server/issues/))
 
 ## Esse repositório:
 ![GitHub repo size](https://img.shields.io/github/repo-size/yDewolf/node-editor-server-api)
 
 Esse repositório é voltado para o backend do Nodeblocks. O frontend pode ser encontrado [aqui](https://github.com/yDewolf/NodeEditor).
-> O Nodeblocks::Server é um framework para aplicações baseadas em NodeScenes que são interpretadas pelo servidor. Sua versão base oferece conexão com múltiplos Clients via Websocket. O framework é feito para ser modificado de acordo com as necessidades do seu projeto. [sobre o server](https://github.com/yDewolf/NodeEditor/blob/server-docs/docs/layers/server-api.md).
+> Nodeblocks::Server oferece tudo que é necessário para carregar plugins, interpretar grafos e editá-los através de um endpoint websocket (preferencialmente usando um [client](https://github.com/yDewolf/NodeEditor)). 
 
 ## Como Desenvolver:
 O requisito mínimo é o [python 3.13](https://www.python.org/downloads/release/python-3130/).
@@ -36,7 +32,40 @@ nodeserver build:protos
 ## Como rodar o servidor:
 1. Instale o projeto usando `pip install -e .`
 2. Compile os protobuffers com: `nodeserver build:protos`
-3. Rode o servidor base com: `nodeserver run --plugins {caminho/dos/plugins} --scenes {caminho/para/guardar/cenas}`
-  - `--plugins` é `./plugins` por padrão;
-  - `--scenes` é `./scenes` por padrão.
-...
+3. Rode o servidor base com: `nodeserver run --plugins {caminho/dos/plugins} --extraction {caminho/para/plugins/extraidos} --scenes {caminho/para/guardar/cenas}`
+   - `--plugins` é `./plugins` por padrão;
+   - `--extraction` é `./plugins` por padrão;
+   - `--scenes` é `./scenes` por padrão.
+
+## Como criar plugins:
+1. Certifique-se de que o projeto foi instalado com `pip install -e .`
+2. Use o comando `nodeserver create:plugin <path>` para criar a estrutura base do plugin.
+Em `path` coloque o caminho da sua pasta de plugins (crie uma se não tiver) da seguinte forma: `pasta/de/plugins/id_do_seu_plugin`.
+3. Vá até o diretório criado pelo comando e edite o arquivo `plugin.py`
+  - Esse arquivo apenas define informações do seu plugin e NÃO DEVE IMPORTAR NADA que não seja do próprio `nodeserver`;
+  - Você pode atualizar as `python_dependencies` de acordo com o que você vai usar. **Nota:** a dependência `core` em `dependencies` define `datatypes` para os tipos padrão do python como `str`, `int`, `float`, `list`, etc;
+4. Rode o servidor e verifique se seu plugin foi carregado corretamente;
+5. Comece a implementar os seus `nodes` e `datatypes`.
+  - Todo node deve estar anotado com `@plugin_node(id='id_do_seu_node')` e deve herdar `BaseNode`;
+  - Todo datatype deve estar anotado com `@plugin_datatype(id='id_do_seu_datatype', base_id=DefaultDataTypes.TIPO_DE_DADO, base_id=DefaultRenderers.TIPO_DE_RENDERER)` e deve herdar `PluginDatatype`;
+6. Mais informações sobre a criação de nodes em breve...
+
+## Comandos CLI:
+- `nodeserver run` -> executa o servidor base.
+  - `--plugins {caminho/dos/plugins}`: `./plugins` por padrão;
+  - `--extraction {caminho/para/plugins/extraidos}`: `./plugins` por padrão;
+  - `--scenes {caminho/para/guardar/cenas}`: `./scenes` por padrão;
+- `nodeserver build:protos` -> compila os arquivos .proto usados para a definição de protobuffers
+- `nodeserver create:plugin <path>` -> cria a estrutura de pastas de um plugin.
+  - `path`: Caminho da pasta onde o plugin deve ser criado. O caminho final seria: `path/package_id/plugin.py`
+  - `--id`: define o `package_id` do plugin. Caso não seja definido, o id do plugin será o nome da pasta do `path` e o caminho final será: `path/plugin.py`
+- `nodeserver pack:plugin <path>` -> compacta um plugin no formato `.nbplugin` (.zip)
+  - `path`: Caminho da pasta do plugin que deve ser compactado. É `.` por padrão;
+  - `-o`/`--output`: Pasta onde o arquivo compactado deve ser gerado.
+
+## Sobre a arquitetura do projeto:
+O projeto usa uma "arquitetura hexagonal" bem adaptada dividida nas seguintes camadas:
+- `protocols`: Definição dos protocolos de utilizados em múltiplas camadas como: `ManifestPackage`, `NodeTypeSpec`, etc;
+- `engine`: implementação abstrata dos nodes lógicos (`BaseNode`), definição da API de plugins e coisas relacionadas ao processamento dos grafos;
+- `server`: tudo que tem a ver com comunicação externa como: routers HTTP, websocket, etc.
+Essa é a divisão principal da estrutura do projeto que fica dividida em três pastas com os mesmos nomes das camadas. Cada uma dessas camadas tem seus próprios protocolos internos.
