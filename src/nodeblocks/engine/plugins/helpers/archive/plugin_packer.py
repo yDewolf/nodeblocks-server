@@ -10,7 +10,7 @@ from nodeblocks.engine.plugins.protocols.plugin_archive import ARCHIVE_EXTENSION
 _ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
 
 class PluginPacker:
-    EXCLUDED_PARTS = frozenset(PluginHasher.IGNORED_PATHS)
+    EXCLUDED_PARTS = frozenset(PluginHasher.IGNORED_PATHS.difference({"metadata"}))
     EXCLUDED_SUFFIXES = (".pyc", ".pyo", *ARCHIVE_EXTENSIONS)
 
     @classmethod
