@@ -1,5 +1,5 @@
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
-from nodeserver.engine.plugins.api.plugin import Plugin
+from nodeblocks.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeblocks.engine.plugins.api.plugin import Plugin
 
 
 class CorePlugin(Plugin):

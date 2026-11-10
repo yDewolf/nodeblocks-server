@@ -219,4 +219,4 @@ __marimo__/
 /_workspaces
 /metadata
 
-src/nodeserver/generated/*
+src/nodeblocks/generated/*

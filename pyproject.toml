@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nodeserver"
+name = "nodeblocks"
 version = "0.2.0"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-nodeserver = "nodeserver.cli.main:main"
+nodeblocks = "nodeblocks.cli.main:main"
 
 [project.optional-dependencies]
 dev = [
@@ -31,7 +31,7 @@ dev = [
 
 [tool.pytest]
 pythonpath = ["src"]
-testpaths = ["tests/nodeserver"] 
+testpaths = ["tests/nodeblocks"] 
 addopts = [
     "--import-mode=importlib",
 ]

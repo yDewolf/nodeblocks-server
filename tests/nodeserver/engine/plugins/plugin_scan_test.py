@@ -2,9 +2,9 @@ import pytest
 
 from pathlib import Path
 
-from nodeserver.engine.plugins.helpers.plugin_scanner import PluginScanner
-from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
-from nodeserver.protocols.manifest.package_manifest import ManifestPackage
+from nodeblocks.engine.plugins.helpers.plugin_scanner import PluginScanner
+from nodeblocks.engine.plugins.plugin_compiler import PluginCompiler
+from nodeblocks.protocols.manifest.package_manifest import ManifestPackage
 
 @pytest.fixture
 def plugins_setup() -> tuple[Path, Path]:

@@ -4,10 +4,10 @@ import sys
 
 import pytest
 
-from nodeserver.engine.engine_env import ENGINE_ENV
-from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
-from nodeserver.engine.plugins.plugin_manager import PluginManager
-from nodeserver.engine.registry.type_registry import TypeRegistry
+from nodeblocks.engine.engine_env import ENGINE_ENV
+from nodeblocks.engine.plugins.plugin_compiler import PluginCompiler
+from nodeblocks.engine.plugins.plugin_manager import PluginManager
+from nodeblocks.engine.registry.type_registry import TypeRegistry
 
 
 @pytest.fixture

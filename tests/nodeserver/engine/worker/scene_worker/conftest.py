@@ -4,24 +4,24 @@ import pytest
 from multiprocessing import Queue
 from pathlib import Path
 
-from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
-from nodeserver.engine.plugins.plugin_manager import PluginManager
-from nodeserver.engine.plugins.plugin_node_provider import PluginNodeProvider
-from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
-from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
-from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.providers.base_scene_providers import NoSceneArtifactProvider, NoSceneDataProvider, NoSceneStateProvider
-from nodeserver.engine.providers.file_artifact_provider import FileArtifactProvider
-from nodeserver.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
-from nodeserver.engine.runtime.job_runtime_context import SceneSuperContext
-from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.scene_worker_cmd_handler import SceneWorkerCommandHandler
-from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.manifest.node.datatypes import DataTypeSpec
-from nodeserver.protocols.manifest.node.node_graph import ConnectionSceneData, NodeSceneData, SceneData
-from nodeserver.protocols.manifest.node.node_manifest import NodeSlotSpec, NodeTypeSpec
-from nodeserver.protocols.manifest.package_manifest import ManifestPackage
+from nodeblocks.engine.engine_version import CURRENT_ENGINE_VERSION
+from nodeblocks.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
+from nodeblocks.engine.plugins.plugin_manager import PluginManager
+from nodeblocks.engine.plugins.plugin_node_provider import PluginNodeProvider
+from nodeblocks.engine.plugins.protocols.plugin_manifest import EnginePluginManifest
+from nodeblocks.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
+from nodeblocks.engine.protocols.node.node_scene import NodeScene
+from nodeblocks.engine.providers.base_scene_providers import NoSceneArtifactProvider, NoSceneDataProvider, NoSceneStateProvider
+from nodeblocks.engine.providers.file_artifact_provider import FileArtifactProvider
+from nodeblocks.engine.providers.file_scene_provider import FileSceneDataProvider, FileSceneStateProvider
+from nodeblocks.engine.runtime.job_runtime_context import SceneSuperContext
+from nodeblocks.engine.workers.scene.scene_worker import SceneWorker
+from nodeblocks.engine.workers.scene.scene_worker_cmd_handler import SceneWorkerCommandHandler
+from nodeblocks.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
+from nodeblocks.protocols.manifest.node.datatypes import DataTypeSpec
+from nodeblocks.protocols.manifest.node.node_graph import ConnectionSceneData, NodeSceneData, SceneData
+from nodeblocks.protocols.manifest.node.node_manifest import NodeSlotSpec, NodeTypeSpec
+from nodeblocks.protocols.manifest.package_manifest import ManifestPackage
 
 class SceneWorkerNodeIn(NodeInputs):
     in_0: Optional[int] = 0

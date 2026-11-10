@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch
 
-from nodeserver.engine.plugins.plugin_node_provider import PluginNodeProvider
+from nodeblocks.engine.plugins.plugin_node_provider import PluginNodeProvider
 
 @pytest.fixture
 def provider(plugin_manager):

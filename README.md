@@ -26,23 +26,23 @@ pip install -e .[dev]
 ````
 Depois compile os arquivos .proto:
 ````
-nodeserver build:protos
+nodeblocks build:protos
 ````
 
 ## Como rodar o servidor:
 1. Instale o projeto usando `pip install -e .`
-2. Compile os protobuffers com: `nodeserver build:protos`
-3. Rode o servidor base com: `nodeserver run --plugins {caminho/dos/plugins} --extraction {caminho/para/plugins/extraidos} --scenes {caminho/para/guardar/cenas}`
+2. Compile os protobuffers com: `nodeblocks build:protos`
+3. Rode o servidor base com: `nodeblocks run --plugins {caminho/dos/plugins} --extraction {caminho/para/plugins/extraidos} --scenes {caminho/para/guardar/cenas}`
    - `--plugins` é `./plugins` por padrão;
    - `--extraction` é `./plugins` por padrão;
    - `--scenes` é `./scenes` por padrão.
 
 ## Como criar plugins:
 1. Certifique-se de que o projeto foi instalado com `pip install -e .`
-2. Use o comando `nodeserver create:plugin <path>` para criar a estrutura base do plugin.
+2. Use o comando `nodeblocks create:plugin <path>` para criar a estrutura base do plugin.
 Em `path` coloque o caminho da sua pasta de plugins (crie uma se não tiver) da seguinte forma: `pasta/de/plugins/id_do_seu_plugin`.
 3. Vá até o diretório criado pelo comando e edite o arquivo `plugin.py`
-  - Esse arquivo apenas define informações do seu plugin e NÃO DEVE IMPORTAR NADA que não seja do próprio `nodeserver`;
+  - Esse arquivo apenas define informações do seu plugin e NÃO DEVE IMPORTAR NADA que não seja do próprio `nodeblocks`;
   - Você pode atualizar as `python_dependencies` de acordo com o que você vai usar. **Nota:** a dependência `core` em `dependencies` define `datatypes` para os tipos padrão do python como `str`, `int`, `float`, `list`, etc;
 4. Rode o servidor e verifique se seu plugin foi carregado corretamente;
 5. Comece a implementar os seus `nodes` e `datatypes`.
@@ -51,15 +51,15 @@ Em `path` coloque o caminho da sua pasta de plugins (crie uma se não tiver) da 
 6. Mais informações sobre a criação de nodes em breve...
 
 ## Comandos CLI:
-- `nodeserver run` -> executa o servidor base.
+- `nodeblocks run` -> executa o servidor base.
   - `--plugins {caminho/dos/plugins}`: `./plugins` por padrão;
   - `--extraction {caminho/para/plugins/extraidos}`: `./plugins` por padrão;
   - `--scenes {caminho/para/guardar/cenas}`: `./scenes` por padrão;
-- `nodeserver build:protos` -> compila os arquivos .proto usados para a definição de protobuffers
-- `nodeserver create:plugin <path>` -> cria a estrutura de pastas de um plugin.
+- `nodeblocks build:protos` -> compila os arquivos .proto usados para a definição de protobuffers
+- `nodeblocks create:plugin <path>` -> cria a estrutura de pastas de um plugin.
   - `path`: Caminho da pasta onde o plugin deve ser criado. O caminho final seria: `path/package_id/plugin.py`
   - `--id`: define o `package_id` do plugin. Caso não seja definido, o id do plugin será o nome da pasta do `path` e o caminho final será: `path/plugin.py`
-- `nodeserver pack:plugin <path>` -> compacta um plugin no formato `.nbplugin` (.zip)
+- `nodeblocks pack:plugin <path>` -> compacta um plugin no formato `.nbplugin` (.zip)
   - `path`: Caminho da pasta do plugin que deve ser compactado. É `.` por padrão;
   - `-o`/`--output`: Pasta onde o arquivo compactado deve ser gerado.
   - `--zip`: Se verdadeiro -> adiciona .zip ao sufixo do arquivo (o arquivo final fica como: `nbplugin.zip`). Útil para fazer upload no Github Releases.

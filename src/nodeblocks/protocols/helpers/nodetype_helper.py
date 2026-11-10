@@ -1,0 +1,13 @@
+from nodeblocks.protocols.manifest.node.datatypes import ParameterSpec
+from nodeblocks.protocols.manifest.node.node_manifest import NodeSlotSpec, NodeTypeSpec
+
+
+class NodeTypeHelper:
+    @staticmethod
+    def create_spec(namespace: str, id: str, parameters: dict[str, ParameterSpec], slots: dict[str, NodeSlotSpec]) -> NodeTypeSpec:
+        return NodeTypeSpec(
+            namespace=namespace,
+            id=id,
+            parameters=parameters,
+            slots=slots
+        )

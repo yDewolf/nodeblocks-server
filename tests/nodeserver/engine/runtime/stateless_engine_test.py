@@ -1,17 +1,17 @@
 import pytest
 
-from nodeserver.engine.helpers.node_spec_builder import NodeSpecBuilder
-from nodeserver.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
-from nodeserver.engine.protocols.node.node_scene import NodeScene
-from nodeserver.engine.providers.base_node_providers import BaseNodeProvider
-from nodeserver.engine.protocols.parameters.node_parameter import NodeParameters
-from nodeserver.engine.providers.base_scene_providers import NoSceneDataProvider
-from nodeserver.engine.providers.base_scene_providers import NoSceneStateProvider
-from nodeserver.engine.runtime.graph_engine import StatelessGraphEngine
-from nodeserver.engine.runtime.protocols.engine_context import EnclosedEngineContext
-from nodeserver.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
-from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
-from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
+from nodeblocks.engine.helpers.node_spec_builder import NodeSpecBuilder
+from nodeblocks.engine.protocols.node.logic_nodes import BaseNode, NodeInputs, NodeOutputs
+from nodeblocks.engine.protocols.node.node_scene import NodeScene
+from nodeblocks.engine.providers.base_node_providers import BaseNodeProvider
+from nodeblocks.engine.protocols.parameters.node_parameter import NodeParameters
+from nodeblocks.engine.providers.base_scene_providers import NoSceneDataProvider
+from nodeblocks.engine.providers.base_scene_providers import NoSceneStateProvider
+from nodeblocks.engine.runtime.graph_engine import StatelessGraphEngine
+from nodeblocks.engine.runtime.protocols.engine_context import EnclosedEngineContext
+from nodeblocks.engine.helpers.engine_runtime_helper import EngineRuntimeHelper
+from nodeblocks.engine.runtime.protocols.engine_events import NodeExecutionStatus
+from nodeblocks.protocols.manifest.node.node_graph import NodeSceneData
 
 
 class ValueInput(NodeInputs):

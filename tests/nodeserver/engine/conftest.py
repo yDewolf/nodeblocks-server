@@ -3,13 +3,13 @@ from typing import Annotated, Any, Optional
 from pydantic import Field
 import pytest
 
-from nodeserver.engine import NodeInputs, NodeOutputs, BaseNode
-from nodeserver.engine import NodeParameters
-from nodeserver.engine import TypeRegistry
-from nodeserver.engine import NodeSpecBuilder
-from nodeserver.engine.protocols.spec_dataclasses import SlotSpecMeta
-from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
+from nodeblocks.engine import NodeInputs, NodeOutputs, BaseNode
+from nodeblocks.engine import NodeParameters
+from nodeblocks.engine import TypeRegistry
+from nodeblocks.engine import NodeSpecBuilder
+from nodeblocks.engine.protocols.spec_dataclasses import SlotSpecMeta
+from nodeblocks.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
+from nodeblocks.protocols.helpers.datatype_helper import DatatypeHelper
 
 class CustomType:
     pass

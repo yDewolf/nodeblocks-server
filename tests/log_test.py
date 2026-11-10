@@ -2,13 +2,13 @@ from pathlib import Path
 import sys
 
 import logging
-from nodeserver.engine.logging_config import setup_logging
+from nodeblocks.engine.logging_config import setup_logging
 setup_logging(default_level=logging.DEBUG)
 
-from nodeserver.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper
-from nodeserver.engine.plugins.plugin_compiler import PluginCompiler
-from nodeserver.engine.plugins.plugin_manager import PluginManager
-from nodeserver.engine.registry.type_registry import TypeRegistry
+from nodeblocks.engine.helpers.plugin_subprocess_helper import PluginSubprocessHelper
+from nodeblocks.engine.plugins.plugin_compiler import PluginCompiler
+from nodeblocks.engine.plugins.plugin_manager import PluginManager
+from nodeblocks.engine.registry.type_registry import TypeRegistry
 
 if __name__ == "__main__":
     root_path = Path(__file__).parent.parent

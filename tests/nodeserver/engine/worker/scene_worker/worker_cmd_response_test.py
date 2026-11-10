@@ -1,10 +1,10 @@
 import pytest
 
-from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import AddNodesCommand, GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import AddNodeCommandResponse, SceneWorkerCommandResponse
-from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
-from nodeserver.protocols.manifest.node.node_graph import SceneData
+from nodeblocks.engine.workers.scene.scene_worker import SceneWorker
+from nodeblocks.engine.workers.scene.protocols.scene_worker_commands import AddNodesCommand, GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd, UpdateTargetNodesCmd
+from nodeblocks.engine.workers.scene.protocols.scene_worker_protocol import AddNodeCommandResponse, SceneWorkerCommandResponse
+from nodeblocks.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
+from nodeblocks.protocols.manifest.node.node_graph import SceneData
 
 @pytest.fixture
 def scene_data() -> SceneData:

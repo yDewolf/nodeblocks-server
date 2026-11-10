@@ -6,8 +6,8 @@
     ],
     "python.analysis.typeCheckingMode": "basic",
     "python.testing.pytestArgs": [
-        "tests/nodeserver/engine/",
-        "tests/nodeserver/server/",
+        "tests/nodeblocks/engine/",
+        "tests/nodeblocks/server/",
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,

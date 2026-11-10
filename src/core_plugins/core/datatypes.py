@@ -3,10 +3,10 @@ from typing import Any, Sequence
 
 import numpy
 
-from nodeserver.engine.plugins.api.decorators.plugin_decorators import plugin_datatype
-from nodeserver.engine.plugins.api.plugin_datatype import PluginDatatype
-from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.manifest.node.datatype_value_meta import ArrayMetadata, NoMetaDataTypeValue, SerializedDataTypeValue, FileMetadata
+from nodeblocks.engine.plugins.api.decorators.plugin_decorators import plugin_datatype
+from nodeblocks.engine.plugins.api.plugin_datatype import PluginDatatype
+from nodeblocks.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
+from nodeblocks.protocols.manifest.node.datatype_value_meta import ArrayMetadata, NoMetaDataTypeValue, SerializedDataTypeValue, FileMetadata
 
 
 @plugin_datatype(

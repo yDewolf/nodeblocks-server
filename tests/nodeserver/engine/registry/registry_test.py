@@ -1,8 +1,8 @@
 import pytest
-from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
-from tests.nodeserver.engine.conftest import CustomType
-from tests.nodeserver.engine.helpers.node_spec_builder_test import MockNode
+from nodeblocks.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
+from nodeblocks.protocols.helpers.datatype_helper import DatatypeHelper
+from tests.nodeblocks.engine.conftest import CustomType
+from tests.nodeblocks.engine.helpers.node_spec_builder_test import MockNode
 
 
 class TestNodeSpecBuilderCustomTypeRegistration:

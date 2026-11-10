@@ -3,13 +3,13 @@ from queue import Empty
 import threading
 import time
 
-from nodeserver.engine.runtime.protocols.engine_events import NodeExecutionStatus
-from nodeserver.engine.runtime.protocols.engine_events import EvtNodeStatusChanged
-from nodeserver.engine.workers.scene.scene_worker import SceneWorker
-from nodeserver.engine.workers.scene.protocols.scene_worker_commands import GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd
-from nodeserver.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, WorkerEngineEventWrapper
-from nodeserver.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
-from nodeserver.protocols.manifest.node.node_graph import SceneData
+from nodeblocks.engine.runtime.protocols.engine_events import NodeExecutionStatus
+from nodeblocks.engine.runtime.protocols.engine_events import EvtNodeStatusChanged
+from nodeblocks.engine.workers.scene.scene_worker import SceneWorker
+from nodeblocks.engine.workers.scene.protocols.scene_worker_commands import GraphStepCommand, LoadSceneDataCommand, PauseGraphCommand, StopWorkerCommand, UpdateExecutionModeCmd, UpdateExecutionStateCmd
+from nodeblocks.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, WorkerEngineEventWrapper
+from nodeblocks.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionMode, SceneWorkerExecutionState
+from nodeblocks.protocols.manifest.node.node_graph import SceneData
 
 
 def run_runtime_loop(worker: SceneWorker):

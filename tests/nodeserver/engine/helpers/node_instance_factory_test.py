@@ -1,13 +1,13 @@
 import pytest
 
 
-from nodeserver.engine.helpers.node_instance_factory import NodeInstanceFactory
-from nodeserver.engine import BaseNode
-from nodeserver.engine.protocols.node.node_instance import NodeInstance, SlotInstance
-from nodeserver.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
-from nodeserver.protocols.helpers.datatype_helper import DatatypeHelper
-from nodeserver.protocols.manifest.node.node_graph import NodeSceneData
-from tests.nodeserver.engine.conftest import CustomType, MockNode
+from nodeblocks.engine.helpers.node_instance_factory import NodeInstanceFactory
+from nodeblocks.engine import BaseNode
+from nodeblocks.engine.protocols.node.node_instance import NodeInstance, SlotInstance
+from nodeblocks.protocols.enums.datatype_enums import DefaultDataTypes, DefaultRenderers
+from nodeblocks.protocols.helpers.datatype_helper import DatatypeHelper
+from nodeblocks.protocols.manifest.node.node_graph import NodeSceneData
+from tests.nodeblocks.engine.conftest import CustomType, MockNode
 
 
 @pytest.fixture

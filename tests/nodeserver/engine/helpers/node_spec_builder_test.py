@@ -1,4 +1,4 @@
-from tests.nodeserver.engine.conftest import MockNode
+from tests.nodeblocks.engine.conftest import MockNode
 
 class TestNodeSpecBuilderSlots:
     def test_infer_slot_data_types_from_input_model(self, default_builder):

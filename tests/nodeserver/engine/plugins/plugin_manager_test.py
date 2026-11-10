@@ -2,18 +2,18 @@ from typing import Optional
 from pathlib import Path
 import pytest
 
-from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.plugins.api.plugin import Plugin
-from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
-from nodeserver.engine.plugins.plugin_manager import PluginManager
-from nodeserver.engine.registry.type_registry import TypeRegistry
-from nodeserver.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingSourceHash, PluginNotLoadedError
-from nodeserver.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
-from nodeserver.engine.plugins.plugin_manager import PluginManager
-from nodeserver.engine.plugins.protocols.plugin_manifest import EnginePluginManifest, PluginManifest
-from nodeserver.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
-from nodeserver.engine.registry.type_registry import TypeRegistry
-from nodeserver.protocols.manifest.package_manifest import ManifestPackage
+from nodeblocks.engine.engine_version import CURRENT_ENGINE_VERSION
+from nodeblocks.engine.plugins.api.plugin import Plugin
+from nodeblocks.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
+from nodeblocks.engine.plugins.plugin_manager import PluginManager
+from nodeblocks.engine.registry.type_registry import TypeRegistry
+from nodeblocks.engine.exceptions.plugin.plugin_internal_exceptions import PluginMissingSourceHash, PluginNotLoadedError
+from nodeblocks.engine.plugins.helpers.plugin_manifest_helper import PluginManifestHelper
+from nodeblocks.engine.plugins.plugin_manager import PluginManager
+from nodeblocks.engine.plugins.protocols.plugin_manifest import EnginePluginManifest, PluginManifest
+from nodeblocks.engine.plugins.protocols.plugin_specs import PluginDatatypeRef
+from nodeblocks.engine.registry.type_registry import TypeRegistry
+from nodeblocks.protocols.manifest.package_manifest import ManifestPackage
 
 
 @pytest.fixture

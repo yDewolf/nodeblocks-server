@@ -1,7 +1,7 @@
-from nodeserver.engine.engine_version import CURRENT_ENGINE_VERSION
-from nodeserver.engine.plugins.api.plugin import Plugin
-from nodeserver.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
-from nodeserver.engine.plugins.protocols.plugin_manifest import PluginManifest
+from nodeblocks.engine.engine_version import CURRENT_ENGINE_VERSION
+from nodeblocks.engine.plugins.api.plugin import Plugin
+from nodeblocks.engine.plugins.api.plugin_api_version import CURRENT_PLUGIN_API_VERSION
+from nodeblocks.engine.plugins.protocols.plugin_manifest import PluginManifest
 
 class TestPlugin(Plugin):
     manifest = PluginManifest(
