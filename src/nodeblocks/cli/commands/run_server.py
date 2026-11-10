@@ -9,7 +9,7 @@ class RunServerCMD(CLICommand):
     @classmethod
     def on_register_command(cls, subparsers: _SubParsersAction[ArgumentParser]):
         parser = subparsers.add_parser(
-            "run",
+            "run:server",
             description="Runs base Nodeblocks server."
         )
         parser.add_argument(

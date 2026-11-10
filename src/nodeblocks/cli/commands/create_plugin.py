@@ -17,7 +17,7 @@ class CreatePluginCMD(CLICommand):
     @classmethod
     def on_register_command(cls, subparsers: _SubParsersAction[ArgumentParser]):
         parser = subparsers.add_parser(
-            "create:plugin",
+            "plugin:create",
             description="Generates an Example Plugin Structure."
         )
         parser.add_argument(

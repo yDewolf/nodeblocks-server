@@ -13,7 +13,7 @@ class PackPluginCMD(CLICommand):
     @classmethod
     def on_register_command(cls, subparsers: _SubParsersAction[ArgumentParser]):
         parser = subparsers.add_parser(
-            "pack:plugin",
+            "plugin:pack",
             description=f"Packs a plugin folder into a {DEFAULT_ARCHIVE_EXTENSION} archive.",
         )
         parser.add_argument(

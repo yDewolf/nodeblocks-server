@@ -39,7 +39,7 @@ nodeblocks build:protos
 
 ## Como criar plugins:
 1. Certifique-se de que o projeto foi instalado com `pip install -e .`
-2. Use o comando `nodeblocks create:plugin <path>` para criar a estrutura base do plugin.
+2. Use o comando `nodeblocks plugin:create <path>` para criar a estrutura base do plugin.
 Em `path` coloque o caminho da sua pasta de plugins (crie uma se não tiver) da seguinte forma: `pasta/de/plugins/id_do_seu_plugin`.
 3. Vá até o diretório criado pelo comando e edite o arquivo `plugin.py`
   - Esse arquivo apenas define informações do seu plugin e NÃO DEVE IMPORTAR NADA que não seja do próprio `nodeblocks`;
@@ -51,15 +51,15 @@ Em `path` coloque o caminho da sua pasta de plugins (crie uma se não tiver) da 
 6. Mais informações sobre a criação de nodes em breve...
 
 ## Comandos CLI:
-- `nodeblocks run` -> executa o servidor base.
+- `nodeblocks run:server` -> executa o servidor base.
   - `--plugins {caminho/dos/plugins}`: `./plugins` por padrão;
   - `--extraction {caminho/para/plugins/extraidos}`: `./plugins` por padrão;
   - `--scenes {caminho/para/guardar/cenas}`: `./scenes` por padrão;
 - `nodeblocks build:protos` -> compila os arquivos .proto usados para a definição de protobuffers
-- `nodeblocks create:plugin <path>` -> cria a estrutura de pastas de um plugin.
+- `nodeblocks plugin:create <path>` -> cria a estrutura de pastas de um plugin.
   - `path`: Caminho da pasta onde o plugin deve ser criado. O caminho final seria: `path/package_id/plugin.py`
   - `--id`: define o `package_id` do plugin. Caso não seja definido, o id do plugin será o nome da pasta do `path` e o caminho final será: `path/plugin.py`
-- `nodeblocks pack:plugin <path>` -> compacta um plugin no formato `.nbplugin` (.zip)
+- `nodeblocks plugin:pack <path>` -> compacta um plugin no formato `.nbplugin` (.zip)
   - `path`: Caminho da pasta do plugin que deve ser compactado. É `.` por padrão;
   - `-o`/`--output`: Pasta onde o arquivo compactado deve ser gerado.
   - `--zip`: Se verdadeiro -> adiciona .zip ao sufixo do arquivo (o arquivo final fica como: `nbplugin.zip`). Útil para fazer upload no Github Releases.
