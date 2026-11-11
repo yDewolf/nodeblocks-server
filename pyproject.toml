@@ -43,3 +43,9 @@ log_cli_level = "INFO"
 
 [tool.setuptools.packages.find]
 where=["src"]
+
+[tool.setuptools.package-data]
+nodeblocks = [
+    "core_plugins/core/*.py",
+    "core_plugins/core/metadata/**/*.json",
+]
