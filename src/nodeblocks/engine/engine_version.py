@@ -1,3 +1,10 @@
+"""
+Engine Version Specifications:
+- Major -> changes on how graphs are processed that might break existent nodes;
+- Minor -> new features that don't break existent stuff;
+- Micro -> fixes.
+"""
+
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 import tomllib
