@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 from nodeblocks.engine.engine_env import ENGINE_ENV
+from nodeblocks.engine.logging_config import setup_logging
 from nodeblocks.engine.plugins.helpers.archive.plugin_archive_manager import PluginArchiveManager
 from nodeblocks.engine.plugins.helpers.plugin_libs_manager import PluginLibsManager
 from nodeblocks.engine.plugins.helpers.plugin_scanner import PluginScanner
@@ -27,6 +28,7 @@ def _run_indexer_task(
     compile_core_plugins: bool = True,
     libs_dir: Optional[Path] = None
 ):
+    setup_logging(default_level=ENGINE_ENV.logging_level)
     full_registry = TypeRegistry()
     plugin_manager = PluginManager(
         full_registry,

@@ -91,17 +91,18 @@ class PluginManager(PluginSpecManager):
         Scans a folder using PluginScanner then compiles each plugin found by it
         optionally saves ManifestPackage json (for fast boot)
         """
+        logger.info("Compiling plugins from %s...", source_folders)
         discovered_manifests: list[tuple[EnginePluginManifest, Path]] = []
         for folder in source_folders if isinstance(source_folders, list) else [source_folders]:
             discovered_manifests += self.scanner.discover_plugins(folder)
 
+        logger.info("Compiling discovered plugins: %s", ", ".join([manifest.package_id for manifest, _ in discovered_manifests]))
         cached_plugin_list = PluginListCache(cached_plugins={})
         if plugin_list_path:
             cached_plugin_list = PluginManifestHelper.load_or_create_plugin_list_cache(plugin_list_path)
             if output_folder:
                 output_folder.mkdir(parents=True, exist_ok=True)
 
-        logger.info("Compiling plugins from %s...", source_folders)
         compiled_manifests: list[ManifestPackage] = []
         for manifest, file_path in self.resolve_plugin_load_order(discovered_manifests):
             self.version_manager.validate_plugin_requirements(
@@ -123,7 +124,7 @@ class PluginManager(PluginSpecManager):
     # Single Plugin 'Actions'
 
     def _compile_plugin_manifest(self, manifest: EnginePluginManifest, file_path: Path, save_to_disk: bool = True, cache_out_folder: Optional[Path] = None, assign_to_registry: bool = False) -> ManifestPackage:
-        logger.info("Compiling plugin manifest... - package_id: %s", manifest.package_id)
+        # logger.info("Compiling plugin manifest... - package_id: %s", manifest.package_id)
         modules = self.scanner.discover_modules(file_path.parent)
         self.compiler.compile_plugin_modules(manifest, modules)
         

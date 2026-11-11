@@ -33,7 +33,8 @@ class PluginScanner:
         logger.debug("Searching for plugin modules in %s", plugin_dir)
         module_paths: list[str] = []
         for file_path in plugin_dir.rglob("*.py"):
-            if any(part.startswith(".") or part.startswith("__") for part in file_path.parts):
+            relative_path = file_path.relative_to(plugin_dir)
+            if any(part.startswith(".") or part.startswith("__") for part in relative_path.parts):
                 continue
             
             if file_path.name in ("plugin.py", "setup.py"):

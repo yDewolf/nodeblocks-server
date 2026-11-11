@@ -35,17 +35,14 @@ def setup_logging(default_level=logging.INFO):
                 "propagate": False,
             },
             "nds.spec": {
-                "level": "INFO",
                 "handlers": ["consoleHandler"],
                 "propagate": False,
             },
             "nds.plugins": {
-                "level": "INFO",
                 "handlers": ["consoleHandler"],
                 "propagate": False,
             },
             "nds.worker": {
-                "level": "DEBUG",
                 "handlers": ["consoleHandler"],
                 "propagate": False,
             },

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import platformdirs
@@ -15,5 +16,6 @@ class EngineEnv(BaseSettings):
     plugin_libs_folder: Path = platformdirs.user_data_path("nodeblocks")
 
     core_plugins: list[str] = ["core"]
+    logging_level: int = logging.DEBUG
 
 ENGINE_ENV = EngineEnv()
