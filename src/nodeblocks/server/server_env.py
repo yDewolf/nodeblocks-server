@@ -14,4 +14,6 @@ class ServerEnv(BaseSettings):
     scene_worker_grace_period: float = 5 * 60 # seconds
     worker_status_check_interval: float = 10.0 # seconds
 
+    include_remote_access_routes: bool = False
+
 SERVER_ENV = ServerEnv()

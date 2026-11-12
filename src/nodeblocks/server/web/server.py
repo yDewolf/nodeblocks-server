@@ -27,6 +27,7 @@ from nodeblocks.server.web.policies.scene_permission_policy import FilePermissio
 from nodeblocks.server.web.routing.base_router import BaseDynamicRouter, BaseRouter
 from nodeblocks.server.web.routing.metadata_http_router import MetadataHTTPRouter
 from nodeblocks.server.web.routing.plugin_http_router import PluginHTTPRouter
+from nodeblocks.server.web.routing.remote_http_router import RemoteHTTPRouter
 from nodeblocks.server.web.routing.scene_artifact_http_router import SceneArtifactHTTPRouter
 from nodeblocks.server.web.routing.scene_http_router import SceneHTTPRouter
 from nodeblocks.server.web.routing.scene_ws_event_router import SceneWebsocketEventRouter
@@ -95,6 +96,7 @@ class NodeServer:
             SceneArtifactHTTPRouter(self.app),
             UserHTTPRouter(self.app),
             MetadataHTTPRouter(self.app),
+            RemoteHTTPRouter(self.app),
             *extra_routers
         ]
         self._setup_routes()
