@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import asyncio
 import logging
 
+from aiohttp import web
+
 from nodeblocks.server.web.app import NodeServerWebApp
 
 logger = logging.getLogger("nds.server")
@@ -15,6 +17,12 @@ class BaseRouter(ABC):
     def _setup_routes(self):
         pass
 
+    def public_route(self, route: web.AbstractRoute) -> web.AbstractRoute:
+        info = route.get_info()
+        path = info.get("path") or info.get("formatter")
+        
+        if path: self.app.public_routes.add(path)
+        return route
 
 class BaseDynamicRouter(BaseRouter, ABC):
     _tasks: list[asyncio.Task]

@@ -11,9 +11,9 @@ logger = logging.getLogger("nds.server")
 
 class RemoteHTTPRouter(BaseRouter):
     def _setup_routes(self):
-        self.app.router.add_get("/api/health-check", self.health_check)
-        self.app.router.add_post("/api/server/token", self.create_connection_token)
-        self.app.router.add_get("/api/server/events", self.server_events_handler)
+        self.public_route(self.app.router.add_get("/api/health-check", self.health_check))
+        self.public_route(self.app.router.add_post("/api/server/token", self.create_connection_token))
+        self.public_route(self.app.router.add_get("/api/server/events", self.server_events_handler))
 
         if SERVER_ENV.include_remote_access_routes:
             logger.warning("Including remote access routes. Beware that this is experimental and should be used only in local environments.")
@@ -26,7 +26,7 @@ class RemoteHTTPRouter(BaseRouter):
         try:
             token = await self.app.session_policy.create_token(request, self.app.auth_policy)
         except Exception as e:
-            return web.json_response({"error": "Failed to create token", "message": str(e)})
+            return web.json_response({"error": "Failed to create token", "message": str(e)}, status=400)
 
         return web.json_response(str(token))
 

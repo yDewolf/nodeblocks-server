@@ -6,6 +6,7 @@ import time
 from typing import Optional
 
 from aiohttp import web
+from aiohttp.typedefs import Middleware
 import aiohttp_cors
 
 from nodeblocks.engine.plugins.plugin_spec_manager import PluginSpecManager
@@ -26,6 +27,7 @@ from nodeblocks.server.web.manager.scene_worker_manager import SceneWorkerManage
 from nodeblocks.server.web.manager.scene_session_manager import SceneSessionManager
 from nodeblocks.server.web.manager.server_session_manager import ServerSessionManager
 from nodeblocks.server.web.manager.server_status_manager import ServerStatusManager
+from nodeblocks.server.web.middlewares.auth_middlewares import token_auth_middleware
 from nodeblocks.server.web.policies.dev_policies import DevAuthPolicy, DevSessionPolicy
 from nodeblocks.server.web.policies.scene_permission_policy import FilePermissionPolicy
 from nodeblocks.server.web.routing.base_router import BaseDynamicRouter, BaseRouter
@@ -67,6 +69,7 @@ class NodeServer:
         metadata_provider: Optional[IServerMetadataProvider] = None,
         extra_routers: list[BaseRouter] = [],
         extraction_folder: Optional[Path] = None,
+        middlewares: Optional[list[Middleware]] = None,
         host: str = "127.0.0.1",
         port: int = 8080
     ) -> None:
@@ -78,7 +81,9 @@ class NodeServer:
         self.extraction_folder = extraction_folder or plugins_folder
         self.scenes_folder = scenes_folder
 
-        self.app = NodeServerWebApp()
+        self.app = NodeServerWebApp(middlewares=[
+            token_auth_middleware
+        ])
         self.app.on_startup.append(self._on_startup)
         self.app.on_cleanup.append(self._on_cleanup)
 
@@ -136,7 +141,7 @@ class NodeServer:
             "*": aiohttp_cors.ResourceOptions(
                 allow_credentials=True,
                 expose_headers="*",
-                allow_headers="*",
+                allow_headers=("Authorization", "Content-Type"),
                 allow_methods="*",
             )
         })
