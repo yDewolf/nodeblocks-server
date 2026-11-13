@@ -2,16 +2,21 @@ import asyncio
 import logging
 
 from aiohttp import web
+from packaging.version import parse as parse_version
+from pydantic import ValidationError
 
+from nodeblocks.engine.helpers.version_helper import VersionHelper
 from nodeblocks.server.protocols.session.server_connection import ConnectionToken, ServerConnectionSession
+from nodeblocks.server.protocols.web.remote_requests import HealthCheckRequest
 from nodeblocks.server.server_env import SERVER_ENV
+from nodeblocks.server.server_version import SERVER_API_VERSION, SERVER_API_COMPAT_SPECIFIER
 from nodeblocks.server.web.routing.base_router import BaseRouter
 
 logger = logging.getLogger("nds.server")
 
 class RemoteHTTPRouter(BaseRouter):
     def _setup_routes(self):
-        self.public_route(self.app.router.add_get("/api/health-check", self.health_check))
+        self.public_route(self.app.router.add_post("/api/health-check", self.health_check))
         self.public_route(self.app.router.add_post("/api/server/token", self.create_connection_token))
         self.public_route(self.app.router.add_get("/api/server/events", self.server_events_handler))
 
@@ -19,7 +24,27 @@ class RemoteHTTPRouter(BaseRouter):
             logger.warning("Including remote access routes. Beware that this is experimental and should be used only in local environments.")
 
     async def health_check(self, request: web.Request):
-        return web.json_response()
+        try:
+            data = await request.json()
+        except Exception as e:
+            data = {}
+        
+        try: 
+            parsed_data = HealthCheckRequest.model_validate(data)
+        except ValidationError as e:
+            return web.json_response({"error": "Invalid Body", "message": str(e)}, status=400)
+
+        try: 
+            compatible = parse_version(parsed_data.version) in SERVER_API_COMPAT_SPECIFIER \
+                if parsed_data.version else False
+        except Exception as e:
+            return web.json_response({"error": "Invalid Version", "message": str(e)}, status=400)
+
+        return web.json_response({
+            "message": "Server is alive",
+            "version": SERVER_API_VERSION,
+            "compatible": compatible
+        }, status=200 if compatible else 406)
 
 
     async def create_connection_token(self, request: web.Request):
