@@ -29,6 +29,11 @@ class ServerSessionManager:
         for session_id, session in list(self._connections.items()):
             await self.send_to_connection(encoded_message, session)
 
+    async def send_to_connection_id(self, encoded_message: bytes, id: str):
+        if id in self._connections:
+            connection = self._connections[id]
+            await self.send_to_connection(encoded_message, connection)
+
     async def send_to_connection(self, encoded_message: bytes, connection: ServerConnectionSession):
         try:
             await connection.socket.write(encoded_message)

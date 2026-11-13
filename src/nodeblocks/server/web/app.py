@@ -12,11 +12,14 @@ from nodeblocks.server.protocols.providers.scene_provider_protocol import IServe
 from nodeblocks.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeblocks.server.web.manager.scene_session_manager import SceneSessionManager
 from nodeblocks.server.web.manager.server_session_manager import ServerSessionManager
+from nodeblocks.server.web.manager.server_status_manager import ServerStatusManager
 
 
 class NodeServerWebApp(web.Application):
     # TODO: separar algumas coisas aqui em módulos diferentes
     plugin_manager: PluginSpecManager
+    server_status_manager: ServerStatusManager
+
     server_session_manager: ServerSessionManager
     scene_session_manager: SceneSessionManager
     scene_worker_manager: SceneWorkerManager
@@ -34,6 +37,7 @@ class NodeServerWebApp(web.Application):
         self,
         plugin_manager: PluginSpecManager,
         server_session_manager: ServerSessionManager,
+        status_manager: ServerStatusManager,
         scene_session_manager: SceneSessionManager,
         scene_worker_manager: SceneWorkerManager,
 
@@ -46,6 +50,7 @@ class NodeServerWebApp(web.Application):
     ):
         self.plugin_manager = plugin_manager
         self.server_session_manager = server_session_manager
+        self.server_status_manager = status_manager
         self.scene_session_manager = scene_session_manager
         self.scene_worker_manager = scene_worker_manager
         

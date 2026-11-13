@@ -50,6 +50,7 @@ class RemoteHTTPRouter(BaseRouter):
         session = ServerConnectionSession(socket=response, token_payload=token_payload)
         
         self.app.server_session_manager.register_connection(session)
+        await self.app.server_status_manager.send_current_status(session.id)
 
         try:
             while True:

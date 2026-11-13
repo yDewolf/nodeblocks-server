@@ -20,6 +20,12 @@ class ServerStatusManager:
             message=message
         ))
 
+    async def send_current_status(self, session_id: str):
+        message = self.session_manager.encode_event(ServerStatusEvent(
+            status=self.status,
+        ))
+        await self.session_manager.send_to_connection_id(message, session_id)
+
     # TODO: talvez fazer uma queue de status update e sempre enviar o último status
     # assim a gente faz um método síncrono que adiciona à queue e uma task
     # envia o status fazendo broadcast

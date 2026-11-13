@@ -88,6 +88,7 @@ class NodeServer:
         self.app._setup(
             plugin_manager,
             session_manager,
+            self.status_manager,
             SceneSessionManager(),
             SceneWorkerManager(self.plugins_folder, self.extraction_folder, self.scenes_folder),
             permission_policy or FilePermissionPolicy(self.app),
