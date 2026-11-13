@@ -39,6 +39,8 @@ class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
         return perms
 
     async def update_scene_permissions(self, user: UserSession, target_user: str, scene_id: str, perms: ScenePermission):
+        # FIXME: é possível que um usuário atualize a própria permissão:
+        # isso teoricamente pode fazer com que determinadas cenas não tenham um admin mais
         actor_perms = self.app.scene_provider.get_scene_permissions(
             scene_id, user.user_id
         )
