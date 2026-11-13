@@ -196,7 +196,7 @@ class PluginCompiler:
     # Import Resolve methods:
 
     def resolve_node_class(self, package_id: str, relative_class_path: str) -> type[BaseNode]:
-        logger.debug("Resolving node class from module: %s - package_id: ", relative_class_path,  package_id)
+        logger.debug("Resolving node class from module: %s - package_id: %s", relative_class_path,  package_id)
         full_path = self._resolve_import_path(package_id, relative_class_path)
         module_path, class_name = full_path.rsplit(".", 1)
 
