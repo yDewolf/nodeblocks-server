@@ -16,6 +16,7 @@ from nodeblocks.server.protocols.policies.server_session_policy import IServerSe
 from nodeblocks.server.protocols.providers.artifact_provider_protocol import IServerSceneArtifactProvider
 from nodeblocks.server.protocols.providers.metadata_provider_protocol import IServerMetadataProvider
 from nodeblocks.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
+from nodeblocks.server.protocols.web.messages.server.server_events import ServerStatuses
 from nodeblocks.server.providers.metadata_provider import FileMetadataProvider
 from nodeblocks.server.providers.scene_artifact_provider import ServerFileArtifactProvider
 from nodeblocks.server.providers.scene_provider import SceneProvider
@@ -24,6 +25,7 @@ from nodeblocks.server.web.app import NodeServerWebApp
 from nodeblocks.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeblocks.server.web.manager.scene_session_manager import SceneSessionManager
 from nodeblocks.server.web.manager.server_session_manager import ServerSessionManager
+from nodeblocks.server.web.manager.server_status_manager import ServerStatusManager
 from nodeblocks.server.web.policies.dev_policies import DevAuthPolicy, DevSessionPolicy
 from nodeblocks.server.web.policies.scene_permission_policy import FilePermissionPolicy
 from nodeblocks.server.web.routing.base_router import BaseDynamicRouter, BaseRouter
@@ -41,6 +43,8 @@ logger = logging.getLogger("nds.server")
 class NodeServer:
     app: NodeServerWebApp
     routers: list[BaseRouter]
+
+    status_manager: ServerStatusManager
 
     plugins_folder: Path
     extraction_folder: Path
@@ -79,9 +83,11 @@ class NodeServer:
         self.app.on_cleanup.append(self._on_cleanup)
 
         plugin_manager = PluginSpecManager.new()
+        session_manager = ServerSessionManager()
+        self.status_manager = ServerStatusManager(session_manager)
         self.app._setup(
             plugin_manager,
-            ServerSessionManager(),
+            session_manager,
             SceneSessionManager(),
             SceneWorkerManager(self.plugins_folder, self.extraction_folder, self.scenes_folder),
             permission_policy or FilePermissionPolicy(self.app),
@@ -91,7 +97,7 @@ class NodeServer:
             scene_artifact_provider or ServerFileArtifactProvider(self.scenes_folder),
             metadata_provider or FileMetadataProvider(self.plugins_folder, plugin_manager)
         )
-        self.app._setup_plugins(self.plugins_folder, self.extraction_folder)
+        # self.app._setup_plugins(self.plugins_folder, self.extraction_folder)
 
         self.routers = [
             SceneWebsocketRouter(self.app),
@@ -143,11 +149,16 @@ class NodeServer:
 
     async def _on_startup(self, app: web.Application):
         logger.info("Starting Nodeserver on %s:%s ...", self.host, self.port)
+        
         self._tasks.append(
             asyncio.create_task(self._clear_inactive_workers_task(), name="inactivity_tracker")
         )
         await self.app.scene_worker_manager.start()
         await self._start_routers()
+
+        self._tasks.append(
+            asyncio.create_task(self._initialize_plugins_task(), name="plugin_initializer")
+        )
 
     async def _on_cleanup(self, app: web.Application):
         logger.info("Finishing Nodeserver. Cleaning subprocesses...")
@@ -164,6 +175,23 @@ class NodeServer:
         await self.app.scene_worker_manager.stop()
 
     # Tasks and event handlers
+
+    async def _initialize_plugins_task(self):
+        try:
+            logger.info("Initializing plugins in background...")
+            await self.status_manager.update_server_status(ServerStatuses.SETTING_UP)
+            await asyncio.get_running_loop().run_in_executor(
+                None, 
+                self.app._setup_plugins, 
+                self.plugins_folder, 
+                self.extraction_folder
+            )
+            await self.status_manager.update_server_status(ServerStatuses.READY)
+            logger.info("Finished initializing plugins in background. Loaded plugins: %s", ", ".join([plugin_id for plugin_id in self.app.plugin_manager._installed_plugins]))
+
+        except Exception as e:
+            logger.error("Failed to load plugins in background: %s", e)
+            await self.status_manager.update_server_status(ServerStatuses.FAILED, str(e))
 
     async def _clear_inactive_workers_task(self):
         while True:
