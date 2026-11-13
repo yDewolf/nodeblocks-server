@@ -12,7 +12,7 @@ logger = logging.getLogger("nds.server")
 class RemoteHTTPRouter(BaseRouter):
     def _setup_routes(self):
         self.app.router.add_get("/api/health-check", self.health_check)
-        self.app.router.add_get("/api/server/token", self.create_connection_token)
+        self.app.router.add_post("/api/server/token", self.create_connection_token)
         self.app.router.add_get("/api/server/events", self.server_events_handler)
 
         if SERVER_ENV.include_remote_access_routes:
