@@ -5,7 +5,7 @@ from nodeblocks.engine.workers.scene.protocols.scene_worker_commands import Chec
 from nodeblocks.server.protocols.web.messages.client.scene.scene_runtime_commands import CheckExecutionStateCommand, ExecutionShortcutCommand, SceneExecutionCommand, SetExecutionModeCommand, SetExecutionStateCommand, UpdateExecutionConfigs, UpdateTargetNodesCommand
 from nodeblocks.server.protocols.permission.scene_permissions import ScenePermission
 from nodeblocks.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
-from nodeblocks.server.protocols.session_protocols import SceneConnectionSession
+from nodeblocks.server.protocols.session.session_protocols import SceneConnectionSession
 from nodeblocks.server.protocols.web.messages.client.base_client_command import BaseClientCommand
 from nodeblocks.server.protocols.web.messages.client.client_message_enums import ExecutionShortcuts
 from nodeblocks.server.web.exceptions.cmd_handler_exceptions import CmdDispatchNotImplemented

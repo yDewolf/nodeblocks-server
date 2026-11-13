@@ -16,4 +16,6 @@ class ServerEnv(BaseSettings):
 
     include_remote_access_routes: bool = False
 
+    server_event_ping_interval: float = 15.0 # seconds
+
 SERVER_ENV = ServerEnv()

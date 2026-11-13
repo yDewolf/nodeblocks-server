@@ -4,8 +4,10 @@ from nodeblocks.protocols.manifest.node.node_graph import SceneData
 from nodeblocks.server.protocols.permission.scene_permissions import ScenePermission
 from nodeblocks.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeblocks.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
+from nodeblocks.server.protocols.policies.server_session_policy import IServerSessionPolicy
 from nodeblocks.server.protocols.scene_list_protocol import ListedScenePerms
-from nodeblocks.server.protocols.session_protocols import SceneSessionToken, UserSession
+from nodeblocks.server.protocols.session.server_connection import ConnectionToken
+from nodeblocks.server.protocols.session.session_protocols import SceneSessionToken, UserSession
 
 from aiohttp import web
 
@@ -41,3 +43,8 @@ class DevScenePermPolicy(IScenePermPolicy):
 
     async def update_default_scene_perms(self, user: UserSession, scene_id: str, perms: ScenePermission):
         pass
+
+class DevSessionPolicy(IServerSessionPolicy):
+    async def create_token(self, request: web.Request, auth_policy: IAuthPolicy) -> ConnectionToken:
+        return ConnectionToken.new()
+

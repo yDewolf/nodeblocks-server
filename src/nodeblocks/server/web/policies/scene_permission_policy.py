@@ -6,7 +6,7 @@ from nodeblocks.protocols.manifest.node.node_graph import SceneData
 from nodeblocks.server.protocols.permission.scene_permissions import ScenePermission
 from nodeblocks.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeblocks.server.protocols.scene_list_protocol import ListedScenePerms
-from nodeblocks.server.protocols.session_protocols import SceneSessionToken, UserSession
+from nodeblocks.server.protocols.session.session_protocols import SceneSessionToken, UserSession
 from nodeblocks.server.web.exceptions.scene_perm_exceptions import SceneNotFoundError, SceneUnauthorizedActionError
 from nodeblocks.server.web.policies.base_policy import BaseWebPolicy
 

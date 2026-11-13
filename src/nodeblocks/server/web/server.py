@@ -12,6 +12,7 @@ from nodeblocks.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeblocks.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeblocks.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeblocks.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
+from nodeblocks.server.protocols.policies.server_session_policy import IServerSessionPolicy
 from nodeblocks.server.protocols.providers.artifact_provider_protocol import IServerSceneArtifactProvider
 from nodeblocks.server.protocols.providers.metadata_provider_protocol import IServerMetadataProvider
 from nodeblocks.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
@@ -22,7 +23,8 @@ from nodeblocks.server.server_env import SERVER_ENV
 from nodeblocks.server.web.app import NodeServerWebApp
 from nodeblocks.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeblocks.server.web.manager.scene_session_manager import SceneSessionManager
-from nodeblocks.server.web.policies.dev_policies import DevAuthPolicy
+from nodeblocks.server.web.manager.server_session_manager import ServerSessionManager
+from nodeblocks.server.web.policies.dev_policies import DevAuthPolicy, DevSessionPolicy
 from nodeblocks.server.web.policies.scene_permission_policy import FilePermissionPolicy
 from nodeblocks.server.web.routing.base_router import BaseDynamicRouter, BaseRouter
 from nodeblocks.server.web.routing.metadata_http_router import MetadataHTTPRouter
@@ -55,6 +57,7 @@ class NodeServer:
         scenes_folder: Path,
         permission_policy: Optional[IScenePermPolicy] = None,
         auth_policy: Optional[IAuthPolicy] = None,
+        session_policy: Optional[IServerSessionPolicy] = None,
         scene_provider: Optional[IServerSceneProvider] = None,
         scene_artifact_provider: Optional[IServerSceneArtifactProvider] = None,
         metadata_provider: Optional[IServerMetadataProvider] = None,
@@ -78,10 +81,12 @@ class NodeServer:
         plugin_manager = PluginSpecManager.new()
         self.app._setup(
             plugin_manager,
+            ServerSessionManager(),
             SceneSessionManager(),
             SceneWorkerManager(self.plugins_folder, self.extraction_folder, self.scenes_folder),
             permission_policy or FilePermissionPolicy(self.app),
             auth_policy or DevAuthPolicy(),
+            session_policy or DevSessionPolicy(),
             scene_provider or SceneProvider(self.scenes_folder),
             scene_artifact_provider or ServerFileArtifactProvider(self.scenes_folder),
             metadata_provider or FileMetadataProvider(self.plugins_folder, plugin_manager)
@@ -166,7 +171,7 @@ class NodeServer:
                 SceneWorkerExecutionState.STOPPED, min_elapsed_time=SERVER_ENV.scene_worker_grace_period
             )
             for scene_id, timestamp in stopped_scenes:
-                sessions = self.app.session_manager.get_scene_sessions(scene_id)
+                sessions = self.app.scene_session_manager.get_scene_sessions(scene_id)
                 if len(sessions) == 0:
                     logger.info("Killing %s's scene worker because of inactivity. Stopped since %s", scene_id, time.ctime(timestamp))
                     self.app.scene_worker_manager.kill_scene_worker(scene_id)

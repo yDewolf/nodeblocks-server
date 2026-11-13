@@ -4,7 +4,7 @@ from typing import Protocol
 from nodeblocks.protocols.manifest.node.node_graph import SceneData
 from nodeblocks.server.protocols.permission.scene_permissions import ScenePermission
 from nodeblocks.server.protocols.scene_list_protocol import ListedScenePerms
-from nodeblocks.server.protocols.session_protocols import SceneSessionToken, UserSession
+from nodeblocks.server.protocols.session.session_protocols import SceneSessionToken, UserSession
 
 
 class IScenePermPolicy(ABC):

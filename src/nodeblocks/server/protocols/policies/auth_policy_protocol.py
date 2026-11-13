@@ -3,7 +3,7 @@ from typing import Protocol
 
 from aiohttp import web
 
-from nodeblocks.server.protocols.session_protocols import UserSession
+from nodeblocks.server.protocols.session.session_protocols import UserSession
 
 
 class IAuthPolicy(Protocol):
