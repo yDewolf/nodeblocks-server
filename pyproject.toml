@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nodeblocks"
-version = "0.3.0b"
+version = "0.3.0b+server.0.2.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -44,6 +44,7 @@ log_cli_level = "INFO"
 
 [tool.setuptools.packages.find]
 where=["src"]
+
 
 [tool.setuptools.package-data]
 nodeblocks = [

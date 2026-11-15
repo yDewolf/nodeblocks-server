@@ -5,6 +5,7 @@ from aiohttp import web
 from packaging.version import parse as parse_version
 from pydantic import ValidationError
 
+from nodeblocks.engine.engine_version import CURRENT_ENGINE_VERSION
 from nodeblocks.engine.helpers.version_helper import VersionHelper
 from nodeblocks.server.protocols.session.server_connection import ConnectionToken, ServerConnectionSession
 from nodeblocks.server.protocols.web.remote_requests import HealthCheckRequest
@@ -43,6 +44,7 @@ class RemoteHTTPRouter(BaseRouter):
         return web.json_response({
             "message": "Server is alive",
             "version": SERVER_API_VERSION,
+            "engine_version": CURRENT_ENGINE_VERSION,
             "compatible": compatible
         }, status=200 if compatible else 406)
 
