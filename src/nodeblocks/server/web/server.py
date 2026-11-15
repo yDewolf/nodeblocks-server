@@ -17,6 +17,7 @@ from nodeblocks.server.protocols.policies.server_session_policy import IServerSe
 from nodeblocks.server.protocols.providers.artifact_provider_protocol import IServerSceneArtifactProvider
 from nodeblocks.server.protocols.providers.metadata_provider_protocol import IServerMetadataProvider
 from nodeblocks.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
+from nodeblocks.server.protocols.server_tasks import TaskState
 from nodeblocks.server.protocols.web.messages.server.server_events import ServerStatuses
 from nodeblocks.server.providers.metadata_provider import FileMetadataProvider
 from nodeblocks.server.providers.scene_artifact_provider import ServerFileArtifactProvider
@@ -81,7 +82,7 @@ class NodeServer:
         self.extraction_folder = extraction_folder or plugins_folder
         self.scenes_folder = scenes_folder
 
-        self.app = NodeServerWebApp(middlewares=[
+        self.app = NodeServerWebApp(middlewares=middlewares or [
             token_auth_middleware
         ])
         self.app.on_startup.append(self._on_startup)
@@ -155,6 +156,7 @@ class NodeServer:
 
     async def _on_startup(self, app: web.Application):
         logger.info("Starting Nodeserver on %s:%s ...", self.host, self.port)
+        task_id = self.status_manager.register_task("server_startup", "Server Startup", message="Starting server tasks...")
         
         self._tasks.append(
             asyncio.create_task(self._clear_inactive_workers_task(), name="inactivity_tracker")
@@ -162,9 +164,12 @@ class NodeServer:
         await self.app.scene_worker_manager.start()
         await self._start_routers()
 
+        plugin_task_id = self.status_manager.register_task("load_plugins", "Plugins Setup", message="Loading plugins...")
         self._tasks.append(
-            asyncio.create_task(self._initialize_plugins_task(), name="plugin_initializer")
+            asyncio.create_task(self._initialize_plugins_task(plugin_task_id), name="plugin_initializer")
         )
+        
+        await self.status_manager.complete_task(task_id)
 
     async def _on_cleanup(self, app: web.Application):
         logger.info("Finishing Nodeserver. Cleaning subprocesses...")
@@ -182,22 +187,21 @@ class NodeServer:
 
     # Tasks and event handlers
 
-    async def _initialize_plugins_task(self):
+    async def _initialize_plugins_task(self, task_id: str):
         try:
             logger.info("Initializing plugins in background...")
-            await self.status_manager.update_server_status(ServerStatuses.SETTING_UP)
             await asyncio.get_running_loop().run_in_executor(
                 None, 
                 self.app._setup_plugins, 
                 self.plugins_folder, 
                 self.extraction_folder
             )
-            await self.status_manager.update_server_status(ServerStatuses.READY)
+            await self.status_manager.complete_task(task_id, message="Finished loading plugins")
             logger.info("Finished initializing plugins in background. Loaded plugins: %s", ", ".join([plugin_id for plugin_id in self.app.plugin_manager._installed_plugins]))
 
         except Exception as e:
             logger.error("Failed to load plugins in background: %s", e)
-            await self.status_manager.update_server_status(ServerStatuses.FAILED, str(e))
+            await self.status_manager.fail_task(task_id, str(e))
 
     async def _clear_inactive_workers_task(self):
         while True:

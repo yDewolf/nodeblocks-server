@@ -30,7 +30,7 @@ def setup_logging(default_level=logging.INFO):
                 "propagate": False,
             },
             "nds.server": {
-                "level": "INFO",
+                "level": "DEBUG",
                 "handlers": ["consoleHandler"],
                 "propagate": False,
             },
