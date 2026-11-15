@@ -2,7 +2,7 @@ from typing import Optional
 
 from aiohttp import web
 from nodeblocks.server.protocols.permission.scene_permissions import ScenePermission
-from nodeblocks.server.protocols.session_protocols import UserSession
+from nodeblocks.server.protocols.session.session_protocols import UserSession
 from nodeblocks.server.web.routing.base_router import BaseRouter
 
 

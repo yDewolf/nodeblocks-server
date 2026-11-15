@@ -4,7 +4,7 @@ from aiohttp import WSMsgType, web
 from nodeblocks.engine.workers.scene.protocols.scene_worker_protocol import SceneWorkerCommandResponse
 from nodeblocks.server.protocols.permission.scene_permissions import ScenePermission
 from nodeblocks.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
-from nodeblocks.server.protocols.session_protocols import SceneConnectionSession, SceneSessionToken, UserSession
+from nodeblocks.server.protocols.session.session_protocols import SceneConnectionSession, SceneSessionToken, UserSession
 from nodeblocks.server.protocols.web.messages.client.base_client_command import CommandGroups
 from nodeblocks.server.protocols.web.messages.server.mappings.cmd_response_map import get_response_payload
 from nodeblocks.server.protocols.web.messages.server.server_messages import ServerCmdResponse

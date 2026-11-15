@@ -5,7 +5,7 @@ from typing import Optional
 from nodeblocks.engine.workers.scene.protocols.scene_worker_commands import AddConnData, AddConnectionsCommand, AddNodeData, AddNodesCommand, RemoveConnectionsCommand, RemoveNodesCommand, SceneGraphCommand, UpdateNodeData, UpdateNodesCommand
 from nodeblocks.server.protocols.permission.scene_permissions import ScenePermission
 from nodeblocks.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
-from nodeblocks.server.protocols.session_protocols import SceneConnectionSession
+from nodeblocks.server.protocols.session.session_protocols import SceneConnectionSession
 from nodeblocks.server.protocols.web.messages.client.client_message_enums import GraphActionTypes
 from nodeblocks.server.protocols.web.messages.client.graph.client_graph_commands import ClientGraphCommand, ConnGraphCommand, NodeGraphCommand
 from nodeblocks.server.protocols.web.messages.client.graph.graph_action_payloads import ConnActionPayloadAdapter, ConnAddUpdateAction, ConnRemoveAction, NodeActionPayloadAdapter, NodeAddUpdateAction, NodeRemoveAction

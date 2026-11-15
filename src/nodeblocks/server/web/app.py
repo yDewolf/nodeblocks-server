@@ -5,20 +5,27 @@ from nodeblocks.engine.helpers.plugin_subprocess_helper import PluginSubprocessH
 from nodeblocks.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeblocks.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeblocks.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
+from nodeblocks.server.protocols.policies.server_session_policy import IServerSessionPolicy
 from nodeblocks.server.protocols.providers.artifact_provider_protocol import IServerSceneArtifactProvider
 from nodeblocks.server.protocols.providers.metadata_provider_protocol import IMetadataProvider, IServerMetadataProvider
 from nodeblocks.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
 from nodeblocks.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeblocks.server.web.manager.scene_session_manager import SceneSessionManager
+from nodeblocks.server.web.manager.server_session_manager import ServerSessionManager
+from nodeblocks.server.web.manager.server_status_manager import ServerStatusManager
 
 
-class NodeServerWebApp(web.Application):
+class _NodeServerWebAppSetup(web.Application):
     # TODO: separar algumas coisas aqui em módulos diferentes
     plugin_manager: PluginSpecManager
-    session_manager: SceneSessionManager
+    server_status_manager: ServerStatusManager
+
+    server_session_manager: ServerSessionManager
+    scene_session_manager: SceneSessionManager
     scene_worker_manager: SceneWorkerManager
 
     auth_policy: IAuthPolicy
+    session_policy: IServerSessionPolicy
     scene_perm_policy: IScenePermPolicy
     scene_provider: IServerSceneProvider
 
@@ -29,20 +36,27 @@ class NodeServerWebApp(web.Application):
     def _setup(
         self,
         plugin_manager: PluginSpecManager,
-        session_manager: SceneSessionManager,
+        server_session_manager: ServerSessionManager,
+        status_manager: ServerStatusManager,
+        scene_session_manager: SceneSessionManager,
         scene_worker_manager: SceneWorkerManager,
+
         permission_policy: IScenePermPolicy,
         auth_policy: IAuthPolicy,
+        session_policy: IServerSessionPolicy,
         scene_provider: IServerSceneProvider,
         scene_artifact_provider: IServerSceneArtifactProvider,
         metadata_provider: IServerMetadataProvider
     ):
         self.plugin_manager = plugin_manager
-        self.session_manager = session_manager
+        self.server_session_manager = server_session_manager
+        self.server_status_manager = status_manager
+        self.scene_session_manager = scene_session_manager
         self.scene_worker_manager = scene_worker_manager
         
         self.scene_perm_policy = permission_policy
         self.auth_policy = auth_policy
+        self.session_policy = session_policy
         
         self.scene_provider = scene_provider
         self.scene_artifact_provider = scene_artifact_provider
@@ -50,9 +64,21 @@ class NodeServerWebApp(web.Application):
         self._metadata_provider = metadata_provider
 
     def _setup_plugins(self, plugins_folder: Path, extraction_folder: Path):
+        # TODO: implementar state DTOs para permitir que a engine seja usada
+        # para atualizar o estado atual do servidor
         PluginSubprocessHelper.setup_and_load_plugins(plugins_folder, extraction_folder, self.plugin_manager, allow_install=True)
         self._metadata_provider.setup_metadata()
 
     @property
     def metadata_provider(self) -> IMetadataProvider: 
         return self._metadata_provider
+
+
+class NodeServerWebApp(_NodeServerWebAppSetup):
+    public_routes: set[str]
+
+    def _setup(self, plugin_manager: PluginSpecManager, server_session_manager: ServerSessionManager, status_manager: ServerStatusManager, scene_session_manager: SceneSessionManager, scene_worker_manager: SceneWorkerManager, permission_policy: IScenePermPolicy, auth_policy: IAuthPolicy, session_policy: IServerSessionPolicy, scene_provider: IServerSceneProvider, scene_artifact_provider: IServerSceneArtifactProvider, metadata_provider: IServerMetadataProvider):
+        self.public_routes = set()
+        self.middlewares
+        return super()._setup(plugin_manager, server_session_manager, status_manager, scene_session_manager, scene_worker_manager, permission_policy, auth_policy, session_policy, scene_provider, scene_artifact_provider, metadata_provider)
+

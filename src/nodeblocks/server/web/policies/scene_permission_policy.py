@@ -6,7 +6,7 @@ from nodeblocks.protocols.manifest.node.node_graph import SceneData
 from nodeblocks.server.protocols.permission.scene_permissions import ScenePermission
 from nodeblocks.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
 from nodeblocks.server.protocols.scene_list_protocol import ListedScenePerms
-from nodeblocks.server.protocols.session_protocols import SceneSessionToken, UserSession
+from nodeblocks.server.protocols.session.session_protocols import SceneSessionToken, UserSession
 from nodeblocks.server.web.exceptions.scene_perm_exceptions import SceneNotFoundError, SceneUnauthorizedActionError
 from nodeblocks.server.web.policies.base_policy import BaseWebPolicy
 
@@ -39,6 +39,8 @@ class FilePermissionPolicy(BaseWebPolicy, IScenePermPolicy):
         return perms
 
     async def update_scene_permissions(self, user: UserSession, target_user: str, scene_id: str, perms: ScenePermission):
+        # FIXME: é possível que um usuário atualize a própria permissão:
+        # isso teoricamente pode fazer com que determinadas cenas não tenham um admin mais
         actor_perms = self.app.scene_provider.get_scene_permissions(
             scene_id, user.user_id
         )

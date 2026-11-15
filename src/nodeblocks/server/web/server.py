@@ -6,15 +6,19 @@ import time
 from typing import Optional
 
 from aiohttp import web
+from aiohttp.typedefs import Middleware
 import aiohttp_cors
 
 from nodeblocks.engine.plugins.plugin_spec_manager import PluginSpecManager
 from nodeblocks.engine.workers.scene.protocols.scene_worker_states import SceneWorkerExecutionState
 from nodeblocks.server.protocols.policies.auth_policy_protocol import IAuthPolicy
 from nodeblocks.server.protocols.policies.sceneperm_policy_protocol import IScenePermPolicy
+from nodeblocks.server.protocols.policies.server_session_policy import IServerSessionPolicy
 from nodeblocks.server.protocols.providers.artifact_provider_protocol import IServerSceneArtifactProvider
 from nodeblocks.server.protocols.providers.metadata_provider_protocol import IServerMetadataProvider
 from nodeblocks.server.protocols.providers.scene_provider_protocol import IServerSceneProvider
+from nodeblocks.server.protocols.server_tasks import TaskState
+from nodeblocks.server.protocols.web.messages.server.server_events import ServerStatuses
 from nodeblocks.server.providers.metadata_provider import FileMetadataProvider
 from nodeblocks.server.providers.scene_artifact_provider import ServerFileArtifactProvider
 from nodeblocks.server.providers.scene_provider import SceneProvider
@@ -22,7 +26,10 @@ from nodeblocks.server.server_env import SERVER_ENV
 from nodeblocks.server.web.app import NodeServerWebApp
 from nodeblocks.server.web.manager.scene_worker_manager import SceneWorkerManager
 from nodeblocks.server.web.manager.scene_session_manager import SceneSessionManager
-from nodeblocks.server.web.policies.dev_policies import DevAuthPolicy
+from nodeblocks.server.web.manager.server_session_manager import ServerSessionManager
+from nodeblocks.server.web.manager.server_status_manager import ServerStatusManager
+from nodeblocks.server.web.middlewares.auth_middlewares import token_auth_middleware
+from nodeblocks.server.web.policies.dev_policies import DevAuthPolicy, DevSessionPolicy
 from nodeblocks.server.web.policies.scene_permission_policy import FilePermissionPolicy
 from nodeblocks.server.web.routing.base_router import BaseDynamicRouter, BaseRouter
 from nodeblocks.server.web.routing.metadata_http_router import MetadataHTTPRouter
@@ -40,6 +47,8 @@ class NodeServer:
     app: NodeServerWebApp
     routers: list[BaseRouter]
 
+    status_manager: ServerStatusManager
+
     plugins_folder: Path
     extraction_folder: Path
     scenes_folder: Path
@@ -55,11 +64,13 @@ class NodeServer:
         scenes_folder: Path,
         permission_policy: Optional[IScenePermPolicy] = None,
         auth_policy: Optional[IAuthPolicy] = None,
+        session_policy: Optional[IServerSessionPolicy] = None,
         scene_provider: Optional[IServerSceneProvider] = None,
         scene_artifact_provider: Optional[IServerSceneArtifactProvider] = None,
         metadata_provider: Optional[IServerMetadataProvider] = None,
         extra_routers: list[BaseRouter] = [],
         extraction_folder: Optional[Path] = None,
+        middlewares: Optional[list[Middleware]] = None,
         host: str = "127.0.0.1",
         port: int = 8080
     ) -> None:
@@ -71,22 +82,29 @@ class NodeServer:
         self.extraction_folder = extraction_folder or plugins_folder
         self.scenes_folder = scenes_folder
 
-        self.app = NodeServerWebApp()
+        self.app = NodeServerWebApp(middlewares=middlewares or [
+            token_auth_middleware
+        ])
         self.app.on_startup.append(self._on_startup)
         self.app.on_cleanup.append(self._on_cleanup)
 
         plugin_manager = PluginSpecManager.new()
+        session_manager = ServerSessionManager()
+        self.status_manager = ServerStatusManager(session_manager)
         self.app._setup(
             plugin_manager,
+            session_manager,
+            self.status_manager,
             SceneSessionManager(),
             SceneWorkerManager(self.plugins_folder, self.extraction_folder, self.scenes_folder),
             permission_policy or FilePermissionPolicy(self.app),
             auth_policy or DevAuthPolicy(),
+            session_policy or DevSessionPolicy(),
             scene_provider or SceneProvider(self.scenes_folder),
             scene_artifact_provider or ServerFileArtifactProvider(self.scenes_folder),
             metadata_provider or FileMetadataProvider(self.plugins_folder, plugin_manager)
         )
-        self.app._setup_plugins(self.plugins_folder, self.extraction_folder)
+        # self.app._setup_plugins(self.plugins_folder, self.extraction_folder)
 
         self.routers = [
             SceneWebsocketRouter(self.app),
@@ -124,7 +142,7 @@ class NodeServer:
             "*": aiohttp_cors.ResourceOptions(
                 allow_credentials=True,
                 expose_headers="*",
-                allow_headers="*",
+                allow_headers=("Authorization", "Content-Type"),
                 allow_methods="*",
             )
         })
@@ -138,11 +156,20 @@ class NodeServer:
 
     async def _on_startup(self, app: web.Application):
         logger.info("Starting Nodeserver on %s:%s ...", self.host, self.port)
+        task_id = self.status_manager.register_task("server_startup", "Server Startup", message="Starting server tasks...")
+        
         self._tasks.append(
             asyncio.create_task(self._clear_inactive_workers_task(), name="inactivity_tracker")
         )
         await self.app.scene_worker_manager.start()
         await self._start_routers()
+
+        plugin_task_id = self.status_manager.register_task("load_plugins", "Plugins Setup", message="Loading plugins...")
+        self._tasks.append(
+            asyncio.create_task(self._initialize_plugins_task(plugin_task_id), name="plugin_initializer")
+        )
+        
+        await self.status_manager.complete_task(task_id)
 
     async def _on_cleanup(self, app: web.Application):
         logger.info("Finishing Nodeserver. Cleaning subprocesses...")
@@ -160,13 +187,29 @@ class NodeServer:
 
     # Tasks and event handlers
 
+    async def _initialize_plugins_task(self, task_id: str):
+        try:
+            logger.info("Initializing plugins in background...")
+            await asyncio.get_running_loop().run_in_executor(
+                None, 
+                self.app._setup_plugins, 
+                self.plugins_folder, 
+                self.extraction_folder
+            )
+            await self.status_manager.complete_task(task_id, message="Finished loading plugins")
+            logger.info("Finished initializing plugins in background. Loaded plugins: %s", ", ".join([plugin_id for plugin_id in self.app.plugin_manager._installed_plugins]))
+
+        except Exception as e:
+            logger.error("Failed to load plugins in background: %s", e)
+            await self.status_manager.fail_task(task_id, str(e))
+
     async def _clear_inactive_workers_task(self):
         while True:
             stopped_scenes = self.app.scene_worker_manager.get_scene_id_by_state(
                 SceneWorkerExecutionState.STOPPED, min_elapsed_time=SERVER_ENV.scene_worker_grace_period
             )
             for scene_id, timestamp in stopped_scenes:
-                sessions = self.app.session_manager.get_scene_sessions(scene_id)
+                sessions = self.app.scene_session_manager.get_scene_sessions(scene_id)
                 if len(sessions) == 0:
                     logger.info("Killing %s's scene worker because of inactivity. Stopped since %s", scene_id, time.ctime(timestamp))
                     self.app.scene_worker_manager.kill_scene_worker(scene_id)

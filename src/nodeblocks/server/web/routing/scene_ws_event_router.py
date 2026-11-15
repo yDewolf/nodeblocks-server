@@ -58,7 +58,7 @@ class SceneWebsocketEventRouter(BaseDynamicRouter):
     async def _dispatch_immediate(self, scene_id: str, event: IPCSceneWorkerEvent):
         message = self._wrap_event(event)
         if message:
-            await self.app.session_manager.broadcast_to_scene(
+            await self.app.scene_session_manager.broadcast_to_scene(
                 scene_id=scene_id,
                 message=message
             )
@@ -81,7 +81,7 @@ class SceneWebsocketEventRouter(BaseDynamicRouter):
                         if message: batch_messages.append(message)
 
                     if len(batch_messages) == 1:
-                        await self.app.session_manager.broadcast_to_scene(
+                        await self.app.scene_session_manager.broadcast_to_scene(
                             scene_id=scene_id,
                             message=batch_messages[0],
                         )
@@ -90,7 +90,7 @@ class SceneWebsocketEventRouter(BaseDynamicRouter):
                             messages=batch_messages
                         )
 
-                        await self.app.session_manager.broadcast_to_scene(
+                        await self.app.scene_session_manager.broadcast_to_scene(
                             scene_id=scene_id,
                             message=batch_packet
                         )

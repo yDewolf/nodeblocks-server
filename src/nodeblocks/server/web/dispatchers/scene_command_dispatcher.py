@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from nodeblocks.engine.workers.scene.protocols.scene_worker_commands import IPCSceneWorkerCommand
 from nodeblocks.engine.workers.scene.protocols.scene_worker_protocol import SceneWorkerCommandResponse
 from nodeblocks.server.protocols.providers.scene_worker_manager_protocol import ISceneWorkerManager
-from nodeblocks.server.protocols.session_protocols import SceneConnectionSession
+from nodeblocks.server.protocols.session.session_protocols import SceneConnectionSession
 from nodeblocks.server.protocols.web.messages.client.base_client_command import CommandGroups
 from nodeblocks.server.protocols.web.messages.client.client_message_wrapper import ClientCommandAdapter, ClientCommandPayloadAdapter, ClientMessageWrapper
 from nodeblocks.server.web.exceptions.cmd_dispatcher_exceptions import UnauthorizedCommandUsage, UnimplementedCommandError, UnknownCommandError

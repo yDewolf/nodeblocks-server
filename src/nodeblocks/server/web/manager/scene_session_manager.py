@@ -2,7 +2,7 @@
 import logging
 from typing import Optional
 
-from nodeblocks.server.protocols.session_protocols import SceneConnectionSession
+from nodeblocks.server.protocols.session.session_protocols import SceneConnectionSession
 from nodeblocks.server.protocols.utils.server_msg_protoc_serialize import serialize_server_msg_to_bytes
 from nodeblocks.server.protocols.web.messages.server.server_messages import BaseServerMessage
 

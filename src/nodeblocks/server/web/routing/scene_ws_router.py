@@ -5,7 +5,7 @@ from aiohttp import web
 
 from nodeblocks.engine.workers.protocols.general_worker_protocol import EvtWorkerReady, WorkerEvent
 from nodeblocks.engine.workers.scene.protocols.scene_worker_protocol import IPCSceneWorkerEvent, SceneWorkerCommandResponse, WorkerEngineEventWrapper
-from nodeblocks.server.protocols.session_protocols import SceneSessionToken, UserSession
+from nodeblocks.server.protocols.session.session_protocols import SceneSessionToken, UserSession
 from nodeblocks.server.protocols.web.messages.server.mappings.worker_event_map import get_worker_event_payload
 from nodeblocks.server.protocols.web.messages.server.server_messages import ServerCmdResponse, BaseServerMessage, ServerEngineEventWrapper, ServerWorkerEventWrapper
 from nodeblocks.server.protocols.web.messages.server.mappings.cmd_response_map import get_response_payload
@@ -25,13 +25,13 @@ class SceneWebsocketRouter(BaseRouter):
         self.scene_websocket_handler = SceneWebsocketHandler(
             self.app.scene_perm_policy, 
             self.app.scene_worker_manager, 
-            self.app.session_manager,
+            self.app.scene_session_manager,
             
         )
 
     # Called by NodeServer
     def _setup_routes(self):
-        self.app.router.add_get("/ws/scene", self.handle_scene_websocket)
+        self.public_route(self.app.router.add_get("/ws/scene", self.handle_scene_websocket))
 
     async def handle_scene_websocket(self, request: web.Request) -> web.StreamResponse:
         token_str = request.query.get("token")
