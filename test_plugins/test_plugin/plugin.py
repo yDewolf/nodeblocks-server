@@ -7,7 +7,7 @@ class TestPlugin(Plugin):
     manifest = PluginManifest(
         package_id="test_plugin",
         plugin_version="0.0.0",
-        plugin_api_version=CURRENT_PLUGIN_API_VERSION,
-        engine_version=CURRENT_ENGINE_VERSION,
+        plugin_api_version=f">={CURRENT_PLUGIN_API_VERSION}",
+        engine_version=f">={CURRENT_ENGINE_VERSION}",
         dependencies={"core": ">=0.2.0"}
     )
