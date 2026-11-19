@@ -11,13 +11,28 @@ logger = logging.getLogger("nds.server")
 
 class ServerStatusManager:
     session_manager: ServerSessionManager
-    status: ServerStatuses
+    _status: ServerStatuses
     _tasks: dict[str, ServerTask]
+
+    _ready_event: asyncio.Event
 
     def __init__(self, session_manager: ServerSessionManager) -> None:
         self.session_manager = session_manager
-        self.status = ServerStatuses.INITIALIZING
+        self._status = ServerStatuses.INITIALIZING
+        self._ready_event = asyncio.Event()
         self._tasks = {}
+
+    @property
+    def status(self): return self._status
+    
+    @status.setter
+    def status(self, status: ServerStatuses):
+        if self._status != status:
+            self._status = status
+            logger.debug("Server status updated to: %s", self._status)
+
+            if status == ServerStatuses.READY:
+                self._mark_as_ready()
 
     # -- methods
 
@@ -60,6 +75,17 @@ class ServerStatusManager:
             message=message
         ))
 
+
+    async def wait_until_ready(self, timeout: float = 30.0) -> bool:
+        if self._ready_event.is_set():
+            return True
+
+        try:
+            await asyncio.wait_for(self._ready_event.wait(), timeout=timeout)
+            return True
+        except asyncio.TimeoutError:
+            return False
+
     # -- helpers
 
     async def complete_task(self, task_id: str, message: Optional[str] = None) -> None:
@@ -69,6 +95,14 @@ class ServerStatusManager:
     async def fail_task(self, task_id: str, message: Optional[str] = None) -> None:
         await self.update_task(task_id, TaskState.FAILED, message)
         logger.info("%s task failed.", task_id)
+
+    def _mark_as_ready(self):
+        self._status = ServerStatuses.READY
+        self._ready_event.set()
+
+    def reset_ready(self):
+        self._status = ServerStatuses.INITIALIZING
+        self._ready_event.clear()
 
     # -- utils
 
@@ -86,12 +120,7 @@ class ServerStatusManager:
                 active_message = task.message or f"Running: {task.name}"
 
         if new_status != self.status:
-            self.status = new_status
-            await self.session_manager.broadcast(ServerStatusEvent(
-                status=self.status,
-                message=active_message
-            ))
-            logger.debug("Server status updated to: %s", self.status)
+            await self.update_server_status(new_status, message=active_message)
 
     def _calculate_global_status(self) -> ServerStatuses:
         states = [task.state for task in self._tasks.values()]

@@ -76,9 +76,11 @@ class _NodeServerWebAppSetup(web.Application):
 
 class NodeServerWebApp(_NodeServerWebAppSetup):
     public_routes: set[str]
+    ready_bypass: set[str]
 
     def _setup(self, plugin_manager: PluginSpecManager, server_session_manager: ServerSessionManager, status_manager: ServerStatusManager, scene_session_manager: SceneSessionManager, scene_worker_manager: SceneWorkerManager, permission_policy: IScenePermPolicy, auth_policy: IAuthPolicy, session_policy: IServerSessionPolicy, scene_provider: IServerSceneProvider, scene_artifact_provider: IServerSceneArtifactProvider, metadata_provider: IServerMetadataProvider):
         self.public_routes = set()
+        self.ready_bypass = set()
         self.middlewares
         return super()._setup(plugin_manager, server_session_manager, status_manager, scene_session_manager, scene_worker_manager, permission_policy, auth_policy, session_policy, scene_provider, scene_artifact_provider, metadata_provider)
 

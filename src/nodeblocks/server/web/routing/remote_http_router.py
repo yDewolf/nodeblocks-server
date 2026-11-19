@@ -17,9 +17,13 @@ logger = logging.getLogger("nds.server")
 
 class RemoteHTTPRouter(BaseRouter):
     def _setup_routes(self):
-        self.public_route(self.app.router.add_post("/api/health-check", self.health_check))
-        self.public_route(self.app.router.add_post("/api/server/token", self.create_connection_token))
-        self.public_route(self.app.router.add_get("/api/server/events", self.server_events_handler))
+        routes = self.public_routes([
+            self.app.router.add_post("/api/health-check", self.health_check),
+            self.app.router.add_post("/api/server/token", self.create_connection_token),
+            self.app.router.add_get("/api/server/events", self.server_events_handler)
+        ])
+        
+        self.bypass_ready(routes)
 
         if SERVER_ENV.include_remote_access_routes:
             logger.warning("Including remote access routes. Beware that this is experimental and should be used only in local environments.")

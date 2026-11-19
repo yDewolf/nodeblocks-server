@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import asyncio
 import logging
+from typing import Union
 
 from aiohttp import web
 
@@ -17,12 +18,26 @@ class BaseRouter(ABC):
     def _setup_routes(self):
         pass
 
-    def public_route(self, route: web.AbstractRoute) -> web.AbstractRoute:
-        info = route.get_info()
-        path = info.get("path") or info.get("formatter")
+    def public_routes(self, routes: Union[web.AbstractRoute, list[web.AbstractRoute]]) -> Union[web.AbstractRoute, list[web.AbstractRoute]]:
+        for route in routes if isinstance(routes, list) else [routes]:
+            info = route.get_info()
+            path = info.get("path") or info.get("formatter")
+            
+            if path: self.app.public_routes.add(path)
+            else: logger.warning("Failed to add route '%s' to public routes", info)
         
-        if path: self.app.public_routes.add(path)
-        return route
+        return routes
+
+    def bypass_ready(self, routes: Union[web.AbstractRoute, list[web.AbstractRoute]]) -> Union[web.AbstractRoute, list[web.AbstractRoute]]:
+        for route in routes if isinstance(routes, list) else [routes]:
+            info = route.get_info()
+            path = info.get("path") or info.get("formatter")
+            
+            if path: self.app.ready_bypass.add(path)
+            else: logger.warning("Failed to add route '%s' to bypass ready routes", info)
+        
+        return routes
+
 
 class BaseDynamicRouter(BaseRouter, ABC):
     _tasks: list[asyncio.Task]

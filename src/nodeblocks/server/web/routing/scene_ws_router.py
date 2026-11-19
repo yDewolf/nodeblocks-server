@@ -31,7 +31,7 @@ class SceneWebsocketRouter(BaseRouter):
 
     # Called by NodeServer
     def _setup_routes(self):
-        self.public_route(self.app.router.add_get("/ws/scene", self.handle_scene_websocket))
+        self.public_routes(self.app.router.add_get("/ws/scene", self.handle_scene_websocket))
 
     async def handle_scene_websocket(self, request: web.Request) -> web.StreamResponse:
         token_str = request.query.get("token")

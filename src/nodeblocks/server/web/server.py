@@ -29,6 +29,7 @@ from nodeblocks.server.web.manager.scene_session_manager import SceneSessionMana
 from nodeblocks.server.web.manager.server_session_manager import ServerSessionManager
 from nodeblocks.server.web.manager.server_status_manager import ServerStatusManager
 from nodeblocks.server.web.middlewares.auth_middlewares import token_auth_middleware
+from nodeblocks.server.web.middlewares.init_gate_middlewares import ready_gate_middleware
 from nodeblocks.server.web.policies.dev_policies import DevAuthPolicy, DevSessionPolicy
 from nodeblocks.server.web.policies.scene_permission_policy import FilePermissionPolicy
 from nodeblocks.server.web.routing.base_router import BaseDynamicRouter, BaseRouter
@@ -83,6 +84,7 @@ class NodeServer:
         self.scenes_folder = scenes_folder
 
         self.app = NodeServerWebApp(middlewares=middlewares or [
+            ready_gate_middleware,
             token_auth_middleware
         ])
         self.app.on_startup.append(self._on_startup)
