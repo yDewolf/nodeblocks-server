@@ -21,7 +21,7 @@ class RunServerCMD(CLICommand):
         parser.add_argument(
             "--extraction",
             type=Path,
-            default=Path("./plugins"),
+            default=None,
             help="Path to extracted plugins folder.",
         )
         parser.add_argument(
@@ -30,15 +30,22 @@ class RunServerCMD(CLICommand):
             default=Path("./scenes"),
             help="Path to scenes storage folder.",
         )
+        parser.add_argument(
+            "--log",
+            type=int,
+            default=logging.INFO,
+            help="Server default logging level",
+        )
         return parser
 
     @classmethod
     def run(cls, args: Namespace):
         from nodeblocks.server.web.server import NodeServer
-        setup_logging(default_level=logging.DEBUG)
+        log_level: int = int(args.log)
+        setup_logging(default_level=log_level)
 
         plugins_folder: Path = args.plugins.resolve()
-        extraction_folder: Path = args.extraction.resolve()
+        extraction_folder: Path = (args.extraction or plugins_folder).resolve()
         scenes_folder: Path = args.scenes.resolve()
 
         scenes_folder.mkdir(parents=True, exist_ok=True)
