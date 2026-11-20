@@ -16,6 +16,6 @@ class EngineEnv(BaseSettings):
     plugin_libs_folder: Path = platformdirs.user_data_path("nodeblocks")
 
     core_plugins: list[str] = ["core"]
-    logging_level: int = logging.DEBUG
+    logging_level: int = logging.INFO
 
 ENGINE_ENV = EngineEnv()
