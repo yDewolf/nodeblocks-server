@@ -71,8 +71,8 @@ class MultipleStatusCommandResponse(IPCCommandResponse):
         
     @classmethod
     def new(cls, statuses: dict[str, CmdStatus], message: str | None = None, request_id: str | None = None):
-        status_values = statuses.values()
-        has_success = IPCCommandStatus.SUCCESSFUL in status_values
+        status_values = [status.status for id, status in statuses.items()]
+        has_success = (IPCCommandStatus.SUCCESSFUL in status_values) or len(status_values) == 0
         has_failed = IPCCommandStatus.FAILED in status_values
 
         if has_success and not has_failed:

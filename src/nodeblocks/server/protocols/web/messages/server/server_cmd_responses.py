@@ -9,10 +9,12 @@ from nodeblocks.engine.workers.scene.protocols.scene_worker_states import SceneW
 
 class ServerResponseTypes(StrEnum):
     SCENE_WORKER = "scene_worker" # generic
+    MULTIPLE_STATUS = "multiple_status"
     
     EXECUTION_STATE_SYNC = "execution_state_sync"
     ADD_NODE = "add_node"
     ADD_CONN = "add_conn"
+    
     GET_SCENE_DATA = "get_scene_data"
     SAVE_SCENE = "save_scene"
 
@@ -49,11 +51,17 @@ class SaveScenePayload(CommandResponsePayload):
     type: Literal[ServerResponseTypes.SAVE_SCENE] = ServerResponseTypes.SAVE_SCENE
 
 
+class MultipleStatusResponsePayload(GenericCommandPayload):
+    type: Literal[ServerResponseTypes.MULTIPLE_STATUS] = ServerResponseTypes.MULTIPLE_STATUS
+    statuses: dict[str, CmdStatus]
+
+
 CmdResponsePayloadAdapter = Annotated[
     Union[
         GenericCommandPayload, ExecutionStateSyncPayload, 
         AddConnPayload, AddNodePayload, 
-        GetSceneDataPayload, SaveScenePayload
+        GetSceneDataPayload, SaveScenePayload,
+        MultipleStatusResponsePayload
     ],
     Field(discriminator="type")
 ]

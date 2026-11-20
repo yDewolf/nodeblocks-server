@@ -1,9 +1,9 @@
 from nodeblocks.generated.server import command_responses_pb2
 from nodeblocks.protocols.utils.scene_data_protoc_serialize import serialize_scene_data
-from nodeblocks.server.protocols.web.messages.server.server_cmd_responses import AddConnPayload, AddNodePayload, ExecutionStateSyncPayload, GetSceneDataPayload
+from nodeblocks.server.protocols.web.messages.server.server_cmd_responses import AddConnPayload, AddNodePayload, CmdResponsePayloadAdapter, ExecutionStateSyncPayload, GenericCommandPayload, GetSceneDataPayload, MultipleStatusResponsePayload, SaveScenePayload
 
 
-def serialize_cmd_response(response_payload, cmd_uid: str, status_obj) -> command_responses_pb2.ServerCmdResponseMessage:
+def serialize_cmd_response(response_payload: CmdResponsePayloadAdapter, cmd_uid: str, status_obj) -> command_responses_pb2.ServerCmdResponseMessage:
     proto_cmd = command_responses_pb2.ServerCmdResponseMessage()
     proto_cmd.type = str(response_payload.type)
     proto_cmd.request_id = cmd_uid
@@ -33,5 +33,17 @@ def serialize_cmd_response(response_payload, cmd_uid: str, status_obj) -> comman
             proto_cmd.get_scene_data.scene_data.CopyFrom(
                 serialize_scene_data(response_payload.scene_data)
             )
+    
+    elif isinstance(response_payload, MultipleStatusResponsePayload):
+        if response_payload.statuses:
+            for key, cmd_status in response_payload.statuses.items():
+                proto_status = proto_cmd.multiple_status.statuses[key]
+                proto_status.status = str(cmd_status.status)
+                proto_status.message = cmd_status.message or ""
+        else:
+            proto_cmd.multiple_status.SetInParent()
 
+    elif isinstance(response_payload, GenericCommandPayload):
+        proto_cmd.generic.SetInParent()
+    
     return proto_cmd

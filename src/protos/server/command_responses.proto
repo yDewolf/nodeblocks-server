@@ -19,6 +19,7 @@ message ServerCmdResponseMessage {
         AddConnPayloadMessage add_conn = 6;
         GetSceneDataPayloadMessage get_scene_data = 7;
         GenericCommandPayloadMessage generic = 8;
+        MultipleStatusResponsePayloadMessage multiple_status = 9;
     }
 }
 
@@ -43,3 +44,6 @@ message GetSceneDataPayloadMessage {
 
 message GenericCommandPayloadMessage {}
 
+message MultipleStatusResponsePayloadMessage {
+    map<string, CmdStatusMessage> statuses = 1;
+}
