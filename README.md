@@ -55,6 +55,9 @@ Em `path` coloque o caminho da sua pasta de plugins (crie uma se não tiver) da 
   - `--plugins {caminho/dos/plugins}`: `./plugins` por padrão;
   - `--extraction {caminho/para/plugins/extraidos}`: `./plugins` por padrão;
   - `--scenes {caminho/para/guardar/cenas}`: `./scenes` por padrão;
+  - `--log {log_level}`: 'INFO' by default;
+  - `--host`: `127.0.0.1` by default;
+  - `--port`: `8080` by default.
 - `nodeblocks build:protos` -> compila os arquivos .proto usados para a definição de protobuffers
 - `nodeblocks plugin:create <path>` -> cria a estrutura de pastas de um plugin.
   - `path`: Caminho da pasta onde o plugin deve ser criado. O caminho final seria: `path/package_id/plugin.py`

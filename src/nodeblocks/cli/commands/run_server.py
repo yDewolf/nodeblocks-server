@@ -32,21 +32,36 @@ class RunServerCMD(CLICommand):
         )
         parser.add_argument(
             "--log",
-            type=int,
-            default=logging.INFO,
+            type=str,
+            default="INFO",
             help="Server default logging level",
+        )
+        parser.add_argument(
+            "--host",
+            type=str,
+            default="127.0.0.1",
+            help="Server host",
+        )
+        parser.add_argument(
+            "--port",
+            type=int,
+            default=8080,
+            help="Server host",
         )
         return parser
 
     @classmethod
     def run(cls, args: Namespace):
         from nodeblocks.server.web.server import NodeServer
-        log_level: int = int(args.log)
+        log_level: str = args.log
         setup_logging(default_level=log_level)
 
         plugins_folder: Path = args.plugins.resolve()
         extraction_folder: Path = (args.extraction or plugins_folder).resolve()
         scenes_folder: Path = args.scenes.resolve()
+
+        host: str = args.host
+        port: int = int(args.port)
 
         scenes_folder.mkdir(parents=True, exist_ok=True)
         plugins_folder.mkdir(parents=True, exist_ok=True)
@@ -59,6 +74,8 @@ class RunServerCMD(CLICommand):
         server = NodeServer(
             plugins_folder=plugins_folder,
             scenes_folder=scenes_folder,
-            extraction_folder=extraction_folder
+            extraction_folder=extraction_folder,
+            host=host,
+            port=port
         )
         server.run()
