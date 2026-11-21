@@ -203,11 +203,7 @@ class MetadataFileUtils:
         if os.path.exists(header_file):
             highest_mtime = max(highest_mtime, os.path.getmtime(header_file))
 
-        subdatatype_paths: list[str] = []
-        with os.scandir(datatypes_path) as entries:
-            subdatatype_paths += [entry.path for entry in entries]
-
-        directory_lookup = [nodes_path] + subdatatype_paths
+        directory_lookup = [nodes_path, datatypes_path]
         for path in directory_lookup:
             if not os.path.exists(path):
                 continue

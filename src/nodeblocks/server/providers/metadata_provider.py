@@ -21,10 +21,21 @@ class FileMetadataProvider(IServerMetadataProvider):
         self.plugin_manager = plugin_manager
         self.metadata_gen = PluginMetadataGenerator()
 
+    # FIXME: teoricamente o server tem que ser reiniciado para o hash ser atualizado
+    # FIXME: na real como a gente faz save_package_metadata, a cada request o server
+    # atualiza o hash e salva os metadados de novo
     def setup_metadata(self):
         for manifest in self.plugin_manager.get_all_loaded_packages().values():
             metadata = self.metadata_gen.generate_from_manifest(manifest)
             self.save_package_metadata(metadata)
+
+            try:
+                metadata_folder = self.get_plugin_metadata_folder(manifest.package_id)
+                loaded_meta = MetadataFileUtils.load_from_folder(metadata_folder)
+                MetadataFileUtils.update_content_hash(loaded_meta, metadata_folder)
+            except Exception:
+                pass
+
 
     def package_has_metadata(self, package_id: str) -> bool:
         return self.plugin_manager.is_package_loaded(package_id)
@@ -65,6 +76,13 @@ class FileMetadataProvider(IServerMetadataProvider):
         metadata_folder.mkdir(exist_ok=True)
 
         MetadataFileUtils.save_to_folder(metadata, metadata_folder)
+        MetadataFileUtils.update_content_hash(metadata, metadata_folder)
+
+    def needs_update(self, provided_hash: str, package_id: str) -> bool:
+        metadata_folder = self.get_plugin_metadata_folder(package_id)
+        header = _MetadataLoad._load_header(metadata_folder)
+        return header.content_hash != provided_hash
+
 
     # Utils
 

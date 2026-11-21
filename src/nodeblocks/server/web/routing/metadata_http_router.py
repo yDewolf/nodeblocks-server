@@ -1,3 +1,5 @@
+from typing import Optional
+
 from aiohttp import web
 
 from nodeblocks.server.web.app import NodeServerWebApp
@@ -15,27 +17,24 @@ class MetadataHTTPRouter(BaseRouter):
         self.app.router.add_get("/api/plugins/{package_id}/metadata/datatypes", self.get_plugin_datatypes_meta)
     
     async def get_plugin_metadata(self, request: web.Request):
-        package_id = request.match_info["package_id"]
-        if not self.app.metadata_provider.package_has_metadata(package_id):
-            return web.HTTPNotFound()
-        
+        package_id, httpReturn = self.parse_metadata_request(request)
+        if httpReturn: return httpReturn
+
         metadata = self.app.metadata_provider.get_metadata_manifest(package_id)
         return web.json_response(metadata.model_dump(mode="json"))
 
 
     async def get_plugin_metadata_header(self, request: web.Request):
-        package_id = request.match_info["package_id"]
-        if not self.app.metadata_provider.package_has_metadata(package_id):
-            return web.HTTPNotFound()
+        package_id, httpReturn = self.parse_metadata_request(request)
+        if httpReturn: return httpReturn
         
         manifest = self.app.metadata_provider.get_metadata_header(package_id)
         return web.json_response(manifest.model_dump(mode="json"))
 
 
     async def get_plugin_nodetypes_meta(self, request: web.Request):
-        package_id = request.match_info["package_id"]
-        if not self.app.metadata_provider.package_has_metadata(package_id):
-            return web.HTTPNotFound()
+        package_id, httpReturn = self.parse_metadata_request(request)
+        if httpReturn: return httpReturn
         
         node_id = request.query.get("node_id", None)
         node_types = self.app.metadata_provider.get_metadata_nodetypes(package_id)
@@ -52,9 +51,8 @@ class MetadataHTTPRouter(BaseRouter):
         })
 
     async def get_plugin_datatypes_meta(self, request: web.Request):
-        package_id = request.match_info["package_id"]
-        if not self.app.metadata_provider.package_has_metadata(package_id):
-            return web.HTTPNotFound()
+        package_id, httpReturn = self.parse_metadata_request(request)
+        if httpReturn: return httpReturn
         
         datatype_id = request.query.get("datatype_id", None)
         datatypes = self.app.metadata_provider.get_metadata_datatypes(package_id)
@@ -70,3 +68,15 @@ class MetadataHTTPRouter(BaseRouter):
             for id, metadata in datatypes.items() 
         })
 
+
+    def parse_metadata_request(self, request: web.Request) -> tuple[str, Optional[web.HTTPException]]:
+        package_id = request.match_info["package_id"]
+        if not self.app.metadata_provider.package_has_metadata(package_id):
+            return (package_id, web.HTTPNotFound())
+
+        provided_hash = request.query.get("hash")
+        if provided_hash:
+            if not self.app.metadata_provider.needs_update(provided_hash, package_id):
+                return (package_id, web.HTTPNotModified())
+
+        return (package_id, None)

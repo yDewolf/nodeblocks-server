@@ -25,6 +25,10 @@ class IMetadataProvider(Protocol):
     @abstractmethod
     def save_package_metadata(self, metadata: MetadataManifest): pass
 
+
+    @abstractmethod
+    def needs_update(self, provided_hash: str, package_id: str) -> bool: pass
+
 class IServerMetadataProvider(IMetadataProvider):
     @abstractmethod
     def setup_metadata(self): pass
