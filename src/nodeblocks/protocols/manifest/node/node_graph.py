@@ -22,7 +22,7 @@ class NodePathData(BaseModel):
             return value
 
         if isinstance(value, str):
-            pattern = r"nodes:([a-z0-9-]+):slots:([^:\s]+)"
+            pattern = r"nodes:([^:\s]+):slots:([^:\s]+)"
             match = re.search(pattern, value, re.IGNORECASE)
             if match:
                 return cls(node_id=match.group(1), slot_id=match.group(2))

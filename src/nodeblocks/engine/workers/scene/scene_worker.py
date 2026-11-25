@@ -182,12 +182,14 @@ class SceneWorker(ISceneWorker):
         return None
 
     def _create_new_scene(self, scene_data: SceneData) -> NodeScene:
-        return NodeSceneHelper.create_new_scene(
+        scene = NodeSceneHelper.create_new_scene(
             self.plugin_manager, 
             self.node_provider, self.scene_data_provider, self.scene_state_provider, 
             scene_data, 
             scene_id=self.scene_id
         )
+        scene.load_saved_state()
+        return scene
 
     # Tasks
     async def cleanup(self):

@@ -96,11 +96,9 @@ class NodeScene:
             if logic_state:
                 self.state_provider._save_node_state(uid, logic_state)
 
-        self.scene_data_provider.save_scene_data(
-            self.as_scene_data()
-        )
+        scene_data = self.as_scene_data()
+        self.scene_data_provider.save_scene_data(scene_data)
 
-    # FIXME: isso aqui não é chamado em nenhum lugar
     def load_saved_state(self):
         scene_data = self.scene_data_provider.load_scene_data(self.scene_id)
         if not scene_data:
